@@ -7,10 +7,11 @@ The file "muscle_synergies.R" contains a script that allows to extract muscle sy
 - [Download RStudio](https://rstudio.com/products/rstudio/download/) and install
 - Branch this project or, if you are new to GitHub, you can have a look at [this tutorial page](https://r-bio.github.io/intro-git-rstudio/) or manually download the script "muscle_synergies.R" and the two data sets "CYCLE_TIMES.RData" and "RAW_EMG.RData"
 - Open "muscle_synergies.R" with RStudio
-- Make sure that the plot pane is active
 - Run the script with "Source" or "Ctrl+Shift+S" (Windows and Linux users) or "Cmd+Shift+S" (Mac users).
 
 The code produces some diagnostic messages that will guide you through the process of:
 - Raw EMG filtering and normalization (STEP 1/3)
 - Muscle synergies extraction via NMF (STEP 2/3)
 - Muscle synergies classification via NMF (STEP 3/3).
+
+There will be plots, so make sure that the plot pane in RStudio is selected.
