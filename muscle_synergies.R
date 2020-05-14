@@ -53,9 +53,9 @@ if (sum(grepl("^cl$", clusters))==0) {
 }
 
 # STEP 1 - Raw data processing ----
-message("\n##############################",
-        "\n STEP 1 - Raw data processing",
-        "\n##############################")
+message("\n################################",
+        "\n STEP 1/3 - Raw data processing",
+        "\n################################")
 
 test <- length(list.files(data_path, pattern="^FILT_EMG.RData$"))
 
@@ -298,9 +298,9 @@ if (qq=="n") {
 }
 
 # STEP 2 - Synergies extraction ----
-message("\n###############################",
-        "\n STEP 2 - Synergies extraction",
-        "\n###############################")
+message("\n#################################",
+        "\n STEP 2/3 - Synergies extraction",
+        "\n#################################")
 
 test <- length(list.files(data_path, pattern="^SYNS.RData$"))
 
@@ -497,9 +497,9 @@ if (qq=="n") {
 }
 
 # STEP 3 - Classification of muscle synergies ----
-message("\n#############################################",
-        "\n STEP 3 - Classification of muscle synergies",
-        "\n#############################################")
+message("\n###############################################",
+        "\n STEP 3/3 - Classification of muscle synergies",
+        "\n###############################################")
 
 test <- length(list.files(data_path, pattern="^SYNS_classified.RData$"))
 
