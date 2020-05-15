@@ -54,7 +54,7 @@ if (sum(grepl("^cl$", clusters))==0) {
 
 # STEP 1 - Raw data processing ----
 message("\n################################",
-        "\n STEP 1/3 - Raw data processing",
+        "\n STEP 1/4 - Raw data processing",
         "\n################################")
 
 test <- length(list.files(data_path, pattern="^FILT_EMG.RData$"))
@@ -299,7 +299,7 @@ if (qq=="n") {
 
 # STEP 2 - Synergies extraction ----
 message("\n#################################",
-        "\n STEP 2/3 - Synergies extraction",
+        "\n STEP 2/4 - Synergies extraction",
         "\n#################################")
 
 test <- length(list.files(data_path, pattern="^SYNS.RData$"))
@@ -498,7 +498,7 @@ if (qq=="n") {
 
 # STEP 3 - Classification of muscle synergies ----
 message("\n###############################################",
-        "\n STEP 3/3 - Classification of muscle synergies",
+        "\n STEP 3/4 - Classification of muscle synergies",
         "\n###############################################")
 
 test <- length(list.files(data_path, pattern="^SYNS_classified.RData$"))
@@ -521,10 +521,6 @@ if (qq=="n") {
     if (all(!grepl("^SYNS$", objects()))) {
         load(paste0(data_path, "SYNS.RData"))
     }
-    
-    # Create "Graphs\\NMF" folder if it does not exist
-    path_for_graphs <- paste0(graph_path, "NMF\\")
-    dir.create(path_for_graphs, showWarnings=F)
     
     # Get concatenated primitives
     SYNS_H <- lapply(SYNS, function(x) x$H)
@@ -1094,3 +1090,149 @@ if (qq=="n") {
     save(SYNS_classified, file=paste0(data_path, "SYNS_classified.RData"))
     message("...done!")
 }
+
+# STEP 4 - Plot muslce synergies ----
+message("\n##################################",
+        "\n STEP 4/4 - Plot muscle synergies",
+        "\n##################################")
+
+if (all(!grepl("^SYNS_classified$", objects()))) {
+    load(paste0(data_path, "SYNS_classified.RData"))
+}
+
+# Create "Graphs\\NMF" folder if it does not exist
+path_for_graphs <- paste0(graph_path, "NMF\\")
+dir.create(path_for_graphs, showWarnings=F)
+
+# Define graphs export parameters and aesthetics
+ty       <- "png"   # File type
+wi       <- 2000    # Width in pixels
+he       <- 2000    # Height in pixels
+mte      <- 36      # Main title text size
+re       <- 280       # Resolution in dpi
+s_line   <- 0.9       # Line size
+s_min    <- 0.05
+c_back   <- "white"   # Background colour
+c_bord   <- "gray"    # Background border colour
+c_min    <- "gray"    # Minor gridlines colour
+c_bars   <- "black"
+c_signal <- "black"
+c_thin   <- "grey70"
+
+# Get concatenated primitives
+SYNS_H <- lapply(SYNS_classified, function(x) x$H)
+SYNS_W <- lapply(SYNS_classified, function(x) x$W)
+
+# Take mean of gait cycles and remove combined
+SYNS_H_all <- lapply(SYNS_H, function(x) {
+    points <- max(x$time)
+    x$time <- NULL
+    x[, grep("combined", colnames(x))] <- NULL
+    temp   <- matrix(0, nrow=points, ncol=ncol(x))
+    
+    colnames(temp) <- colnames(x)
+    
+    for (cc in seq(1, (1+nrow(x)-points), points)) {
+        temp <- temp+x[c(cc:(cc+points-1)), ]
+    }
+    
+    # Divide by the number of cycles to get mean value
+    temp <- temp/(nrow(x)/points)
+    
+    # Minimum subtraction
+    x <- apply(temp, 2, function(y) y/(max(y)))
+    # Amplitude normalisation
+    x <- apply(temp, 2, function(y) y/(max(y)))
+    
+    return(data.frame(x))
+})
+
+# Remove combined
+SYNS_W_all <- lapply(SYNS_W, function(x) {
+    x <- data.frame(x)
+    x[, grep("combined", colnames(x))] <- NULL
+    return(data.frame(x))
+})
+
+max_syns   <- max(unlist(lapply(SYNS_W_all, function(x) ncol(x))))
+conditions <- gsub("^SYNS_P[0-9]+_", "", names(SYNS_W_all))
+conditions <- unique(gsub("_[0-9]+$", "", conditions))
+
+pb <- progress_bar$new(format="[:bar]:percent ETA: :eta",
+                       total=length(conditions), clear=F, width=50)
+
+message("\nExporting graphs...\n")
+
+for (condition in conditions) {
+    
+    pb$tick()
+    
+    Cairo(file=paste0(path_for_graphs, "SYNS_", condition, ".", ty),
+          type=ty, width=wi, height=he, pointsize=mte, dpi=re)
+    
+    SYNS_H_temp <- SYNS_H_all[grep(paste0("_", condition, "_"), names(SYNS_H_all))]
+    SYNS_W_temp <- SYNS_W_all[grep(paste0("_", condition, "_"), names(SYNS_W_all))]
+    
+    varlist <- list()
+    
+    for (syn in 1:max_syns) {
+        
+        # Select relevant synergies
+        data_H <- lapply(SYNS_H_temp, function(x) t(x[, grep(paste0("^Syn", syn), colnames(x))]))
+        data_W <- lapply(SYNS_W_temp, function(x) {
+            muscles <- rownames(x)
+            x <- x[, grep(paste0("^Syn", syn), colnames(x))]
+            if (length(x)>0) names(x) <- muscles
+            t(x)
+        })
+        
+        # Put primitives in a single data frame
+        data_H <- plyr::ldply(data_H, data.frame, .id="trial")
+        # Put modules in a single data frame
+        data_W <- plyr::ldply(data_W, data.frame, .id="trial")
+        
+        data_H_av <- data.frame(time=c(1:(ncol(data_H)-1)),
+                                value=colMeans(data_H[, -1]))
+        data_H_sd <- data.frame(time=c(1:(ncol(data_H)-1)),
+                                ymin=data_H_av$value-apply(data_H[, -1], 2, sd),
+                                ymax=data_H_av$value+apply(data_H[, -1], 2, sd))
+        
+        data_W_av <- data.frame(value=colMeans(data_W[, -1]))
+        data_W_av <- data.frame(muscle=rownames(data_W_av),
+                                data_W_av)
+        
+        data_H <- reshape2::melt(data_H, id="trial")
+        data_W <- reshape2::melt(data_W, id="trial")
+        
+        temp_H <- ggplot() + ggtitle(paste0("Syn", syn)) + ylim(-0.2, 1.2) +
+            geom_ribbon(data=data_H_sd, aes(x=time, ymin=ymin, ymax=ymax), fill="grey80") +
+            # geom_line(data=data_H, aes(x=variable, y=value, group=trial), colour=c_signal, size=0.3*s_line) +
+            geom_line(data=data_H_av, aes(x=time, y=value), colour=c_signal, size=s_line) +
+            theme(axis.title.x=element_blank(), axis.title.y=element_blank()) +
+            theme(panel.background=element_rect(fill=c_back, colour=c_bord)) +
+            theme(panel.grid.minor=element_line(colour=c_min, size=s_min)) +
+            theme(legend.position="none")
+        
+        temp_W <- ggplot() + ylim(0, 1) +
+            geom_hline(yintercept=c(0.25, 0.5, 0.75, 1), size=0.5*s_line, color=c_thin) +
+            geom_bar(data=data_W_av, aes(x=muscle, y=value), fill=c_bars, alpha=0.3, stat="identity") +
+            scale_x_discrete(limits=data_W_av$muscle) +
+            geom_jitter(data=data_W, aes(x=variable, y=value), fill=c_bars, width=0.1, size=0.1) +
+            theme(axis.title.x=element_blank(), axis.title.y=element_blank(),
+                  axis.text.y=element_blank(),
+                  panel.background=element_blank(), panel.border=element_blank(),
+                  panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
+                  axis.ticks=element_blank(), legend.position="none")
+        
+        varname_H <- paste0("r", 2*syn)
+        varname_W <- paste0("r", 2*syn-1)
+        varlist[[2*syn]] <- assign(varname_H, temp_H)
+        varlist[[2*syn-1]] <- assign(varname_W, temp_W)
+    }
+    
+    suppressWarnings(grid.arrange(grobs=varlist, nrow=max_syns, ncol=2,
+                                  top=(paste0("Synergies - ", condition))))
+    
+    dev.off() # Close Cairo export
+}
+message("\n...done!")
