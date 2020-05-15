@@ -10,11 +10,12 @@ The file "muscle_synergies.R" contains a script that allows to extract muscle sy
 - Run the script with "Source" or "Ctrl+Shift+S" (Windows and Linux users) or "Cmd+Shift+S" (Mac users).
 
 The code produces some diagnostic messages that will guide you through the process of:
-- Raw EMG filtering and normalization (STEP 1/3)
-- Muscle synergies extraction via NMF (STEP 2/3)
-- Muscle synergies classification via NMF (STEP 3/3).
+- Raw EMG filtering and normalization (STEP 1/4)
+- Muscle synergies extraction via NMF (STEP 2/4)
+- Muscle synergies classification via NMF (STEP 3/4)
+- Plotting the classified synergies (STEP 4/4).
 
-There will be plots, so make sure that the plot pane in RStudio is selected.
+There will be plots within RStudio, so make sure that the plot pane in RStudio is selected.
 
 # References
 1. Santuz, A. et al. [Neuromotor Dynamics of Human Locomotion in Challenging Settings](https://www.cell.com/iscience/fulltext/S2589-0042(19)30542-5). iScience 23, 100796 (2020).
