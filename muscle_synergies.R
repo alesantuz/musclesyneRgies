@@ -22,8 +22,8 @@ pkgs_list <- c("tcltk",
                "benchmarkme",
                "plyr")
 
-pkgs_new <- pkgs_list[!(pkgs_list %in% installed.packages()[,"Package"])]
-if(length(pkgs_new)) install.packages(pkgs_new)
+pkgs_new <- pkgs_list[!(pkgs_list %in% installed.packages()[, "Package"])]
+if (length(pkgs_new)) install.packages(pkgs_new)
 
 # Load required packages
 lapply(pkgs_list, library, character.only=T)
@@ -49,7 +49,7 @@ if (sum(grepl("^cl$", clusters))==0) {
     # Decide how many processor threads have to be excluded from the cluster
     # It is a good idea to leave at least one free, so that the machine can be used during computation
     free_cores <- 1
-    cl <- makeCluster(detectCores()-free_cores)
+    cl <- parallel::makeCluster(detectCores()-free_cores)
 }
 
 # STEP 1 - Raw data processing ----
@@ -97,8 +97,9 @@ if (qq=="n") {
     FILT_EMG   <- vector("list", length(RAW_EMG))
     list_names <- character(length=length(RAW_EMG))
     
-    pb <- progress_bar$new(format="[:bar]:percent ETA: :eta",
-                           total=length(RAW_EMG), clear=F, width=50)
+    # Progress bar
+    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
+                                     total=length(RAW_EMG), clear=F, width=50)
     
     message("\nApply filters")
     
@@ -119,7 +120,7 @@ if (qq=="n") {
         if (is.na(label)) {
             emg_data <- RAW_EMG[[ii]]
         } else {
-            emg_data <- RAW_EMG[[ii]][1:(label-1),]
+            emg_data <- RAW_EMG[[ii]][1:(label-1), ]
         }
         
         # Demean EMG (subtract mean value from the signal to eliminate offset shifts)
@@ -127,39 +128,34 @@ if (qq=="n") {
         emg_data <- apply(emg_data, 2, function(x) x-mean(x, na.rm=T))
         emg_data[, "time"] <- time
         
-        emg_data_temp <- emg_data
-        
-        # Filtering
         # EMG system acquisition frequency [Hz]
         freq <- round(1/(emg_data[, "time"][3]-emg_data[, "time"][2]), 0)
+        
+        # Filtering
+        emg_data_filt <- emg_data
+        emg_data_filt <- emg_data_filt[, colnames(emg_data_filt)!="time"]
         
         # High-pass IIR (Infinite Impulse Response) Butterworth zero-phase filter design
         # Critical frequencies must be between 0 and 1, where 1 is the Nyquist frequency
         # "filtfilt" is for zero-phase filtering
         HPfn <- HPf/(freq/2)                          # Normalise by the Nyquist frequency (f/2)
-        HP   <- butter(HPo, HPfn, type="high")
-        for (kk in 2:ncol(emg_data_temp)) {
-            emg_data_temp[,kk] <- filtfilt(HP, emg_data_temp[,kk])
-        }
+        HP   <- signal::butter(HPo, HPfn, type="high")
+        emg_data_filt <- apply(emg_data_filt, 2, function(x) signal::filtfilt(HP, x))
         
         # Full-wave rectification
-        emg_data_temp <- abs(emg_data_temp)
+        emg_data_filt <- abs(emg_data_filt)
         
         # Low-pass IIR (Infinite Impulse Response) Butterworth zero-phase filter design
         # Critical frequencies must be between 0 and 1, where 1 is the Nyquist frequency
         # "filtfilt" is for zero-phase filtering
         LPfn <- LPf/(freq/2)                            # Normalise by the Nyquist frequency (f/2)
-        LP   <- butter(LPo, LPfn, type="low")
-        for (kk in 2:ncol(emg_data_temp)) {
-            emg_data_temp[,kk] <- filtfilt(LP, emg_data_temp[,kk])
-        }
+        LP   <- signal::butter(LPo, LPfn, type="low")
+        emg_data_filt <- apply(emg_data_filt, 2, function(x) signal::filtfilt(LP, x))
         
-        emg_data_temp[emg_data_temp<0] <- 0             # Set negative values to zero
-        temp <- emg_data_temp
+        emg_data_filt[emg_data_filt<0] <- 0             # Set negative values to zero
+        temp <- emg_data_filt
         temp[temp==0] <- Inf
-        emg_data_temp[emg_data_temp==0] <- min(temp)    # Set the zeros to the smallest nonzero entry
-        
-        emg_data_filt <- emg_data_temp[,-1]
+        emg_data_filt[emg_data_filt==0] <- min(temp)    # Set the zeros to the smallest nonzero entry
         
         # Subtract the minimum
         emg_data_filt <- apply(emg_data_filt, 2, function(x) x-min(x))
@@ -185,7 +181,7 @@ if (qq=="n") {
             } else {
                 t1 <- which(emg_time>=t1)[1]
                 t2 <- which(emg_time>=t2)[1]
-                temp  <- emg_data_filt[t1:t2,]
+                temp  <- emg_data_filt[t1:t2, ]
             }
             
             # Check if there is data
@@ -196,8 +192,8 @@ if (qq=="n") {
             
             # Interpolate each channel to (points/2) points
             for (kk in 1:ncol(temp)) {
-                temp1 <- as.data.frame(approx(temp[,kk], method="linear", n=points/2))
-                temp1 <- temp1[,2]
+                temp1 <- as.data.frame(approx(temp[, kk], method="linear", n=points/2))
+                temp1 <- temp1[, 2]
                 temp2 <- cbind(temp2, temp1)
             }
             colnames(temp2) <- muscles
@@ -213,7 +209,7 @@ if (qq=="n") {
             } else {
                 t1 <- which(emg_time>=t1)[1]
                 t2 <- which(emg_time>=t2)[1]
-                temp  <- emg_data_filt[t1:t2,]
+                temp  <- emg_data_filt[t1:t2, ]
             }
             
             # Check if there is data
@@ -222,8 +218,8 @@ if (qq=="n") {
             temp3 <- data.frame(matrix(1:points, nrow=points/2, ncol=1))
             # Interpolate each channel to (points/2) points
             for (kk in 1:ncol(temp)) {
-                temp1 <- as.data.frame(approx(temp[,kk], method="linear", n=points/2))
-                temp1 <- temp1[,2]
+                temp1 <- as.data.frame(approx(temp[, kk], method="linear", n=points/2))
+                temp1 <- temp1[, 2]
                 temp3 <- cbind(temp3, temp1)
             }
             colnames(temp3) <- muscles
@@ -258,8 +254,8 @@ if (qq=="n") {
         emg_data_av[, "time"] <- c(1:points)
         
         # Make graphs
-        Cairo(file=paste0(path_for_graphs, "temp.png", sep=""),
-              width=1500, height=1500, pointsize=12, dpi=120)
+        Cairo::Cairo(file=paste0(path_for_graphs, "temp.png", sep=""),
+                     width=1500, height=1500, pointsize=12, dpi=120)
         varlist <- list()
         
         for (mm in 2:length(muscles)) {
@@ -279,10 +275,10 @@ if (qq=="n") {
             varlist[[mm-1]] <- assign(varname, temp)
         }
         
-        grid.arrange(grobs=varlist,
-                     nrow=ceiling(sqrt(length(varlist))),
-                     ncol=ceiling(sqrt(length(varlist))),
-                     top=(paste0(trial, sep="")))
+        gridExtra::grid.arrange(grobs=varlist,
+                                nrow=ceiling(sqrt(length(varlist))),
+                                ncol=ceiling(sqrt(length(varlist))),
+                                top=(paste0(trial, sep="")))
         
         dev.off() # Close Cairo export
         
@@ -326,42 +322,42 @@ if (qq=="n") {
     ll <- length(FILT_EMG)
     
     # Define non-negative matrix factorisation function
-    synsNMFn <- function (V, ...)
+    synsNMFn <- function(V)
     {
-        R2_target <- 0.01                           # Convergence criterion (percent of the R2 value)
-        R2_cross  <- numeric()                      # R2 values for cross validation and syns number asessment
-        W_list    <- list()                         # To save factorisation W matrices (synergies)
-        H_list    <- list()                         # To save factorisation H matrices (primitives)
-        Vr_list   <- list()                         # To save factorisation Vr matrices (reconstructed signals)
-        iters     <- numeric()                      # To save the iterations number
+        R2_target <- 0.01                       # Convergence criterion (percent of the R2 value)
+        R2_cross  <- numeric()                  # R2 values for cross validation and syns number assessment
+        W_list    <- list()                     # To save factorisation W matrices (synergies)
+        H_list    <- list()                     # To save factorisation H matrices (primitives)
+        Vr_list   <- list()                     # To save factorisation Vr matrices (reconstructed signals)
+        iters     <- numeric()                  # To save the iterations number
         
         # Original matrix
         time   <- V$time
         V$time <- NULL
-        V      <- as.matrix(t(V))                   # Needs to be transposed for NMF
-        V[V<0] <- 0                                 # Set negative values to zero
+        V      <- as.matrix(t(V))               # Needs to be transposed for NMF
+        V[V<0] <- 0                             # Set negative values to zero
         temp   <- V
         temp[temp==0] <- Inf
-        V[V==0] <- min(temp, na.rm=T)               # Set the zeros to the smallest nonzero entry in V
+        V[V==0] <- min(temp, na.rm=T)           # Set the zeros to the smallest non-zero entry in V
         
-        m <- nrow(V)                                # Number of muscles
-        n <- ncol(V)                                # Number of time points
+        m <- nrow(V)                            # Number of muscles
+        n <- ncol(V)                            # Number of time points
         
-        max_syns <- m-round(m/4, 0)                 # Max number of syns is m-(m/4)
+        max_syns <- m-round(m/4, 0)             # Max number of syns
         
-        for (r in 1:max_syns) {                     # Run NMF with different initial conditions (syns num.)
-            R2_choice <- numeric()                  # Collect the R2 values for each syn and choose the max
+        for (r in 1:max_syns) {                 # Run NMF with different initial conditions (syns num.)
+            R2_choice <- numeric()              # Collect the R2 values for each syn and choose the max
             
             # Preallocate to then choose those with highest R2
             W_temp  <- list()
             H_temp  <- list()
             Vr_temp <- list()
             
-            for (j in 1:5) {                        # Run NMF 5 times for each syn and choose best run
+            for (j in 1:5) {                    # Run NMF 5 times for each syn and choose best run
                 # To save error values
-                R2  <- numeric()                    # 1st cost function (R squared)
-                SST <- numeric()                    # Total sum of squares
-                RSS <- numeric()                    # Residual sum of squares or min. reconstr. error
+                R2  <- numeric()                # 1st cost function (R squared)
+                SST <- numeric()                # Total sum of squares
+                RSS <- numeric()                # Residual sum of squares or min. reconstr. error
                 
                 # Initialise iterations and define max number of iterations
                 iter     <- 1
@@ -373,7 +369,7 @@ if (qq=="n") {
                 # Iteration zero
                 H   <- H * (t(W) %*% V) / (t(W) %*% W %*% H)
                 W   <- W * (V %*% t(H)) / (W %*% H %*% t(H))
-                Vr  <- W %*% H                       # Reconstructed matrix
+                Vr  <- W %*% H                  # Reconstructed matrix
                 RSS <- sum((V-Vr)^2)
                 SST <- sum((V-mean(V))^2)
                 R2[iter] <- 1-(RSS/SST)
@@ -382,9 +378,9 @@ if (qq=="n") {
                 # The cost function doesn't change. Impose ||W||2 = 1 and normalise H accordingly.
                 # ||W||2, also called L2,1 norm or l2-norm, is a sum of Euclidean norm of columns.
                 for (kk in 1:r) {
-                    norm   <- sqrt(sum(W[,kk]^2))
-                    W[,kk] <- W[,kk]/norm
-                    H[kk,] <- H[kk,]*norm
+                    norm    <- sqrt(sum(W[, kk]^2))
+                    W[, kk] <- W[, kk]/norm
+                    H[kk, ] <- H[kk, ]*norm
                 }
                 
                 # Start iterations for NMF convergence
@@ -398,9 +394,9 @@ if (qq=="n") {
                     
                     # l2-norm normalisation
                     for (kk in 1:r) {
-                        norm   <- sqrt(sum(W[,kk]^2))
-                        W[,kk] <- W[,kk]/norm
-                        H[kk,] <- H[kk,]*norm
+                        norm    <- sqrt(sum(W[, kk]^2))
+                        W[, kk] <- W[, kk]/norm
+                        H[kk, ] <- H[kk, ]*norm
                     }
                     
                     # Check if the increase of R2 in the last 20 iterations is less than the target
@@ -428,8 +424,8 @@ if (qq=="n") {
         }
         
         # Choose the minimum number of synergies using the R2 criterion
-        MSE  <- 100                                 # Initialise the Mean Squared Error (MSE)
-        iter <- 0                                   # Initialise iterations
+        MSE  <- 100                             # Initialise the Mean Squared Error (MSE)
+        iter <- 0                               # Initialise iterations
         while (MSE>1e-04) {
             iter <- iter+1
             if (iter==r-1) {
@@ -441,7 +437,7 @@ if (qq=="n") {
             nn      <- nrow(R2_interp)
             lin     <- lm(R2_values~synergies, R2_interp)
             lin_pts <- lin[[5]]
-            MSE     <- sum((lin_pts-R2_interp[,2])^2)/nn
+            MSE     <- sum((lin_pts-R2_interp[, 2])^2)/nn
         }
         syns_R2 <- iter
         
@@ -467,7 +463,7 @@ if (qq=="n") {
         # "synsNMFn" is the core function for extracting synergies
         # and here it is applied in parallel to speed up computation
         # At the moment there is no progress bar for parLapply
-        SYNS <- parLapply(cl, FILT_EMG, synsNMFn)
+        SYNS <- parallel::parLapply(cl, FILT_EMG, synsNMFn)
     })
     
     names(SYNS) <- gsub("FILT_EMG", "SYNS", names(SYNS))
@@ -536,15 +532,15 @@ if (qq=="n") {
     message("\nCalculating mean gait cycles...")
     
     # Progress bar
-    pb <- progress_bar$new(format="[:bar]:percent ETA: :eta",
-                           total=length(SYNS_H), clear=F, width=50)
+    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
+                                     total=length(SYNS_H), clear=F, width=50)
     
     SYNS_H <- lapply(SYNS_H, function(x) {
         
         pb$tick()
         
         x$time <- NULL
-        temp <- matrix(0, nrow=points, ncol=ncol(x))
+        temp   <- matrix(0, nrow=points, ncol=ncol(x))
         
         for (cc in seq(1, (1+nrow(x)-points), points)) {
             temp <- temp+x[c(cc:(cc+points-1)), ]
@@ -564,8 +560,8 @@ if (qq=="n") {
     message("\nPutting primitives in a single data frame...")
     
     # Progress bar
-    pb <- progress_bar$new(format="[:bar]:percent ETA: :eta",
-                           total=length(SYNS_H), clear=F, width=50)
+    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
+                                     total=length(SYNS_H), clear=F, width=50)
     
     data <- plyr::ldply(SYNS_H, function(x) {
         pb$tick()
@@ -612,7 +608,7 @@ if (qq=="n") {
     
     # Classify primitives with NMF
     # Define NMF function
-    NMFn <- function(V, ...)
+    NMFn <- function(V)
     {
         R2_target  <- 0.01                      # Convergence criterion (percent of the R2 value)
         R2_cross   <- numeric()                 # R2 values for cross validation and syns number asessment
@@ -620,32 +616,32 @@ if (qq=="n") {
         H_list     <- list()                    # To save factorisation H matrices (primitives)
         
         # Original matrix
-        V <- as.matrix(V)
+        V      <- as.matrix(V)
         V[V<0] <- 0                             # Set negative values to zero
-        temp <- V
+        temp   <- V
         temp[temp==0] <- Inf
-        V[V==0] <- min(temp, na.rm=T)           # Set the zeros to the smallest nonzero entry in V
+        V[V==0] <- min(temp, na.rm=T)           # Set the zeros to the smallest non-zero entry in V
         
         m <- nrow(V)                            # Number of primitives in the data-set
         n <- ncol(V)                            # Number of time points
         
         # Determine the maximum number of synergies by searching for the maximum rank
         temp <- as.numeric(gsub(".*\\_Syn", "", rownames(V)))
-        # Add one because interpolation must happen with at elast two points
+        # Add one because interpolation must happen with at least two points
         max_syns <- max(temp)+1
         
         for (r in 1:max_syns) {                 # Run NMF with different initial conditions (syns num.)
-            R2_choice  <- numeric()             # Collect the R2 values for each syn and choose the max
+            R2_choice <- numeric()              # Collect the R2 values for each syn and choose the max
             
             # Preallocate to then choose those with highest R2
-            W_temp  <- list()
-            H_temp  <- list()
+            W_temp <- list()
+            H_temp <- list()
             
-            for (j in 1:5) {                       # Run NMF 10 times for each syn and choose best run
+            for (j in 1:5) {                    # Run NMF 5 times for each syn and choose best run
                 # To save error values
-                R2  <- numeric()                    # 1st cost function (R squared)
-                SST <- numeric()                    # Total sum of squares
-                RSS <- numeric()                    # Residual sum of squares or min. reconstr. error
+                R2  <- numeric()                # 1st cost function (R squared)
+                SST <- numeric()                # Total sum of squares
+                RSS <- numeric()                # Residual sum of squares or min. reconstr. error
                 
                 # Initialise iterations and define max number of iterations
                 iter     <- 1
@@ -657,7 +653,7 @@ if (qq=="n") {
                 # Iteration zero
                 H   <- H * (t(W) %*% V) / (t(W) %*% W %*% H)
                 W   <- W * (V %*% t(H)) / (W %*% H %*% t(H))
-                Vr  <- W %*% H                       # Reconstructed matrix
+                Vr  <- W %*% H                  # Reconstructed matrix
                 RSS <- sum((V-Vr)^2)
                 SST <- sum((V-mean(V))^2)
                 R2[iter] <- 1-(RSS/SST)
@@ -666,9 +662,9 @@ if (qq=="n") {
                 # The cost function doesn't change. Impose ||W||2 = 1 and normalise H accordingly.
                 # ||W||2, also called L2,1 norm or l2-norm, is a sum of Euclidean norm of columns.
                 for (kk in 1:r) {
-                    norm   <- sqrt(sum(W[,kk]^2))
-                    W[,kk] <- W[,kk]/norm
-                    H[kk,] <- H[kk,]*norm
+                    norm    <- sqrt(sum(W[, kk]^2))
+                    W[, kk] <- W[, kk]/norm
+                    H[kk, ] <- H[kk, ]*norm
                 }
                 
                 # Start iterations for NMF convergence
@@ -682,9 +678,9 @@ if (qq=="n") {
                     
                     # l2-norm normalisation
                     for (kk in 1:r) {
-                        norm   <- sqrt(sum(W[,kk]^2))
-                        W[,kk] <- W[,kk]/norm
-                        H[kk,] <- H[kk,]*norm
+                        norm    <- sqrt(sum(W[, kk]^2))
+                        W[, kk] <- W[, kk]/norm
+                        H[kk, ] <- H[kk, ]*norm
                     }
                     
                     # Check if the increase of R2 in the last 20 iterations is less than the target
@@ -721,7 +717,7 @@ if (qq=="n") {
             n <- nrow(R2_interp)
             linear <- lm(R2_values ~ synergies, R2_interp)
             linear_points <- linear[[5]]
-            MSE <- sum((linear_points-R2_interp[,2])^2)/n
+            MSE <- sum((linear_points-R2_interp[, 2])^2)/n
         }
         syns_R2 <- iter
         
@@ -750,7 +746,7 @@ if (qq=="n") {
     message("\nClassify motor primitives using NMF\nStarted on ", sys_date, " at ", sys_time)
     
     tictoc <- system.time({
-        data_NMF <- parLapply(cl, all_trials, NMFn)
+        data_NMF <- parallel::parLapply(cl, all_trials, NMFn)
     })
     
     ll <- sum(unlist(lapply(data_NMF, function(x) nrow(x$W))))
@@ -775,7 +771,7 @@ if (qq=="n") {
             "\n- - - - - - - - - - - - - - - - - - - - - - -")
     
     # Define center of activity (CoA)
-    CoA <- function(x, ...) {
+    CoA <- function(x) {
         points <- length(x)
         
         AA <- numeric()
@@ -1158,8 +1154,9 @@ max_syns   <- max(unlist(lapply(SYNS_W_all, function(x) ncol(x))))
 conditions <- gsub("^SYNS_P[0-9]+_", "", names(SYNS_W_all))
 conditions <- unique(gsub("_[0-9]+$", "", conditions))
 
-pb <- progress_bar$new(format="[:bar]:percent ETA: :eta",
-                       total=length(conditions), clear=F, width=50)
+# Progress bar
+pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
+                                 total=length(conditions), clear=F, width=50)
 
 message("\nExporting graphs...\n")
 
