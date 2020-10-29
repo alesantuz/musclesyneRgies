@@ -1227,8 +1227,8 @@ for (condition in conditions) {
         varlist[[2*syn-1]] <- assign(varname_W, temp_W)
     }
     
-    suppressWarnings(grid.arrange(grobs=varlist, nrow=max_syns, ncol=2,
-                                  top=(paste0("Synergies - ", condition))))
+    suppressWarnings(gridExtra::grid.arrange(grobs=varlist, nrow=max_syns, ncol=2,
+                                             top=(paste0("Synergies - ", condition))))
     
     dev.off() # Close Cairo export
 }
