@@ -5,9 +5,9 @@ The file "muscle_synergies.R" contains a script that allows to extract muscle sy
 # Quick instructions to run the script
 - [Download R](https://cran.r-project.org/mirrors.html) and install
 - [Download RStudio](https://rstudio.com/products/rstudio/download/) and install
-- Branch this project or, if you are new to GitHub, you can have a look at [this tutorial page](https://r-bio.github.io/intro-git-rstudio/) or manually download the script "muscle_synergies.R" and the two data sets "CYCLE_TIMES.RData" and "RAW_EMG.RData"
-- Open "muscle_synergies.R" with RStudio
-- Run the script with "Source" or "Ctrl+Shift+S" (Windows and Linux users) or "Cmd+Shift+S" (Mac users).
+- Branch this project or, if you are new to GitHub, you can have a look at [this tutorial page](https://r-bio.github.io/intro-git-rstudio/) or manually download the repository
+- Open "musclesyneRgies.Rproj" with RStudio
+- Fro within the project, open the script "muscle_synergies.R" and run it with "Source" or "Ctrl+Shift+S" (Windows and Linux users) or "Cmd+Shift+S" (Mac users).
 
 The code produces some diagnostic messages that will guide you through the process of:
 - Raw EMG filtering and normalization (STEP 1/4)
@@ -15,7 +15,7 @@ The code produces some diagnostic messages that will guide you through the proce
 - Muscle synergies classification via NMF (STEP 3/4)
 - Plotting the classified synergies (STEP 4/4).
 
-There will be plots within RStudio, so make sure that the plot pane in RStudio is selected.
+There will be plots within RStudio in the 4th step, so make sure that the plot pane in RStudio is selected.
 
 # References
 1. Mileti, I. et al. [Muscle activation patterns are more constrained and regular in treadmill than in overground human locomotion](https://www.frontiersin.org/articles/10.3389/fbioe.2020.581619/full). Front. Bioeng. Biotechnol. (2020).
