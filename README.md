@@ -5,6 +5,7 @@ The file "muscle_synergies.R" contains a script that allows to extract muscle sy
 # Quick instructions to run the script
 - [Download R](https://cran.r-project.org/mirrors.html) and install
 - [Download RStudio](https://rstudio.com/products/rstudio/download/) and install
+- [Download Git](https://git-scm.com/downloads) and install
 - Branch this project or, if you are new to GitHub, you can have a look at [this tutorial page](https://r-bio.github.io/intro-git-rstudio/) or manually download the repository
 - Open the project file "musclesyneRgies.Rproj" with RStudio
 - From within the project, open the script "muscle_synergies.R" and run it with "Source" or "Ctrl+Shift+S" (Windows and Linux users) or "Cmd+Shift+S" (Mac users).
