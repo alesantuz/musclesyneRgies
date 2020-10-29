@@ -28,14 +28,19 @@ if (length(pkgs_new)) install.packages(pkgs_new)
 # Load required packages
 lapply(pkgs_list, library, character.only=T)
 # ATTENTION! The following line removes all objects from the global environment
-# except for the ones listed ("cl" and "free_cores" in this case)
-rm(list=setdiff(ls(), c("cl", "free_cores")))
+# except for the ones listed ("cl" in this case)
+rm(list=setdiff(ls(), c("cl")))
 
-# Where are your files located?
-if (exists("choose.dir")) {
-    data_path <- paste0(choose.dir(caption="Select data folder"), "\\")
+# Where are your files located if not in the same folder as the project's?
+if (all(file.exists("CYCLE_TIMES.RData", "RAW_EMG.RData"))) {
+    data_path <- getwd()
+    data_path <- paste0(gsub("/", "\\\\", data_path), "\\")
 } else {
-    data_path <- paste0(tcltk::tk_choose.dir(caption="Select data folder"), "\\")
+    if (exists("choose.dir")) {
+        data_path <- paste0(choose.dir(caption="Select data folder"), "\\")
+    } else {
+        data_path <- paste0(tcltk::tk_choose.dir(caption="Select data folder"), "\\")
+    }
 }
 
 # Create "Graphs" folder if it does not exist
@@ -48,8 +53,7 @@ clusters <- objects()
 if (sum(grepl("^cl$", clusters))==0) {
     # Decide how many processor threads have to be excluded from the cluster
     # It is a good idea to leave at least one free, so that the machine can be used during computation
-    free_cores <- 1
-    cl <- parallel::makeCluster(detectCores()-free_cores)
+    cl <- parallel::makeCluster(max(1, parallel::detectCores()-1))
 }
 
 # STEP 1 - Raw data processing ----
@@ -481,7 +485,7 @@ if (qq=="n") {
             "\n",
             parallel::detectCores(logical=F), " cores, ",
             parallel::detectCores(), " logical, ",
-            parallel::detectCores()-free_cores, " used",
+            length(cl), " used",
             "\n\n        Number of trials: ", ll,
             "\n        Computation time: ", round(tictoc[[3]], 0), " s",
             "\nAverage trial comp. time: ", round(tictoc[[3]]/ll, 2), " s\n",
@@ -764,7 +768,7 @@ if (qq=="n") {
             "\n",
             parallel::detectCores(logical=F), " cores, ",
             parallel::detectCores(), " logical, ",
-            parallel::detectCores()-free_cores, " used",
+            length(cl), " used",
             "\n\n        Number of trials: ", ll,
             "\n        Computation time: ", round(tictoc[[3]], 0), " s",
             "\nAverage trial comp. time: ", round(tictoc[[3]]/ll, 2), " s\n",
