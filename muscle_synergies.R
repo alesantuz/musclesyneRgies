@@ -111,7 +111,7 @@ if (qq=="n") {
         
         pb$tick()
         
-        trial <- gsub("RAW_EMG_", "", names(RAW_EMG[ii]))
+        trial   <- gsub("RAW_EMG_", "", names(RAW_EMG[ii]))
         muscles <- names(RAW_EMG[[ii]])
         
         # Cut to the first cy_max+2 cycles
@@ -133,7 +133,7 @@ if (qq=="n") {
         emg_data[, "time"] <- time
         
         # EMG system acquisition frequency [Hz]
-        freq <- round(1/(emg_data[, "time"][3]-emg_data[, "time"][2]), 0)
+        freq <- round(1/(mean(diff(emg_data[, "time"]), na.rm=T)), 0)
         
         # Filtering
         emg_data_filt <- emg_data
