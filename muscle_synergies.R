@@ -116,7 +116,7 @@ if (qq=="n") {
         
         # Cut to the first cy_max+2 cycles
         c_time <- CYCLE_TIMES[[grep(trial, names(CYCLE_TIMES))]]
-        cut <- c_time$touchdown[cy_max+2]
+        cut    <- c_time$touchdown[cy_max+2]
         
         # Check if there are more than cy_max cycles and do not cut if false
         label <- which(RAW_EMG[[ii]]$time>cut)[1]
@@ -192,16 +192,9 @@ if (qq=="n") {
             # Check if there is data
             if (sum(temp, na.rm=T)==0) next
             
-            temp1 <- numeric()
-            temp2 <- data.frame(matrix(1:points, nrow=points/2, ncol=1))
-            
             # Interpolate each channel to (points/2) points
-            for (kk in 1:ncol(temp)) {
-                temp1 <- as.data.frame(approx(temp[, kk], method="linear", n=points/2))
-                temp1 <- temp1[, 2]
-                temp2 <- cbind(temp2, temp1)
-            }
-            colnames(temp2) <- muscles
+            temp1 <- data.frame(time=c(1:(points/2)),
+                                apply(temp, 2, function(x) approx(x, method="linear", n=points/2)$y))
             
             # Swing
             temp <- data.frame()
@@ -219,33 +212,28 @@ if (qq=="n") {
             
             # Check if there is data
             if (sum(temp, na.rm=T)==0) next
-            temp1 <- numeric()
-            temp3 <- data.frame(matrix(1:points, nrow=points/2, ncol=1))
-            # Interpolate each channel to (points/2) points
-            for (kk in 1:ncol(temp)) {
-                temp1 <- as.data.frame(approx(temp[, kk], method="linear", n=points/2))
-                temp1 <- temp1[, 2]
-                temp3 <- cbind(temp3, temp1)
-            }
-            colnames(temp3) <- muscles
             
-            temp4 <- rbind(temp2, temp3)
+            # Interpolate each channel to (points/2) points
+            temp2 <- data.frame(time=c(1:(points/2)),
+                                apply(temp, 2, function(x) approx(x, method="linear", n=points/2)$y))
+            
+            temp <- rbind(temp1, temp2)
             
             # Set every value >1 to 1
-            temp4[temp4>1] <- 1
-            temp4$time     <- c(1:points)
+            temp[temp>1] <- 1
+            temp$time     <- c(1:points)
             
             # For the concatenated data
             if (jj==1) {
-                emg_data_co <- temp4
+                emg_data_co <- temp
                 
                 # For the averaged data
                 emg_data_av <- matrix(0, nrow=points, ncol=ncol(emg_data_co))
             } else {
-                emg_data_co <- rbind(emg_data_co, temp4)
+                emg_data_co <- rbind(emg_data_co, temp)
                 
                 # For the averaged data
-                emg_data_av <- emg_data_av+temp4
+                emg_data_av <- emg_data_av+temp
             }
         }
         
