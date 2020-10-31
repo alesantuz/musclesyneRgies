@@ -1116,21 +1116,24 @@ SYNS_H_all <- lapply(SYNS_H, function(x) {
     points <- max(x$time)
     x$time <- NULL
     x[, grep("combined", colnames(x))] <- NULL
-    temp   <- matrix(0, nrow=points, ncol=ncol(x))
     
-    colnames(temp) <- colnames(x)
-    
-    for (cc in seq(1, (1+nrow(x)-points), points)) {
-        temp <- temp+x[c(cc:(cc+points-1)), ]
+    if (ncol(x)>0) {
+        temp   <- matrix(0, nrow=points, ncol=ncol(x))
+        
+        colnames(temp) <- colnames(x)
+        
+        for (cc in seq(1, (1+nrow(x)-points), points)) {
+            temp <- temp+x[c(cc:(cc+points-1)), ]
+        }
+        
+        # Divide by the number of cycles to get mean value
+        temp <- temp/(nrow(x)/points)
+        
+        # Minimum subtraction
+        x <- apply(temp, 2, function(y) y-min(y))
+        # Amplitude normalisation
+        x <- apply(temp, 2, function(y) y/max(y))
     }
-    
-    # Divide by the number of cycles to get mean value
-    temp <- temp/(nrow(x)/points)
-    
-    # Minimum subtraction
-    x <- apply(temp, 2, function(y) y/(max(y)))
-    # Amplitude normalisation
-    x <- apply(temp, 2, function(y) y/(max(y)))
     
     return(data.frame(x))
 })
