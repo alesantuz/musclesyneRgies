@@ -762,7 +762,7 @@ if (qq=="n") {
             "\nAverage trial comp. time: ", round(tictoc[[3]]/ll, 2), " s\n",
             "\n- - - - - - - - - - - - - - - - - - - - - - -")
     
-    # Define center of activity (CoA)
+    # Define centre of activity (CoA)
     CoA <- function(x) {
         points <- length(x)
         
@@ -789,7 +789,7 @@ if (qq=="n") {
         CoAt*points/360
     }
     
-    data_all <- data
+    data_all   <- data
     order_list <- list()
     
     for (ll in seq_along(data_NMF)) {
