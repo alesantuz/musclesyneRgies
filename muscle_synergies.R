@@ -159,7 +159,7 @@ if (qq=="n") {
         emg_data_filt[emg_data_filt<0] <- 0             # Set negative values to zero
         temp <- emg_data_filt
         temp[temp==0] <- Inf
-        emg_data_filt[emg_data_filt==0] <- min(temp)    # Set the zeros to the smallest nonzero entry
+        emg_data_filt[emg_data_filt==0] <- min(temp)    # Set the zeros to the smallest non-zero entry
         
         # Subtract the minimum
         emg_data_filt <- apply(emg_data_filt, 2, function(x) x-min(x))
@@ -168,7 +168,8 @@ if (qq=="n") {
         
         emg_time <- seq(emg_data[, "time"][1], emg_data[, "time"][nrow(emg_data_filt)], 1/freq)
         
-        # Isolate cycles and normalise time to 200 points (first 100 stance, second 100 swing)
+        # Isolate cycles and normalise time to "points" points
+        # (first half stance, second half swing)
         cycs <- nrow(c_time)-1
         if (cycs>cy_max) cycs <- cy_max
         
