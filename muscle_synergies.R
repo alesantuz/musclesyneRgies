@@ -238,7 +238,6 @@ if (qq=="n") {
         }
         
         FILT_EMG[[ii]] <- emg_data_co
-        names(FILT_EMG[[ii]]) <- muscles
         list_names[ii] <- paste0("FILT_EMG_", trial)
         
         # Export average cycles for checking
