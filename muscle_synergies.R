@@ -762,7 +762,7 @@ if (qq=="n") {
             "\nAverage trial comp. time: ", round(tictoc[[3]]/ll, 2), " s\n",
             "\n- - - - - - - - - - - - - - - - - - - - - - -")
     
-    # Define center of activity (CoA)
+    # Define centre of activity (CoA)
     CoA <- function(x) {
         points <- length(x)
         
