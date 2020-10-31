@@ -789,7 +789,7 @@ if (qq=="n") {
         CoAt*points/360
     }
     
-    data_all <- data
+    data_all   <- data
     order_list <- list()
     
     for (ll in seq_along(data_NMF)) {
