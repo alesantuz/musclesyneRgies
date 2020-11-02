@@ -47,8 +47,6 @@ if (all(file.exists("CYCLE_TIMES.RData", "RAW_EMG.RData"))) {
 graph_path <- paste0(data_path, "Graphs\\")
 dir.create(graph_path, showWarnings=F)
 
-
-
 # Create cluster for parallel computing if not already done
 clusters <- objects()
 
