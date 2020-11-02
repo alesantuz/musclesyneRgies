@@ -142,7 +142,7 @@ if (qq=="n") {
         # High-pass IIR (Infinite Impulse Response) Butterworth zero-phase filter design
         # Critical frequencies must be between 0 and 1, where 1 is the Nyquist frequency
         # "filtfilt" is for zero-phase filtering
-        HPfn <- HPf/(freq/2)                          # Normalise by the Nyquist frequency (f/2)
+        HPfn <- HPf/(freq/2)                            # Normalise by the Nyquist frequency (f/2)
         HP   <- signal::butter(HPo, HPfn, type="high")
         emg_data_filt <- apply(emg_data_filt, 2, function(x) signal::filtfilt(HP, x))
         
@@ -184,9 +184,9 @@ if (qq=="n") {
                 cycs <- jj-1
                 break
             } else {
-                t1 <- which(emg_time>=t1)[1]
-                t2 <- which(emg_time>=t2)[1]
-                temp  <- emg_data_filt[t1:t2, ]
+                t1   <- which(emg_time>=t1)[1]
+                t2   <- which(emg_time>=t2)[1]
+                temp <- emg_data_filt[t1:t2, ]
             }
             
             # Check if there is data
@@ -205,9 +205,9 @@ if (qq=="n") {
                 cycs <- jj-1
                 break
             } else {
-                t1 <- which(emg_time>=t1)[1]
-                t2 <- which(emg_time>=t2)[1]
-                temp  <- emg_data_filt[t1:t2, ]
+                t1   <- which(emg_time>=t1)[1]
+                t2   <- which(emg_time>=t2)[1]
+                temp <- emg_data_filt[t1:t2, ]
             }
             
             # Check if there is data
@@ -221,7 +221,7 @@ if (qq=="n") {
             
             # Set every value >1 to 1
             temp[temp>1] <- 1
-            temp$time     <- c(1:points)
+            temp$time    <- c(1:points)
             
             # For the concatenated data
             if (jj==1) {
