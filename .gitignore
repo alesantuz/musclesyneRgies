@@ -7,6 +7,9 @@
 
 # User-specific files
 .Ruserdata
+FILT_EMG.RData
+SYNS.RData
+SYNS_classified.RData
 
 # Example code in package build process
 *-Ex.R
