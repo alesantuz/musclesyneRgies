@@ -47,11 +47,6 @@ if (all(file.exists("CYCLE_TIMES.RData", "RAW_EMG.RData"))) {
 graph_path <- paste0(data_path, "Graphs\\")
 dir.create(graph_path, showWarnings=F)
 
-# This and following 3 lines to be deleted
-# Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-# sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-# Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
-
 # Create cluster for parallel computing if not already done
 clusters <- objects()
 
