@@ -47,6 +47,11 @@ if (all(file.exists("CYCLE_TIMES.RData", "RAW_EMG.RData"))) {
 graph_path <- paste0(data_path, "Graphs\\")
 dir.create(graph_path, showWarnings=F)
 
+# This and following 3 lines to be deleted
+# Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+# sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+# Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
+
 # Create cluster for parallel computing if not already done
 clusters <- objects()
 
@@ -544,7 +549,7 @@ if (qq=="n") {
         # Amplitude normalisation
         x <- apply(temp, 2, function(y) y/(max(y)))
         
-        # Transpose to facilitate visualization
+        # Transpose to facilitate visualisation
         return(t(x))
     })
     message("...done!")
@@ -561,10 +566,11 @@ if (qq=="n") {
     })
     message("...done!")
     
-    # Give names to primitives (start from synergy zero because "make.unique" function works like that)
+    # Give names to primitives (start from synergy zero because
+    # the function "make.unique" works like that)
     # Find non-duplicated names and assign "Syn0" to them
-    syn0 <- which(!duplicated(data$.id))
-    data$.id <- make.unique(data$.id)
+    syn0           <- which(!duplicated(data$.id))
+    data$.id       <- make.unique(data$.id)
     data$.id[syn0] <- paste0(data$.id[syn0], "_Syn0")
     # Assign incremental Syn number to other names
     data$.id <- gsub("\\.", "_Syn", data$.id)
@@ -574,7 +580,7 @@ if (qq=="n") {
     temp3 <- paste0(temp1, temp2)
     # Assign new names to row names and remove id column
     rownames(data) <- temp3
-    data$.id <- NULL
+    data$.id       <- NULL
     
     # Filter primitives to improve classification
     data <- t(apply(data, 1, function(x) {
