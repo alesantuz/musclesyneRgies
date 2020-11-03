@@ -6,9 +6,9 @@
 #    formatted as data frame with columns named "touchdown" and "stance", times in [s],
 #    file saved as "CYCLE_TIMES.RData"
 # 3. Trials are named as "CYCLE_TIMES_Pxxxx_AA_yy" or "RAW_EMG_Pxxxx_AA_yy", where:
-#    - Pxxxx is the participant number (e.g. P0002 or P0456)
-#    - AA is the condition (e.g. TW for treadmill walking or OR for overground running, etc.)
-#    - yy is the trial number (e.g. 01 or 15)
+#    - Pxxxx is the participant number (e.g., P0002 or P0456)
+#    - AA is the condition (e.g., TW or OR for treadmill or overground walking, etc.)
+#    - yy is the trial number (e.g., 01 or 15)
 
 # Preparation ----
 # Install (if needed) required packages
@@ -110,6 +110,10 @@ if (qq=="n") {
     for (ii in seq_along(RAW_EMG)) {
         
         pb$tick()
+        
+        if (nrow(RAW_EMG[[ii]])<1) {
+            stop("\n\nTrial ", ii, " (", trial, ") is empty! Please check your raw data.")
+        }
         
         trial   <- gsub("RAW_EMG_", "", names(RAW_EMG[ii]))
         muscles <- names(RAW_EMG[[ii]])
@@ -765,6 +769,7 @@ if (qq=="n") {
     
     # Define centre of activity (CoA)
     CoA <- function(x) {
+        
         points <- length(x)
         
         AA <- numeric()
@@ -782,10 +787,15 @@ if (qq=="n") {
         CoAt <- atan(BB/AA)*180/pi
         
         # To keep the sign
-        if (AA>0 && BB>0) CoAt <- CoAt
-        if (AA<0 && BB>0) CoAt <- CoAt+180
-        if (AA<0 && BB<0) CoAt <- CoAt+180
-        if (AA>0 && BB<0) CoAt <- CoAt+360
+        if (AA>0 && BB>0) {
+            CoAt <- CoAt  
+        } else if (AA<0 && BB>0) {
+            CoAt <- CoAt+180
+        }        else if (AA<0 && BB<0) {
+            CoAt <- CoAt+180
+        }        else if (AA>0 && BB<0) {
+            CoAt <- CoAt+360
+        }
         
         CoAt*points/360
     }
@@ -804,7 +814,8 @@ if (qq=="n") {
         # Order using CoA
         orders <- order(apply(data_NMF_H, 1, CoA))
         
-        # # Order using global max
+        # # Another option would be to order using the global maximum
+        # (just uncomment the next line if you want to try)
         # orders <- order(apply(data_NMF_H, 1, function(x) which.max(x)[1]))
         
         data_NMF_H <- data_NMF_H[orders, ]
