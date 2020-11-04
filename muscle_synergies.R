@@ -20,7 +20,8 @@ pkgs_list <- c("tcltk",
                "ggplot2",
                "gridExtra",
                "benchmarkme",
-               "plyr")
+               "plyr",
+               "reshape2")
 
 pkgs_new <- pkgs_list[!(pkgs_list %in% installed.packages()[, "Package"])]
 if (length(pkgs_new)) install.packages(pkgs_new)
@@ -320,40 +321,40 @@ if (qq=="n") {
     # Define non-negative matrix factorisation function
     synsNMFn <- function(V)
     {
-        R2_target <- 0.01                       # Convergence criterion (percent of the R2 value)
-        R2_cross  <- numeric()                  # R2 values for cross validation and syns number assessment
-        W_list    <- list()                     # To save factorisation W matrices (synergies)
-        H_list    <- list()                     # To save factorisation H matrices (primitives)
-        Vr_list   <- list()                     # To save factorisation Vr matrices (reconstructed signals)
-        iters     <- numeric()                  # To save the iterations number
+        R2_target <- 0.01               # Convergence criterion (percent of the R2 value)
+        R2_cross  <- numeric()          # R2 values for cross validation and syn number assessment
+        W_list    <- list()             # To save factorisation W matrices (synergies)
+        H_list    <- list()             # To save factorisation H matrices (primitives)
+        Vr_list   <- list()             # To save factorisation Vr matrices (reconstructed signals)
+        iters     <- numeric()          # To save the iterations number
         
         # Original matrix
         time   <- V$time
         V$time <- NULL
-        V      <- as.matrix(t(V))               # Needs to be transposed for NMF
-        V[V<0] <- 0                             # Set negative values to zero
+        V      <- as.matrix(t(V))       # Needs to be transposed for NMF
+        V[V<0] <- 0                     # Set negative values to zero
         temp   <- V
         temp[temp==0] <- Inf
-        V[V==0] <- min(temp, na.rm=T)           # Set the zeros to the smallest non-zero entry in V
+        V[V==0] <- min(temp, na.rm=T)   # Set the zeros to the smallest non-zero entry in V
         
-        m <- nrow(V)                            # Number of muscles
-        n <- ncol(V)                            # Number of time points
+        m <- nrow(V)                    # Number of muscles
+        n <- ncol(V)                    # Number of time points
         
-        max_syns <- m-round(m/4, 0)             # Max number of syns
+        max_syns <- m-round(m/4, 0)     # Max number of syns
         
-        for (r in 1:max_syns) {                 # Run NMF with different initial conditions (syns num.)
-            R2_choice <- numeric()              # Collect the R2 values for each syn and choose the max
+        for (r in 1:max_syns) {         # Run NMF with different initial conditions
+            R2_choice <- numeric()      # Collect the R2 values for each syn and choose the max
             
             # Preallocate to then choose those with highest R2
             W_temp  <- list()
             H_temp  <- list()
             Vr_temp <- list()
             
-            for (j in 1:5) {                    # Run NMF 5 times for each syn and choose best run
+            for (j in 1:5) {            # Run NMF 5 times for each syn and choose best run
                 # To save error values
-                R2  <- numeric()                # 1st cost function (R squared)
-                SST <- numeric()                # Total sum of squares
-                RSS <- numeric()                # Residual sum of squares or min. reconstr. error
+                R2  <- numeric()        # 1st cost function (R squared)
+                SST <- numeric()        # Total sum of squares
+                RSS <- numeric()        # Residual sum of squares or min reconstruction error
                 
                 # Initialise iterations and define max number of iterations
                 iter     <- 1
@@ -365,7 +366,7 @@ if (qq=="n") {
                 # Iteration zero
                 H   <- H * (t(W) %*% V) / (t(W) %*% W %*% H)
                 W   <- W * (V %*% t(H)) / (W %*% H %*% t(H))
-                Vr  <- W %*% H                  # Reconstructed matrix
+                Vr  <- W %*% H          # Reconstructed matrix
                 RSS <- sum((V-Vr)^2)
                 SST <- sum((V-mean(V))^2)
                 R2[iter] <- 1-(RSS/SST)
@@ -420,8 +421,8 @@ if (qq=="n") {
         }
         
         # Choose the minimum number of synergies using the R2 criterion
-        MSE  <- 100                             # Initialise the Mean Squared Error (MSE)
-        iter <- 0                               # Initialise iterations
+        MSE  <- 100                     # Initialise the Mean Squared Error (MSE)
+        iter <- 0                       # Initialise iterations
         while (MSE>1e-04) {
             iter <- iter+1
             if (iter==r-1) {
@@ -607,38 +608,38 @@ if (qq=="n") {
     # Define NMF function
     NMFn <- function(V)
     {
-        R2_target  <- 0.01                      # Convergence criterion (percent of the R2 value)
-        R2_cross   <- numeric()                 # R2 values for cross validation and syns number asessment
-        W_list     <- list()                    # To save factorisation W matrices (synergies)
-        H_list     <- list()                    # To save factorisation H matrices (primitives)
+        R2_target <- 0.01               # Convergence criterion (percent of the R2 value)
+        R2_cross  <- numeric()          # R2 values for cross validation and syn number assessment
+        W_list    <- list()             # To save factorisation W matrices (synergies)
+        H_list    <- list()             # To save factorisation H matrices (primitives)
         
         # Original matrix
         V      <- as.matrix(V)
-        V[V<0] <- 0                             # Set negative values to zero
+        V[V<0] <- 0                     # Set negative values to zero
         temp   <- V
         temp[temp==0] <- Inf
-        V[V==0] <- min(temp, na.rm=T)           # Set the zeros to the smallest non-zero entry in V
+        V[V==0] <- min(temp, na.rm=T)   # Set the zeros to the smallest non-zero entry in V
         
-        m <- nrow(V)                            # Number of primitives in the data-set
-        n <- ncol(V)                            # Number of time points
+        m <- nrow(V)                    # Number of primitives in the data-set
+        n <- ncol(V)                    # Number of time points
         
         # Determine the maximum number of synergies by searching for the maximum rank
         temp <- as.numeric(gsub(".*\\_Syn", "", rownames(V)))
         # Add one because interpolation must happen with at least two points
         max_syns <- max(temp)+1
         
-        for (r in 1:max_syns) {                 # Run NMF with different initial conditions (syns num.)
-            R2_choice <- numeric()              # Collect the R2 values for each syn and choose the max
+        for (r in 1:max_syns) {         # Run NMF with different initial conditions
+            R2_choice <- numeric()      # Collect the R2 values for each syn and choose the max
             
             # Preallocate to then choose those with highest R2
             W_temp <- list()
             H_temp <- list()
             
-            for (j in 1:5) {                    # Run NMF 5 times for each syn and choose best run
+            for (j in 1:5) {            # Run NMF 5 times for each syn and choose best run
                 # To save error values
-                R2  <- numeric()                # 1st cost function (R squared)
-                SST <- numeric()                # Total sum of squares
-                RSS <- numeric()                # Residual sum of squares or min. reconstr. error
+                R2  <- numeric()        # 1st cost function (R squared)
+                SST <- numeric()        # Total sum of squares
+                RSS <- numeric()        # Residual sum of squares or min reconstruction error
                 
                 # Initialise iterations and define max number of iterations
                 iter     <- 1
@@ -650,7 +651,7 @@ if (qq=="n") {
                 # Iteration zero
                 H   <- H * (t(W) %*% V) / (t(W) %*% W %*% H)
                 W   <- W * (V %*% t(H)) / (W %*% H %*% t(H))
-                Vr  <- W %*% H                  # Reconstructed matrix
+                Vr  <- W %*% H          # Reconstructed matrix
                 RSS <- sum((V-Vr)^2)
                 SST <- sum((V-mean(V))^2)
                 R2[iter] <- 1-(RSS/SST)
@@ -702,8 +703,8 @@ if (qq=="n") {
         }
         
         # Choose the minimum number of synergies using the R2 criterion
-        MSE  <- 100                             # Initialise the Mean Squared Error (MSE)
-        iter <- 0                               # Initialise iterations
+        MSE  <- 100                     # Initialise the Mean Squared Error (MSE)
+        iter <- 0                       # Initialise iterations
         while (MSE>1e-04) {
             iter <- iter+1
             if (iter==r-1) {
@@ -1106,15 +1107,15 @@ dir.create(path_for_graphs, showWarnings=F)
 
 # Define graphs export parameters and aesthetics
 ty       <- "png"   # File type
+re       <- 280     # Resolution in dpi
 wi       <- 2000    # Width in pixels
-he       <- 2000    # Height in pixels
+he       <- 2500    # Height in pixels
 mte      <- 36      # Main title text size
-re       <- 280       # Resolution in dpi
-s_line   <- 0.9       # Line size
+s_line   <- 0.9     # Line size
 s_min    <- 0.05
-c_back   <- "white"   # Background colour
-c_bord   <- "gray"    # Background border colour
-c_min    <- "gray"    # Minor gridlines colour
+c_back   <- "white" # Background colour
+c_bord   <- "gray"  # Background border colour
+c_min    <- "gray"  # Minor gridlines colour
 c_bars   <- "black"
 c_signal <- "black"
 c_thin   <- "grey70"
@@ -1208,23 +1209,23 @@ for (condition in conditions) {
         data_H <- reshape2::melt(data_H, id="trial")
         data_W <- reshape2::melt(data_W, id="trial")
         
-        temp_H <- ggplot() + ggtitle(paste0("Syn", syn)) + ylim(-0.2, 1.2) +
+        temp_H <- ggplot() + ggtitle(paste0("Motor primitive ", syn)) + ylim(-0.2, 1.2) +
             geom_ribbon(data=data_H_sd, aes(x=time, ymin=ymin, ymax=ymax), fill="grey80") +
-            # geom_line(data=data_H, aes(x=variable, y=value, group=trial), colour=c_signal, size=0.3*s_line) +
             geom_line(data=data_H_av, aes(x=time, y=value), colour=c_signal, size=s_line) +
-            theme(axis.title.x=element_blank(), axis.title.y=element_blank()) +
-            theme(panel.background=element_rect(fill=c_back, colour=c_bord)) +
-            theme(panel.grid.minor=element_line(colour=c_min, size=s_min)) +
-            theme(legend.position="none")
+            theme(axis.title.x=element_blank(), axis.title.y=element_blank(),
+                  panel.background=element_rect(fill=c_back, colour=c_bord),
+                  panel.grid.major=element_line(colour=c_min, size=s_min),
+                  panel.grid.minor=element_blank(),
+                  legend.position="none")
         
-        temp_W <- ggplot() + ylim(0, 1) +
-            geom_hline(yintercept=c(0.25, 0.5, 0.75, 1), size=0.5*s_line, color=c_thin) +
+        temp_W <- ggplot() + ggtitle(paste0("Motor module ", syn)) + ylim(0, 1) +
+            geom_hline(yintercept=c(0.25, 0.5, 0.75, 1), size=s_min, color=c_thin) +
             geom_bar(data=data_W_av, aes(x=muscle, y=value), fill=c_bars, alpha=0.3, stat="identity") +
             scale_x_discrete(limits=data_W_av$muscle) +
             geom_jitter(data=data_W, aes(x=variable, y=value), fill=c_bars, width=0.1, size=0.1) +
             theme(axis.title.x=element_blank(), axis.title.y=element_blank(),
                   axis.text.y=element_blank(),
-                  panel.background=element_blank(), panel.border=element_blank(),
+                  panel.background=element_rect(fill=c_back, colour=c_bord),
                   panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
                   axis.ticks=element_blank(), legend.position="none")
         
