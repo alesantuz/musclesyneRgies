@@ -262,13 +262,19 @@ if (qq=="n") {
             
             varname <- paste("pp", mm, sep = "")
             
-            temp <- ggplot() + ggtitle(muscles[mm]) +
-                geom_line(data=data, aes(x=time,  y=signal), colour="black", size=0.9) +
-                theme(axis.title.x=element_blank(), axis.title.y=element_blank()) +
-                theme(panel.background=element_rect(fill="white", colour="gray")) +
-                theme(panel.grid.minor=element_line(colour="gray", size=0.05)) +
-                ylim(0, 1) +
-                theme(legend.position = "none")
+            temp <- ggplot2::ggplot() +
+                ggplot2::ggtitle(muscles[mm]) +
+                ggplot2::ylim(0, 1) +
+                ggplot2::geom_line(data=data,
+                                   ggplot2::aes(x=time,  y=signal),
+                                   colour="black", size=0.9) +
+                ggplot2::theme(axis.title.x=ggplot2::element_blank(),
+                               axis.title.y=ggplot2::element_blank(),
+                               panel.background=ggplot2::element_rect(fill="white", colour="gray"),
+                               panel.grid.major=ggplot2::element_line(colour="gray", size=0.05),
+                               panel.grid.minor=ggplot2::element_blank(),
+                               legend.position = "none")
+            
             varlist[[mm-1]] <- assign(varname, temp)
         }
         
