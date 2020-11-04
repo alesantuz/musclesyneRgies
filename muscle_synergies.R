@@ -1209,29 +1209,45 @@ for (condition in conditions) {
         data_H <- reshape2::melt(data_H, id="trial")
         data_W <- reshape2::melt(data_W, id="trial")
         
-        temp_H <- ggplot() + ggtitle(paste0("Motor primitive ", syn)) + ylim(-0.2, 1.2) +
-            geom_ribbon(data=data_H_sd, aes(x=time, ymin=ymin, ymax=ymax), fill="grey80") +
-            geom_line(data=data_H_av, aes(x=time, y=value), colour=c_signal, size=s_line) +
-            theme(axis.title.x=element_blank(), axis.title.y=element_blank(),
-                  panel.background=element_rect(fill=c_back, colour=c_bord),
-                  panel.grid.major=element_line(colour=c_min, size=s_min),
-                  panel.grid.minor=element_blank(),
-                  legend.position="none")
+        temp_H <- ggplot2::ggplot() +
+            ggplot2::ggtitle(paste0("Motor primitive ", syn)) +
+            ggplot2::ylim(-0.2, 1.2) +
+            ggplot2::geom_ribbon(data=data_H_sd,
+                                 ggplot2::aes(x=time, ymin=ymin, ymax=ymax),
+                                 fill="grey80") +
+            ggplot2::geom_line(data=data_H_av,
+                               ggplot2::aes(x=time, y=value),
+                               colour=c_signal, size=s_line) +
+            ggplot2::theme(axis.title.x=ggplot2::element_blank(),
+                           axis.title.y=ggplot2::element_blank(),
+                           panel.background=ggplot2::element_rect(fill=c_back, colour=c_bord),
+                           panel.grid.major=ggplot2::element_line(colour=c_min, size=s_min),
+                           panel.grid.minor=ggplot2::element_blank(),
+                           legend.position="none")
         
-        temp_W <- ggplot() + ggtitle(paste0("Motor module ", syn)) + ylim(0, 1) +
-            geom_hline(yintercept=c(0.25, 0.5, 0.75, 1), size=s_min, color=c_thin) +
-            geom_bar(data=data_W_av, aes(x=muscle, y=value), fill=c_bars, alpha=0.3, stat="identity") +
-            scale_x_discrete(limits=data_W_av$muscle) +
-            geom_jitter(data=data_W, aes(x=variable, y=value), fill=c_bars, width=0.1, size=0.1) +
-            theme(axis.title.x=element_blank(), axis.title.y=element_blank(),
-                  axis.text.y=element_blank(),
-                  panel.background=element_rect(fill=c_back, colour=c_bord),
-                  panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-                  axis.ticks=element_blank(), legend.position="none")
+        temp_W <- ggplot2::ggplot() +
+            ggplot2::ggtitle(paste0("Motor module ", syn)) +
+            ggplot2::ylim(0, 1) +
+            ggplot2::geom_hline(yintercept=c(0.25, 0.5, 0.75, 1), size=s_min, color=c_thin) +
+            ggplot2::geom_bar(data=data_W_av,
+                              ggplot2::aes(x=muscle, y=value),
+                              fill=c_bars, alpha=0.3,
+                              stat="identity") +
+            ggplot2::scale_x_discrete(limits=data_W_av$muscle) +
+            ggplot2::geom_jitter(data=data_W,
+                                 ggplot2::aes(x=variable, y=value),
+                                 fill=c_bars, width=0.1, size=0.1) +
+            ggplot2::theme(axis.title.x=element_blank(), axis.title.y=element_blank(),
+                           axis.text.y=element_blank(),
+                           panel.background=ggplot2::element_rect(fill=c_back, colour=c_bord),
+                           panel.grid.major=ggplot2::element_blank(),
+                           panel.grid.minor=ggplot2::element_blank(),
+                           axis.ticks=ggplot2::element_blank(),
+                           legend.position="none")
         
         varname_H <- paste0("r", 2*syn)
         varname_W <- paste0("r", 2*syn-1)
-        varlist[[2*syn]] <- assign(varname_H, temp_H)
+        varlist[[2*syn]]   <- assign(varname_H, temp_H)
         varlist[[2*syn-1]] <- assign(varname_W, temp_W)
     }
     
