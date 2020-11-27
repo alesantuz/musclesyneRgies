@@ -532,7 +532,7 @@ if (qq=="n") {
                 "\nPlease re-check your data\n")
     } else points <- unique(points)
     
-    message("\nCalculating mean gait cycles...")
+    message("\nCalculating mean motor primitives...")
     
     # Progress bar
     pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
@@ -650,7 +650,8 @@ if (qq=="n") {
                 # Initialise iterations and define max number of iterations
                 iter     <- 1
                 max_iter <- 1000
-                # Initialise the two factorisation matrices with random values (uniform distribution)
+                # Initialise the two factorisation matrices with random values
+                # (uniform distribution)
                 H <- matrix(runif(r*n, min=0.01, max=1), nrow=r, ncol=n)
                 W <- matrix(runif(m*r, min=0.01, max=1), nrow=m, ncol=r)
                 
@@ -838,7 +839,7 @@ if (qq=="n") {
         # Plot classified syns
         # Find plot size
         dev_size <- dev.size(units="in")
-        # Margins size are specified in inches following the order:
+        # Margins are specified in inches following the order:
         # bottom, left, top, right
         # Reduction factor of margins to account for screens at different resolutions
         red_factor <- 35
@@ -1130,7 +1131,7 @@ c_thin   <- "grey70"
 SYNS_H <- lapply(SYNS_classified, function(x) x$H)
 SYNS_W <- lapply(SYNS_classified, function(x) x$W)
 
-# Take mean of gait cycles and remove combined
+# Calculate mean motor primitives and remove combined
 SYNS_H_all <- lapply(SYNS_H, function(x) {
     points <- max(x$time)
     x$time <- NULL
@@ -1157,7 +1158,7 @@ SYNS_H_all <- lapply(SYNS_H, function(x) {
     return(data.frame(x))
 })
 
-# Remove combined
+# Remove combined motor modules
 SYNS_W_all <- lapply(SYNS_W, function(x) {
     x <- data.frame(x)
     x[, grep("combined", colnames(x))] <- NULL
@@ -1224,8 +1225,7 @@ for (condition in conditions) {
             ggplot2::geom_line(data=data_H_av,
                                ggplot2::aes(x=time, y=value),
                                colour=c_signal, size=s_line) +
-            ggplot2::theme(axis.title.x=ggplot2::element_blank(),
-                           axis.title.y=ggplot2::element_blank(),
+            ggplot2::theme(axis.title=ggplot2::element_blank(),
                            panel.background=ggplot2::element_rect(fill=c_back, colour=c_bord),
                            panel.grid.major=ggplot2::element_line(colour=c_min, size=s_min),
                            panel.grid.minor=ggplot2::element_blank(),
@@ -1243,8 +1243,8 @@ for (condition in conditions) {
             ggplot2::geom_jitter(data=data_W,
                                  ggplot2::aes(x=variable, y=value),
                                  fill=c_bars, width=0.1, size=0.1) +
-            ggplot2::theme(axis.title.x=element_blank(), axis.title.y=element_blank(),
-                           axis.text.y=element_blank(),
+            ggplot2::theme(axis.title=ggplot2::element_blank(),
+                           axis.text.y=ggplot2::element_blank(),
                            panel.background=ggplot2::element_rect(fill=c_back, colour=c_bord),
                            panel.grid.major=ggplot2::element_blank(),
                            panel.grid.minor=ggplot2::element_blank(),
