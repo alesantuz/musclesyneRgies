@@ -16,7 +16,7 @@ The code produces some diagnostic messages that will guide you through the proce
 - Muscle synergies classification via NMF (STEP 3/4)
 - Plotting the classified synergies (STEP 4/4).
 
-There will be plots within RStudio in the 4th step, so make sure that the plot pane in RStudio is selected.
+There will be plots within RStudio in the 4th step, so make sure that the plot pane in RStudio is selected and large enough to accommodate multiple plots.
 
 # References
 1. Santuz, A. et al. [Lower complexity of motor primitives ensures robust control of high-speed human locomotion](https://www.cell.com/heliyon/fulltext/S2405-8440(20)32220-9). Heliyon 6, e05377 (2020).
