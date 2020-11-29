@@ -35,18 +35,25 @@ rm(list=setdiff(ls(), c("cl")))
 # Where are your files located if not in the same folder as the project's?
 if (all(file.exists("CYCLE_TIMES.RData", "RAW_EMG.RData"))) {
     data_path <- getwd()
-    data_path <- paste0(gsub("/", "\\\\", data_path), "\\")
 } else {
     if (exists("choose.dir")) {
-        data_path <- paste0(choose.dir(caption="Select data folder"), "\\")
+        data_path <- choose.dir(caption="Select data folder")
     } else {
-        data_path <- paste0(tcltk::tk_choose.dir(caption="Select data folder"), "\\")
+        data_path <- tcltk::tk_choose.dir(caption="Select data folder")
     }
 }
 
-# Create "Graphs" folder if it does not exist
-graph_path <- paste0(data_path, "Graphs\\")
+# Manage use of backslash (Windows) or slash (Unix) in paths
+# and create "Graphs" folder if it does not exist
+if(.Platform$OS.type=="unix") {
+    data_path  <- paste0(data_path, "/")
+    graph_path <- paste0(data_path, "Graphs/")
+} else if(.Platform$OS.type=="windows") {
+    data_path  <- paste0(gsub("/", "\\\\", data_path), "\\")
+    graph_path <- paste0(data_path, "Graphs\\")
+}
 dir.create(graph_path, showWarnings=F)
+
 
 # Create cluster for parallel computing if not already done
 clusters <- objects()
@@ -85,8 +92,12 @@ if (qq=="n") {
         message("...done!")
     }
     
-    # Create "Graphs\\EMG" folder if it does not exist
-    path_for_graphs <- paste0(graph_path, "EMG\\")
+    # Create "Graphs/EMG" folder if it does not exist
+    if(.Platform$OS.type=="unix") {
+        path_for_graphs <- paste0(graph_path, "EMG/")
+    } else if(.Platform$OS.type=="windows") {
+        path_for_graphs <- paste0(graph_path, "EMG\\")
+    }
     dir.create(path_for_graphs, showWarnings=F)
     
     # Global filter and normalisation parameters, change as needed
@@ -1105,7 +1116,7 @@ if (qq=="n") {
     message("...done!")
 }
 
-# STEP 4 - Plot muslce synergies ----
+# STEP 4 - Plot muscle synergies ----
 message("\n##################################",
         "\n STEP 4/4 - Plot muscle synergies",
         "\n##################################")
@@ -1114,8 +1125,12 @@ if (all(!grepl("^SYNS_classified$", objects()))) {
     load(paste0(data_path, "SYNS_classified.RData"))
 }
 
-# Create "Graphs\\NMF" folder if it does not exist
-path_for_graphs <- paste0(graph_path, "NMF\\")
+# Create "Graphs/NMF" folder if it does not exist
+if(.Platform$OS.type=="unix") {
+    path_for_graphs <- paste0(graph_path, "NMF/")
+} else if(.Platform$OS.type=="windows") {
+    path_for_graphs <- paste0(graph_path, "NMF\\")
+}
 dir.create(path_for_graphs, showWarnings=F)
 
 # Define graphs export parameters and aesthetics
