@@ -7,8 +7,10 @@
 #    file saved as "CYCLE_TIMES.RData"
 # 3. Trials are named as "CYCLE_TIMES_Pxxxx_AA.*_yy" or "RAW_EMG_Pxxxx_AA.*_yy", where:
 #    - Pxxxx is the participant number (e.g., P0002 or P0456)
-#    - AA is the condition (e.g., TW or OR for treadmill or overground walking, etc.)
+#    - AA is the condition (e.g., TW or OR for treadmill or overground walking, but can
+#      as well be longer such as TR_YOUNG_FEMALE, etc.)
 #    - yy is the trial number (e.g., 01 or 155, etc.)
+# Using regex: CYCLE_TIMES_P[0-9]*_.*_[0-9]*, RAW_EMG_P[0-9]*_.*_[0-9]*
 
 # Preparation ----
 # Install (if needed) required packages
@@ -36,8 +38,9 @@ rm(list=setdiff(ls(), c("cl")))
 if (all(file.exists("CYCLE_TIMES.RData", "RAW_EMG.RData"))) {
     data_path <- getwd()
 } else {
-    if (exists("choose.dir")) {
+    if (.Platform$OS.type=="windows") {
         data_path <- choose.dir(caption="Select data folder")
+        data_path <- gsub("\\\\", .Platform$file.sep, data_path)
     } else {
         data_path <- tcltk::tk_choose.dir(caption="Select data folder")
     }
@@ -741,7 +744,8 @@ if (qq=="n") {
     # "*": 0 or more
     # "+": 1 or more
     conditions <- gsub("SYNS_P[0-9]+_", "", rownames(data))
-    conditions <- unique(gsub("_.*", "", conditions))
+    conditions <- unique(gsub("_Syn.*", "", conditions))
+    conditions <- unique(gsub("_[0-9]+$", "", conditions))
     
     # Build list with the trials of the different conditions
     all_trials <- vector("list", length(conditions))
