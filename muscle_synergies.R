@@ -5,10 +5,10 @@
 # 2. Gait cycle times prepared in RData format, one list where each named element is a trial
 #    formatted as data frame with columns named "touchdown" and "stance", times in [s],
 #    file saved as "CYCLE_TIMES.RData"
-# 3. Trials are named as "CYCLE_TIMES_Pxxxx_AA_yy" or "RAW_EMG_Pxxxx_AA_yy", where:
+# 3. Trials are named as "CYCLE_TIMES_Pxxxx_AA.*_yy" or "RAW_EMG_Pxxxx_AA.*_yy", where:
 #    - Pxxxx is the participant number (e.g., P0002 or P0456)
 #    - AA is the condition (e.g., TW or OR for treadmill or overground walking, etc.)
-#    - yy is the trial number (e.g., 01 or 15)
+#    - yy is the trial number (e.g., 01 or 155, etc.)
 
 # Preparation ----
 # Install (if needed) required packages
@@ -89,7 +89,7 @@ if (qq=="n") {
     path_for_graphs <- paste0(graph_path, "EMG\\")
     dir.create(path_for_graphs, showWarnings=F)
     
-    # Global parameters, change as needed
+    # Global filter and normalisation parameters, change as needed
     HPo    <- 4             # High-pass filter order
     HPf    <- 50            # High-pass filter frequency [Hz]
     LPo    <- HPo           # Low-pass filter order
@@ -119,12 +119,13 @@ if (qq=="n") {
         trial   <- gsub("RAW_EMG_", "", names(RAW_EMG[ii]))
         muscles <- names(RAW_EMG[[ii]])
         
-        # Cut to the first cy_max+2 cycles
+        # Trim to the first cy_max+2 cycles
+        # (+2 because first and last will be trimmed after filtering)
         c_time <- CYCLE_TIMES[[grep(trial, names(CYCLE_TIMES))]]
-        cut    <- c_time$touchdown[cy_max+2]
+        trim   <- c_time$touchdown[cy_max+2]
         
-        # Check if there are more than cy_max cycles and do not cut if false
-        label <- which(RAW_EMG[[ii]]$time>cut)[1]
+        # Check if there are more than cy_max cycles and do not trim if false
+        label <- which(RAW_EMG[[ii]]$time>trim)[1]
         
         if (is.na(label)) {
             emg_data <- RAW_EMG[[ii]]
@@ -173,12 +174,14 @@ if (qq=="n") {
         
         emg_time <- seq(emg_data[, "time"][1], emg_data[, "time"][nrow(emg_data_filt)], 1/freq)
         
-        # Isolate cycles and normalise time to "points" points
-        # (first half stance, second half swing)
+        # Trim first and last cycle to remove filtering effects
+        c_time <- c_time[2:(nrow(c_time)-1), ]
         cycs <- nrow(c_time)-1
+        # Remove excess cycles, if present
         if (cycs>cy_max) cycs <- cy_max
         
-        # Isolate each cycle
+        # Isolate cycles and normalise time to "points" points
+        # (first half stance, second half swing)
         for (jj in 1:cycs) {
             # Stance
             temp <- data.frame()
@@ -199,7 +202,9 @@ if (qq=="n") {
             
             # Interpolate each channel to (points/2) points
             temp1 <- data.frame(time=c(1:(points/2)),
-                                apply(temp, 2, function(x) approx(x, method="linear", n=points/2)$y))
+                                apply(temp, 2, function(x) approx(x,
+                                                                  method="linear",
+                                                                  n=points/2)$y))
             
             # Swing
             temp <- data.frame()
@@ -220,7 +225,9 @@ if (qq=="n") {
             
             # Interpolate each channel to (points/2) points
             temp2 <- data.frame(time=c(1:(points/2)),
-                                apply(temp, 2, function(x) approx(x, method="linear", n=points/2)$y))
+                                apply(temp, 2, function(x) approx(x,
+                                                                  method="linear",
+                                                                  n=points/2)$y))
             
             temp <- rbind(temp1, temp2)
             
@@ -268,8 +275,7 @@ if (qq=="n") {
                 ggplot2::geom_line(data=data,
                                    ggplot2::aes(x=time,  y=signal),
                                    colour="black", size=0.9) +
-                ggplot2::theme(axis.title.x=ggplot2::element_blank(),
-                               axis.title.y=ggplot2::element_blank(),
+                ggplot2::theme(axis.title=ggplot2::element_blank(),
                                panel.background=ggplot2::element_rect(fill="white", colour="gray"),
                                panel.grid.major=ggplot2::element_line(colour="gray", size=0.05),
                                panel.grid.minor=ggplot2::element_blank(),
