@@ -43,17 +43,10 @@ if (all(file.exists("CYCLE_TIMES.RData", "RAW_EMG.RData"))) {
     }
 }
 
-# Manage use of backslash (Windows) or slash (Unix) in paths
-# and create "Graphs" folder if it does not exist
-if(.Platform$OS.type=="unix") {
-    data_path  <- paste0(data_path, "/")
-    graph_path <- paste0(data_path, "Graphs/")
-} else if(.Platform$OS.type=="windows") {
-    data_path  <- paste0(gsub("/", "\\\\", data_path), "\\")
-    graph_path <- paste0(data_path, "Graphs\\")
-}
+# Create "Graphs" folder if it does not exist
+data_path  <- paste0(data_path, .Platform$file.sep)
+graph_path <- paste0(data_path, "Graphs", .Platform$file.sep)
 dir.create(graph_path, showWarnings=F)
-
 
 # Create cluster for parallel computing if not already done
 clusters <- objects()
@@ -93,11 +86,7 @@ if (qq=="n") {
     }
     
     # Create "Graphs/EMG" folder if it does not exist
-    if(.Platform$OS.type=="unix") {
-        path_for_graphs <- paste0(graph_path, "EMG/")
-    } else if(.Platform$OS.type=="windows") {
-        path_for_graphs <- paste0(graph_path, "EMG\\")
-    }
+    path_for_graphs <- paste0(graph_path, "EMG", .Platform$file.sep)
     dir.create(path_for_graphs, showWarnings=F)
     
     # Global filter and normalisation parameters, change as needed
@@ -1126,11 +1115,7 @@ if (all(!grepl("^SYNS_classified$", objects()))) {
 }
 
 # Create "Graphs/NMF" folder if it does not exist
-if(.Platform$OS.type=="unix") {
-    path_for_graphs <- paste0(graph_path, "NMF/")
-} else if(.Platform$OS.type=="windows") {
-    path_for_graphs <- paste0(graph_path, "NMF\\")
-}
+path_for_graphs <- paste0(graph_path, "NMF", .Platform$file.sep)
 dir.create(path_for_graphs, showWarnings=F)
 
 # Define graphs export parameters and aesthetics
