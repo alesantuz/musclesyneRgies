@@ -23,3 +23,5 @@ Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/).
     - :white_check_mark: `:white_check_mark:` when adding tests
     - :arrow_up: `:arrow_up:` when upgrading dependencies
     - :arrow_down: `:arrow_down:` when downgrading dependencies.
+
+Thank you!
