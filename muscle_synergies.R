@@ -338,8 +338,8 @@ if (qq=="n") {
     {
         R2_target <- 0.01               # Convergence criterion (percent of the R2 value)
         R2_cross  <- numeric()          # R2 values for cross validation and syn number assessment
-        W_list    <- list()             # To save factorisation W matrices (synergies)
-        H_list    <- list()             # To save factorisation H matrices (primitives)
+        M_list    <- list()             # To save factorisation M matrices (synergies)
+        P_list    <- list()             # To save factorisation P matrices (primitives)
         Vr_list   <- list()             # To save factorisation Vr matrices (reconstructed signals)
         iters     <- numeric()          # To save the iterations number
         
@@ -361,8 +361,8 @@ if (qq=="n") {
             R2_choice <- numeric()      # Collect the R2 values for each syn and choose the max
             
             # Preallocate to then choose those with highest R2
-            W_temp  <- list()
-            H_temp  <- list()
+            M_temp  <- list()
+            P_temp  <- list()
             Vr_temp <- list()
             
             for (j in 1:5) {            # Run NMF 5 times for each syn and choose best run
@@ -375,40 +375,40 @@ if (qq=="n") {
                 iter     <- 1
                 max_iter <- 1000
                 # Initialise the two factorisation matrices with random values (uniform distribution)
-                H <- matrix(runif(r*n, min=0.01, max=1), nrow=r, ncol=n)
-                W <- matrix(runif(m*r, min=0.01, max=1), nrow=m, ncol=r)
+                P <- matrix(runif(r*n, min=0.01, max=1), nrow=r, ncol=n)
+                M <- matrix(runif(m*r, min=0.01, max=1), nrow=m, ncol=r)
                 
                 # Iteration zero
-                H   <- H * (t(W) %*% V) / (t(W) %*% W %*% H)
-                W   <- W * (V %*% t(H)) / (W %*% H %*% t(H))
-                Vr  <- W %*% H          # Reconstructed matrix
+                P   <- P*(t(M)%*%V)/(t(M)%*%M%*%P)
+                M   <- M*(V%*%t(P))/(M%*%P%*%t(P))
+                Vr  <- M%*%P          # Reconstructed matrix
                 RSS <- sum((V-Vr)^2)
                 SST <- sum((V-mean(V))^2)
                 R2[iter] <- 1-(RSS/SST)
                 
                 # l2-norm normalisation which eliminates trivial scale indeterminacies
-                # The cost function doesn't change. Impose ||W||2 = 1 and normalise H accordingly.
-                # ||W||2, also called L2,1 norm or l2-norm, is a sum of Euclidean norm of columns.
+                # The cost function doesn't change. Impose ||M||2 = 1 and normalise P accordingly.
+                # ||M||2, also called L2,1 norm or l2-norm, is a sum of Euclidean norm of columns.
                 for (kk in 1:r) {
-                    norm    <- sqrt(sum(W[, kk]^2))
-                    W[, kk] <- W[, kk]/norm
-                    H[kk, ] <- H[kk, ]*norm
+                    norm    <- sqrt(sum(M[, kk]^2))
+                    M[, kk] <- M[, kk]/norm
+                    P[kk, ] <- P[kk, ]*norm
                 }
                 
                 # Start iterations for NMF convergence
                 for (iter in iter:max_iter)  {
-                    H   <- H * (t(W) %*% V) / (t(W) %*% W %*% H)
-                    W   <- W * (V %*% t(H)) / (W %*% H %*% t(H))
-                    Vr  <- W %*% H
+                    P   <- P*(t(M)%*%V)/(t(M)%*%M%*%P)
+                    M   <- M*(V%*%t(P))/(M%*%P%*%t(P))
+                    Vr  <- M%*%P
                     RSS <- sum((V-Vr)^2)
                     SST <- sum((V-mean(V))^2)
                     R2[iter] <- 1-(RSS/SST)
                     
                     # l2-norm normalisation
                     for (kk in 1:r) {
-                        norm    <- sqrt(sum(W[, kk]^2))
-                        W[, kk] <- W[, kk]/norm
-                        H[kk, ] <- H[kk, ]*norm
+                        norm    <- sqrt(sum(M[, kk]^2))
+                        M[, kk] <- M[, kk]/norm
+                        P[kk, ] <- P[kk, ]*norm
                     }
                     
                     # Check if the increase of R2 in the last 20 iterations is less than the target
@@ -421,16 +421,16 @@ if (qq=="n") {
                 }
                 R2_choice[j] <- R2[iter]
                 
-                W_temp[[j]]  <- W
-                H_temp[[j]]  <- H
+                M_temp[[j]]  <- M
+                P_temp[[j]]  <- P
                 Vr_temp[[j]] <- Vr
             }
             
             choice <- which.max(R2_choice)
             
             R2_cross[r]  <- R2_choice[choice]
-            W_list[[r]]  <- W_temp[[choice]]
-            H_list[[r]]  <- H_temp[[choice]]
+            M_list[[r]]  <- M_temp[[choice]]
+            P_list[[r]]  <- P_temp[[choice]]
             Vr_list[[r]] <- Vr_temp[[choice]]
             iters[r]     <- iter
         }
@@ -453,13 +453,13 @@ if (qq=="n") {
         }
         syns_R2 <- iter
         
-        H_choice <- data.frame(time, t(H_list[[syns_R2]]))
-        colnames(H_choice) <- c("time", paste0("Syn", 1:(ncol(H_choice)-1)))
-        rownames(H_choice) <- NULL
+        P_choice <- data.frame(time, t(P_list[[syns_R2]]))
+        colnames(P_choice) <- c("time", paste0("Syn", 1:(ncol(P_choice)-1)))
+        rownames(P_choice) <- NULL
         
         return(list(synsR2=as.numeric(syns_R2),
-                    W=W_list[[syns_R2]],
-                    H=H_choice,
+                    M=M_list[[syns_R2]],
+                    P=P_choice,
                     Vr=Vr_list[[syns_R2]],
                     iterations=as.numeric(iters[syns_R2]),
                     R2=as.numeric(R2_cross[syns_R2])))
@@ -531,10 +531,10 @@ if (qq=="n") {
     }
     
     # Get concatenated primitives
-    SYNS_H <- lapply(SYNS, function(x) x$H)
+    SYNS_P <- lapply(SYNS, function(x) x$P)
     
     # Make sure that all motor primitives are normalized to the same amount of points
-    points <- unlist(lapply(SYNS_H, function(x) max(x$time)))
+    points <- unlist(lapply(SYNS_P, function(x) max(x$time)))
     
     if (sd(points)!=0) {
         message("\nNot all motor primitives are normalised to the same amount of points!",
@@ -545,9 +545,9 @@ if (qq=="n") {
     
     # Progress bar
     pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                     total=length(SYNS_H), clear=F, width=50)
+                                     total=length(SYNS_P), clear=F, width=50)
     
-    SYNS_H <- lapply(SYNS_H, function(x) {
+    SYNS_P <- lapply(SYNS_P, function(x) {
         
         pb$tick()
         
@@ -573,9 +573,9 @@ if (qq=="n") {
     
     # Progress bar
     pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                     total=length(SYNS_H), clear=F, width=50)
+                                     total=length(SYNS_P), clear=F, width=50)
     
-    data <- plyr::ldply(SYNS_H, function(x) {
+    data <- plyr::ldply(SYNS_P, function(x) {
         pb$tick()
         data.frame(x)
     })
@@ -625,8 +625,8 @@ if (qq=="n") {
     {
         R2_target <- 0.01               # Convergence criterion (percent of the R2 value)
         R2_cross  <- numeric()          # R2 values for cross validation and syn number assessment
-        W_list    <- list()             # To save factorisation W matrices (synergies)
-        H_list    <- list()             # To save factorisation H matrices (primitives)
+        M_list    <- list()             # To save factorisation M matrices (synergies)
+        P_list    <- list()             # To save factorisation P matrices (primitives)
         
         # Original matrix
         V      <- as.matrix(V)
@@ -647,8 +647,8 @@ if (qq=="n") {
             R2_choice <- numeric()      # Collect the R2 values for each syn and choose the max
             
             # Preallocate to then choose those with highest R2
-            W_temp <- list()
-            H_temp <- list()
+            M_temp <- list()
+            P_temp <- list()
             
             for (j in 1:5) {            # Run NMF 5 times for each syn and choose best run
                 # To save error values
@@ -661,40 +661,38 @@ if (qq=="n") {
                 max_iter <- 1000
                 # Initialise the two factorisation matrices with random values
                 # (uniform distribution)
-                H <- matrix(runif(r*n, min=0.01, max=1), nrow=r, ncol=n)
-                W <- matrix(runif(m*r, min=0.01, max=1), nrow=m, ncol=r)
+                P <- matrix(runif(r*n, min=0.01, max=1), nrow=r, ncol=n)
+                M <- matrix(runif(m*r, min=0.01, max=1), nrow=m, ncol=r)
                 
                 # Iteration zero
-                H   <- H * (t(W) %*% V) / (t(W) %*% W %*% H)
-                W   <- W * (V %*% t(H)) / (W %*% H %*% t(H))
-                Vr  <- W %*% H          # Reconstructed matrix
+                P   <- P*(t(M)%*%V)/(t(M)%*%M%*%P)
+                M   <- M*(V%*%t(P))/(M%*%P%*%t(P))
+                Vr  <- M%*%P          # Reconstructed matrix
                 RSS <- sum((V-Vr)^2)
                 SST <- sum((V-mean(V))^2)
                 R2[iter] <- 1-(RSS/SST)
                 
                 # l2-norm normalisation which eliminates trivial scale indeterminacies
-                # The cost function doesn't change. Impose ||W||2 = 1 and normalise H accordingly.
-                # ||W||2, also called L2,1 norm or l2-norm, is a sum of Euclidean norm of columns.
                 for (kk in 1:r) {
-                    norm    <- sqrt(sum(W[, kk]^2))
-                    W[, kk] <- W[, kk]/norm
-                    H[kk, ] <- H[kk, ]*norm
+                    norm    <- sqrt(sum(M[, kk]^2))
+                    M[, kk] <- M[, kk]/norm
+                    P[kk, ] <- P[kk, ]*norm
                 }
                 
                 # Start iterations for NMF convergence
                 for (iter in iter:max_iter)  {
-                    H   <- H * (t(W) %*% V) / (t(W) %*% W %*% H)
-                    W   <- W * (V %*% t(H)) / (W %*% H %*% t(H))
-                    Vr  <- W %*% H
+                    P   <- P*(t(M)%*%V)/(t(M)%*%M%*%P)
+                    M   <- M*(V%*%t(P))/(M%*%P%*%t(P))
+                    Vr  <- M%*%P
                     RSS <- sum((V-Vr)^2)
                     SST <- sum((V-mean(V))^2)
                     R2[iter] <- 1-(RSS/SST)
                     
                     # l2-norm normalisation
                     for (kk in 1:r) {
-                        norm    <- sqrt(sum(W[, kk]^2))
-                        W[, kk] <- W[, kk]/norm
-                        H[kk, ] <- H[kk, ]*norm
+                        norm    <- sqrt(sum(M[, kk]^2))
+                        M[, kk] <- M[, kk]/norm
+                        P[kk, ] <- P[kk, ]*norm
                     }
                     
                     # Check if the increase of R2 in the last 20 iterations is less than the target
@@ -707,15 +705,15 @@ if (qq=="n") {
                 }
                 R2_choice[j] <- R2[iter]
                 
-                W_temp[[j]]  <- W
-                H_temp[[j]]  <- H
+                M_temp[[j]]  <- M
+                P_temp[[j]]  <- P
             }
             
             choice <- which.max(R2_choice)
             
             R2_cross[r] <- R2_choice[choice]
-            W_list[[r]] <- W_temp[[choice]]
-            H_list[[r]] <- H_temp[[choice]]
+            M_list[[r]] <- M_temp[[choice]]
+            P_list[[r]] <- P_temp[[choice]]
         }
         
         # Choose the minimum number of synergies using the R2 criterion
@@ -735,8 +733,8 @@ if (qq=="n") {
         }
         syns_R2 <- iter
         
-        return(list(W=W_list[[syns_R2]],
-                    H=H_list[[syns_R2]]))
+        return(list(M=M_list[[syns_R2]],
+                    P=P_list[[syns_R2]]))
     }
     
     # Find different conditions
@@ -764,7 +762,7 @@ if (qq=="n") {
         data_NMF <- parallel::parLapply(cl, all_trials, NMFn)
     })
     
-    ll <- sum(unlist(lapply(data_NMF, function(x) nrow(x$W))))
+    ll <- sum(unlist(lapply(data_NMF, function(x) nrow(x$M))))
     
     message("\n- - - - - - - - - - - - - - - - - - - - - - -\n",
             benchmarkme::get_sys_details()$data,
@@ -825,26 +823,26 @@ if (qq=="n") {
         temp <- data_NMF[[ll]]
         cond <- names(data_NMF[ll])
         
-        data_NMF_H <- temp$H
-        data_NMF_W <- temp$W
-        syns_num_n <- ncol(data_NMF_W)
+        data_NMF_P <- temp$P
+        data_NMF_M <- temp$M
+        syns_num_n <- ncol(data_NMF_M)
         
         # Order using CoA
-        orders <- order(apply(data_NMF_H, 1, CoA))
+        orders <- order(apply(data_NMF_P, 1, CoA))
         
         # # Another option would be to order using the global maximum
         # (just uncomment the next line if you want to try)
-        # orders <- order(apply(data_NMF_H, 1, function(x) which.max(x)[1]))
+        # orders <- order(apply(data_NMF_P, 1, function(x) which.max(x)[1]))
         
-        data_NMF_H <- data_NMF_H[orders, ]
-        data_NMF_W <- data_NMF_W[, orders]
+        data_NMF_P <- data_NMF_P[orders, ]
+        data_NMF_M <- data_NMF_M[, orders]
         
         # Normalise to 1
-        data_NMF_H <- data.frame(t(apply(data_NMF_H, 1, function(x) x/max(x))))
-        data_NMF_W <- data.frame(apply(data_NMF_W, 2, function(x) x/max(x)))
+        data_NMF_P <- data.frame(t(apply(data_NMF_P, 1, function(x) x/max(x))))
+        data_NMF_M <- data.frame(apply(data_NMF_M, 2, function(x) x/max(x)))
         
-        rownames(data_NMF_H) <- paste0("Syn", 1:nrow(data_NMF_H))
-        colnames(data_NMF_W) <- paste0("Syn", 1:ncol(data_NMF_W))
+        rownames(data_NMF_P) <- paste0("Syn", 1:nrow(data_NMF_P))
+        colnames(data_NMF_M) <- paste0("Syn", 1:ncol(data_NMF_M))
         
         # Plot classified syns
         # Find plot size
@@ -860,13 +858,13 @@ if (qq=="n") {
                   dev_size[1]/red_factor))
         
         for (syn in 1:syns_num_n) {
-            plot(x=c(1:ncol(data_NMF_H)), y=data_NMF_H[syn, ],
+            plot(x=c(1:ncol(data_NMF_P)), y=data_NMF_P[syn, ],
                  ty="l", main=paste0("Synergy ", syn, ", ", cond),
                  xlab="", ylab="",
                  xaxt="n", yaxt="n", lwd=2)
-            barplot(sort(data_NMF_W[, syn], decreasing=T))
+            barplot(sort(data_NMF_M[, syn], decreasing=T))
             abline(h=seq(0.2, 0.8, 0.1), col=2)
-            tot <- length(data_NMF_W[, syn])
+            tot <- length(data_NMF_M[, syn])
             abline(v=tot*seq(0, 1, 0.25), col=2)
         }
         
@@ -882,7 +880,7 @@ if (qq=="n") {
             # Prompt for decision
             message("Press Esc to stop (order will not be changed)")
             orders_new <- numeric()
-            for (cc in 1:nrow(data_NMF_H)) {
+            for (cc in 1:nrow(data_NMF_P)) {
                 pp <- 0.2
                 while (pp<1) {
                     pp <- readline(paste0("Syn num to be associated with the curve ", cc, ": "))
@@ -904,15 +902,15 @@ if (qq=="n") {
             
             orders <- sort.int(orders_new, index.return=T)$ix
             
-            data_NMF_H <- data_NMF_H[orders, ]
-            data_NMF_W <- data_NMF_W[, orders]
+            data_NMF_P <- data_NMF_P[orders, ]
+            data_NMF_M <- data_NMF_M[, orders]
             
             # Normalise to 1
-            data_NMF_H <- data.frame(t(apply(data_NMF_H, 1, function(x) x/max(x))))
-            data_NMF_W <- data.frame(apply(data_NMF_W, 2, function(x) x/max(x)))
+            data_NMF_P <- data.frame(t(apply(data_NMF_P, 1, function(x) x/max(x))))
+            data_NMF_M <- data.frame(apply(data_NMF_M, 2, function(x) x/max(x)))
             
-            rownames(data_NMF_H) <- paste0("Syn", 1:nrow(data_NMF_H))
-            colnames(data_NMF_W) <- paste0("Syn", 1:ncol(data_NMF_W))
+            rownames(data_NMF_P) <- paste0("Syn", 1:nrow(data_NMF_P))
+            colnames(data_NMF_M) <- paste0("Syn", 1:ncol(data_NMF_M))
             
             # Re-plot classified syns
             par(mfrow=c(syns_num_n, 2),
@@ -922,29 +920,29 @@ if (qq=="n") {
                       dev_size[1]/red_factor))
             
             for (syn in 1:syns_num_n) {
-                plot(x=c(1:ncol(data_NMF_H)), y=data_NMF_H[syn, ],
+                plot(x=c(1:ncol(data_NMF_P)), y=data_NMF_P[syn, ],
                      ty="l", main=paste0("Synergy ", syn, ", ", cond),
                      xlab="", ylab="",
                      xaxt="n", yaxt="n", lwd=2)
-                barplot(sort(data_NMF_W[, syn], decreasing=T))
+                barplot(sort(data_NMF_M[, syn], decreasing=T))
                 abline(h=seq(0.2, 0.8, 0.1), col=2)
-                tot <- length(data_NMF_W[, syn])
+                tot <- length(data_NMF_M[, syn])
                 abline(v=tot*seq(0, 1, 0.25), col=2)
             }
             Sys.sleep(2)
         }
         
-        # Now search for syns having module bigger than "W_threshold"
+        # Now search for syns having module bigger than "M_threshold"
         # If a syn has more than one module, choose the one with the highest value
         # Then compare the primitive to the relevant one and assess similarity
         # If similarity is lower than "R2_threshold", classify as combined, otherwise keep
-        temp <- data_NMF_W
+        temp <- data_NMF_M
         
-        # Determine the threshold for W and R2
-        # Calculate the W threshold
-        W_threshold <- mean(colMeans(temp, na.rm=T), na.rm=T)
+        # Determine the threshold for M and R2
+        # Calculate the M threshold
+        M_threshold <- mean(colMeans(temp, na.rm=T), na.rm=T)
         
-        temp[temp<W_threshold] <- NA
+        temp[temp<M_threshold] <- NA
         
         quality <- numeric()
         
@@ -958,10 +956,10 @@ if (qq=="n") {
                 # Discard the others
                 temp[tt, -choice] <- NA
                 # Calculate R2 between curve and primitive
-                H1  <- as.numeric(data_NMF_H[choice, ])
-                H2  <- as.numeric(data[tt, ])
-                RSS <- sum((H1-H2)^2)
-                SST <- sum((H1-mean(H1))^2)
+                P1  <- as.numeric(data_NMF_P[choice, ])
+                P2  <- as.numeric(data[tt, ])
+                RSS <- sum((P1-P2)^2)
+                SST <- sum((P1-mean(P1))^2)
                 R2  <- 1-(RSS/SST)
                 
                 quality[tt] <- R2
@@ -1070,7 +1068,7 @@ if (qq=="n") {
                 "\n       Recognised: ", total-combined,
                 "\n         Combined: ", combined, " (~", round(combined/total*100, 0), "%)",
                 "\n     R2 threshold: ", round(R2_threshold, 2),
-                "\n Module threshold: ", round(W_threshold, 2), "\n")
+                "\n Module threshold: ", round(M_threshold, 2), "\n")
         
         syn_perc <- numeric()
         for (ss in 1:syns_num) {
@@ -1100,8 +1098,8 @@ if (qq=="n") {
         
         trial <- orders$trial[trials[uu]]
         
-        colnames(SYNS_classified[[trial]]$H) <- c("time", paste0("Syn", classification))
-        colnames(SYNS_classified[[trial]]$W) <- paste0("Syn", classification)
+        colnames(SYNS_classified[[trial]]$P) <- c("time", paste0("Syn", classification))
+        colnames(SYNS_classified[[trial]]$M) <- paste0("Syn", classification)
     }
     
     message("\nSaving classified synergies...")
@@ -1138,11 +1136,11 @@ c_signal <- "black"
 c_thin   <- "grey70"
 
 # Get concatenated primitives
-SYNS_H <- lapply(SYNS_classified, function(x) x$H)
-SYNS_W <- lapply(SYNS_classified, function(x) x$W)
+SYNS_P <- lapply(SYNS_classified, function(x) x$P)
+SYNS_M <- lapply(SYNS_classified, function(x) x$M)
 
 # Calculate mean motor primitives and remove combined
-SYNS_H_all <- lapply(SYNS_H, function(x) {
+SYNS_P_all <- lapply(SYNS_P, function(x) {
     points <- max(x$time)
     x$time <- NULL
     x[, grep("combined", colnames(x))] <- NULL
@@ -1169,14 +1167,14 @@ SYNS_H_all <- lapply(SYNS_H, function(x) {
 })
 
 # Remove combined motor modules
-SYNS_W_all <- lapply(SYNS_W, function(x) {
+SYNS_M_all <- lapply(SYNS_M, function(x) {
     x <- data.frame(x)
     x[, grep("combined", colnames(x))] <- NULL
     return(data.frame(x))
 })
 
-max_syns   <- max(unlist(lapply(SYNS_W_all, function(x) ncol(x))))
-conditions <- gsub("^SYNS_P[0-9]+_", "", names(SYNS_W_all))
+max_syns   <- max(unlist(lapply(SYNS_M_all, function(x) ncol(x))))
+conditions <- gsub("^SYNS_P[0-9]+_", "", names(SYNS_M_all))
 conditions <- unique(gsub("_[0-9]+$", "", conditions))
 
 # Progress bar
@@ -1192,16 +1190,16 @@ for (condition in conditions) {
     Cairo(file=paste0(path_for_graphs, "SYNS_", condition, ".", ty),
           type=ty, width=wi, height=he, pointsize=mte, dpi=re)
     
-    SYNS_H_temp <- SYNS_H_all[grep(paste0("_", condition, "_"), names(SYNS_H_all))]
-    SYNS_W_temp <- SYNS_W_all[grep(paste0("_", condition, "_"), names(SYNS_W_all))]
+    SYNS_P_temp <- SYNS_P_all[grep(paste0("_", condition, "_"), names(SYNS_P_all))]
+    SYNS_M_temp <- SYNS_M_all[grep(paste0("_", condition, "_"), names(SYNS_M_all))]
     
     varlist <- list()
     
     for (syn in 1:max_syns) {
         
         # Select relevant synergies
-        data_H <- lapply(SYNS_H_temp, function(x) t(x[, grep(paste0("^Syn", syn), colnames(x))]))
-        data_W <- lapply(SYNS_W_temp, function(x) {
+        data_P <- lapply(SYNS_P_temp, function(x) t(x[, grep(paste0("^Syn", syn), colnames(x))]))
+        data_M <- lapply(SYNS_M_temp, function(x) {
             muscles <- rownames(x)
             x <- x[, grep(paste0("^Syn", syn), colnames(x))]
             if (length(x)>0) names(x) <- muscles
@@ -1209,30 +1207,30 @@ for (condition in conditions) {
         })
         
         # Put primitives in a single data frame
-        data_H <- plyr::ldply(data_H, data.frame, .id="trial")
+        data_P <- plyr::ldply(data_P, data.frame, .id="trial")
         # Put modules in a single data frame
-        data_W <- plyr::ldply(data_W, data.frame, .id="trial")
+        data_M <- plyr::ldply(data_M, data.frame, .id="trial")
         
-        data_H_av <- data.frame(time=c(1:(ncol(data_H)-1)),
-                                value=colMeans(data_H[, -1]))
-        data_H_sd <- data.frame(time=c(1:(ncol(data_H)-1)),
-                                ymin=data_H_av$value-apply(data_H[, -1], 2, sd),
-                                ymax=data_H_av$value+apply(data_H[, -1], 2, sd))
+        data_P_av <- data.frame(time=c(1:(ncol(data_P)-1)),
+                                value=colMeans(data_P[, -1]))
+        data_P_sd <- data.frame(time=c(1:(ncol(data_P)-1)),
+                                ymin=data_P_av$value-apply(data_P[, -1], 2, sd),
+                                ymax=data_P_av$value+apply(data_P[, -1], 2, sd))
         
-        data_W_av <- data.frame(value=colMeans(data_W[, -1]))
-        data_W_av <- data.frame(muscle=rownames(data_W_av),
-                                data_W_av)
+        data_M_av <- data.frame(value=colMeans(data_M[, -1]))
+        data_M_av <- data.frame(muscle=rownames(data_M_av),
+                                data_M_av)
         
-        data_H <- reshape2::melt(data_H, id="trial")
-        data_W <- reshape2::melt(data_W, id="trial")
+        data_P <- reshape2::melt(data_P, id="trial")
+        data_M <- reshape2::melt(data_M, id="trial")
         
-        temp_H <- ggplot2::ggplot() +
+        temp_P <- ggplot2::ggplot() +
             ggplot2::ggtitle(paste0("Motor primitive ", syn)) +
             ggplot2::ylim(-0.2, 1.2) +
-            ggplot2::geom_ribbon(data=data_H_sd,
+            ggplot2::geom_ribbon(data=data_P_sd,
                                  ggplot2::aes(x=time, ymin=ymin, ymax=ymax),
                                  fill="grey80") +
-            ggplot2::geom_line(data=data_H_av,
+            ggplot2::geom_line(data=data_P_av,
                                ggplot2::aes(x=time, y=value),
                                colour=c_signal, size=s_line) +
             ggplot2::theme(axis.title=ggplot2::element_blank(),
@@ -1241,16 +1239,16 @@ for (condition in conditions) {
                            panel.grid.minor=ggplot2::element_blank(),
                            legend.position="none")
         
-        temp_W <- ggplot2::ggplot() +
+        temp_M <- ggplot2::ggplot() +
             ggplot2::ggtitle(paste0("Motor module ", syn)) +
             ggplot2::ylim(0, 1) +
             ggplot2::geom_hline(yintercept=c(0.25, 0.5, 0.75, 1), size=s_min, color=c_thin) +
-            ggplot2::geom_bar(data=data_W_av,
+            ggplot2::geom_bar(data=data_M_av,
                               ggplot2::aes(x=muscle, y=value),
                               fill=c_bars, alpha=0.3,
                               stat="identity") +
-            ggplot2::scale_x_discrete(limits=data_W_av$muscle) +
-            ggplot2::geom_jitter(data=data_W,
+            ggplot2::scale_x_discrete(limits=data_M_av$muscle) +
+            ggplot2::geom_jitter(data=data_M,
                                  ggplot2::aes(x=variable, y=value),
                                  fill=c_bars, width=0.1, size=0.1) +
             ggplot2::theme(axis.title=ggplot2::element_blank(),
@@ -1261,10 +1259,10 @@ for (condition in conditions) {
                            axis.ticks=ggplot2::element_blank(),
                            legend.position="none")
         
-        varname_H <- paste0("r", 2*syn)
-        varname_W <- paste0("r", 2*syn-1)
-        varlist[[2*syn]]   <- assign(varname_H, temp_H)
-        varlist[[2*syn-1]] <- assign(varname_W, temp_W)
+        varname_P <- paste0("r", 2*syn)
+        varname_M <- paste0("r", 2*syn-1)
+        varlist[[2*syn]]   <- assign(varname_P, temp_P)
+        varlist[[2*syn-1]] <- assign(varname_M, temp_M)
     }
     
     suppressWarnings(gridExtra::grid.arrange(grobs=varlist, nrow=max_syns, ncol=2,
