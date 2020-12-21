@@ -5,12 +5,12 @@
 # 2. Gait cycle times prepared in RData format, one list where each named element is a trial
 #    formatted as data frame with columns named "touchdown" and "stance", times in [s],
 #    file saved as "CYCLE_TIMES.RData"
-# 3. Trials are named as "CYCLE_TIMES_Pxxxx_AA.*_yy" or "RAW_EMG_Pxxxx_AA.*_yy", where:
-#    - Pxxxx is the participant number (e.g., P0002 or P0456)
+# 3. Trials are named as "CYCLE_TIMES_IDxxxx_AA.*_yy" or "RAW_EMG_IDxxxx_AA.*_yy", where:
+#    - IDxxxx is the participant's code (e.g., ID0002 or ID0456)
 #    - AA is the condition (e.g., TW or OR for treadmill or overground walking, but can
 #      as well be longer such as TR_YOUNG_FEMALE, etc.)
 #    - yy is the trial number (e.g., 01 or 155, etc.)
-# Using regex: CYCLE_TIMES_P[0-9]*_.*_[0-9]*, RAW_EMG_P[0-9]*_.*_[0-9]*
+# Using regex: CYCLE_TIMES_ID[0-9]*_.*_[0-9]*, RAW_EMG_ID[0-9]*_.*_[0-9]*
 
 # Preparation ----
 # Install (if needed) required packages
@@ -741,7 +741,7 @@ if (qq=="n") {
     # (trials must be named as stated in the beginning of this script)
     # "*": 0 or more
     # "+": 1 or more
-    conditions <- gsub("SYNS_P[0-9]+_", "", rownames(data))
+    conditions <- gsub("SYNS_ID[0-9]+_", "", rownames(data))
     conditions <- unique(gsub("_Syn.*", "", conditions))
     conditions <- unique(gsub("_[0-9]+$", "", conditions))
     
@@ -1174,7 +1174,7 @@ SYNS_M_all <- lapply(SYNS_M, function(x) {
 })
 
 max_syns   <- max(unlist(lapply(SYNS_M_all, function(x) ncol(x))))
-conditions <- gsub("^SYNS_P[0-9]+_", "", names(SYNS_M_all))
+conditions <- gsub("^SYNS_ID[0-9]+_", "", names(SYNS_M_all))
 conditions <- unique(gsub("_[0-9]+$", "", conditions))
 
 # Progress bar
