@@ -443,13 +443,11 @@ if (qq=="n") {
             if (iter==r-1) {
                 break
             }
-            R2_interp <- as.data.frame(cbind(c(1:(r-iter+1)), R2_cross[iter:r]))
-            colnames(R2_interp) <- c("synergies", "R2_values")
+            R2_interp <- data.frame(synergies=c(1:(r-iter+1)),
+                                    R2_values=R2_cross[iter:r])
             
-            nn      <- nrow(R2_interp)
-            lin     <- lm(R2_values~synergies, R2_interp)
-            lin_pts <- lin[[5]]
-            MSE     <- sum((lin_pts-R2_interp[, 2])^2)/nn
+            lin <- lm(R2_values~synergies, R2_interp)$fitted.values
+            MSE <- sum((lin-R2_interp$R2_values)^2)/nrow(R2_interp)
         }
         syns_R2 <- iter
         
@@ -716,7 +714,7 @@ if (qq=="n") {
             P_list[[r]] <- P_temp[[choice]]
         }
         
-        # Choose the minimum number of synergies using the R2 criterion
+        # Choose the minimum number of principal shapes using the R2 criterion
         MSE  <- 100                     # Initialise the Mean Squared Error (MSE)
         iter <- 0                       # Initialise iterations
         while (MSE>1e-04) {
@@ -724,12 +722,11 @@ if (qq=="n") {
             if (iter==r-1) {
                 break
             }
-            R2_interp <- as.data.frame(cbind(c(1:(r-iter+1)), R2_cross[iter:r]))
-            colnames(R2_interp) <- c("synergies", "R2_values")
-            n <- nrow(R2_interp)
-            linear <- lm(R2_values ~ synergies, R2_interp)
-            linear_points <- linear[[5]]
-            MSE <- sum((linear_points-R2_interp[, 2])^2)/n
+            R2_interp <- data.frame(synergies=c(1:(r-iter+1)),
+                                    R2_values=R2_cross[iter:r])
+            
+            lin <- lm(R2_values~synergies, R2_interp)$fitted.values
+            MSE <- sum((lin-R2_interp$R2_values)^2)/nrow(R2_interp)
         }
         syns_R2 <- iter
         
