@@ -18,6 +18,7 @@ pkgs_list <- c("tcltk",
                "parallel",
                "progress",
                "signal",
+               "gtools",
                "Cairo",
                "ggplot2",
                "gridExtra",
@@ -521,8 +522,580 @@ if (test==1) {
     }
 } else if (test==0) qq <- "n"
 
-if (qq=="n") {
-    # Unsupervised learning method to classify synergies
+ww <- 1
+while (!is.na(ww)) {
+    message("\nPlease choose a classification method: k-means (type 'k') or NMF (type 'n')",
+            "\nNOTE: k-means is faster but NMF gives similar results")
+    ww <- readline()
+    # Break if user decides
+    if (ww=="k" || ww=="n") break
+}
+
+if (qq=="n" && ww=="k") {
+    # Unsupervised learning method to classify synergies based on k-means
+    # Load muscle synergies if not already done
+    if (all(!grepl("^SYNS$", objects()))) {
+        load(paste0(data_path, "SYNS.RData"))
+    }
+    
+    # Get concatenated primitives
+    SYNS_P <- lapply(SYNS, function(x) x$P)
+    # Get motor modules
+    SYNS_M <- lapply(SYNS, function(x) x$M)
+    
+    # Make sure that all motor primitives are normalised to the same amount of points
+    points <- unlist(lapply(SYNS_P, function(x) max(x$time)))
+    
+    if (sd(points)!=0) {
+        message("\nNot all motor primitives are normalised to the same amount of points!",
+                "\nPlease re-check your data\n")
+    } else points <- unique(points)
+    
+    # Find number of muscles
+    muscle_num <- unique(unlist(lapply(SYNS_M, function(x) nrow(x))))
+    if (length(muscle_num)!=1) {
+        message("Not all trials have the same number of muscles!!!")
+        break
+    }
+    
+    message("\nCalculating mean gait cycles...")
+    
+    # Progress bar
+    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
+                                     total=length(SYNS_P), clear=F, width=50)
+    
+    SYNS_P <- lapply(SYNS_P, function(x) {
+        
+        pb$tick()
+        
+        x$time <- NULL
+        temp   <- matrix(0, nrow=points, ncol=ncol(x))
+        
+        for (cc in seq(1, (1+nrow(x)-points), points)) {
+            temp <- temp+x[c(cc:(cc+points-1)), ]
+        }
+        
+        # Divide by the number of cycles to get mean value
+        temp <- temp/(nrow(x)/points)
+        
+        # Amplitude normalisation
+        x <- apply(temp, 2, function(y) y/(max(y)))
+        
+        # Transpose to facilitate visualisation
+        return(t(x))
+    })
+    message("...done!")
+    
+    message("\nPutting primitives into a single data frame...")
+    # Progress bar
+    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
+                                     total=length(SYNS_P), clear=F, width=50)
+    
+    data_P <- plyr::ldply(SYNS_P, function(x) {
+        pb$tick()
+        data.frame(x)
+    })
+    message("...done!")
+    
+    message("\nPutting modules into a single data frame...")
+    # Progress bar
+    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
+                                     total=length(SYNS_M), clear=F, width=50)
+    
+    data_M <- plyr::ldply(SYNS_M, function(x) {
+        pb$tick()
+        t(data.frame(x))
+        
+    })
+    message("...done!")
+    
+    # Check if names are the same for primitives and modules
+    if (identical(data_P$.id, data_M$.id)) {
+        trials <- data_M$.id
+    } else {
+        message("The names of primitives and modules are not the same!!!")
+        break
+    }
+    
+    # Give names to trials (start from synergy zero because
+    # the function "make.unique" works like that)
+    # Find non-duplicated names and assign "Syn0" to them
+    syn0   <- which(!duplicated(trials))
+    trials <- make.unique(trials)
+    trials[syn0] <- paste0(trials[syn0], "_Syn0")
+    # Assign incremental Syn number to other names
+    trials <- gsub("\\.", "_Syn", trials)
+    # Start from Syn1 instead that from Syn0
+    temp1  <- gsub("[0-9]$", "", trials)
+    temp2  <- as.numeric(gsub(".*_Syn", "", trials))+1
+    trials <- paste0(temp1, temp2)
+    # Assign new names to row names and remove id column
+    rownames(data_P) <- trials
+    rownames(data_M) <- trials
+    data_P$.id <- NULL
+    data_M$.id <- NULL
+    
+    # Filter primitives to improve classification
+    data_P <- t(apply(data_P, 1, function(x) {
+        
+        # Build filter
+        LP <- signal::butter(4, 10/(points/2), type="low")
+        # Apply filter
+        x  <- signal::filtfilt(LP, t(x))
+        
+        # Remove negative entries
+        x[x<0] <- 0
+        # Subtract the minimum
+        x <- x-min(x)
+        # Set zeroes to smallest non-negative entry
+        temp <- x
+        temp[temp==0] <- Inf
+        x[x==0] <- min(temp, na.rm=T)
+        # Normalise to maximum
+        x <- x/max(x)
+        
+        return(x)
+    }))
+    
+    # Define centre of activity (CoA)
+    CoA <- function(x) {
+        points <- length(x)
+        
+        AA <- numeric()
+        BB <- numeric()
+        
+        for (pp in 1:points) {
+            alpha  <- 360*(pp-1)/(points-1)*pi/180
+            vec    <- x[pp]
+            AA[pp] <- vec*cos(alpha)
+            BB[pp] <- vec*sin(alpha)
+        }
+        AA <- sum(AA)
+        BB <- sum(BB)
+        
+        CoAt <- atan(BB/AA)*180/pi
+        
+        # To keep the sign
+        if (AA>0 && BB>0) CoAt <- CoAt
+        if (AA<0 && BB>0) CoAt <- CoAt+180
+        if (AA<0 && BB<0) CoAt <- CoAt+180
+        if (AA>0 && BB<0) CoAt <- CoAt+360
+        
+        CoAt*points/360
+    }
+    
+    # Find different conditions
+    # (trials must be named as stated in the beginning of this script)
+    # "*": 0 or more
+    # "+": 1 or more
+    conditions <- gsub("SYNS_ID[0-9]+_", "", rownames(data_M))
+    conditions <- unique(gsub("_Syn.*", "", conditions))
+    conditions <- unique(gsub("_[0-9]+$", "", conditions))
+    
+    # Build list with the trials of the different conditions
+    all_P <- vector("list", length(conditions))
+    names(all_P) <- conditions
+    all_M <- all_P
+    for (condition in conditions) {
+        all_P[[condition]] <- data_P[grep(condition, rownames(data_P)), ]
+        all_M[[condition]] <- as.matrix(data_M[grep(condition, rownames(data_M)), ])
+    }
+    
+    # save(all_P, file=paste0(data_path, "primitives_for_clustering.RData"))
+    # save(all_M, file=paste0(data_path, "modules_for_clustering.RData"))
+    # load(paste0(data_path, "primitives_for_clustering.RData"))
+    # load(paste0(data_path, "modules_for_clustering.RData"))
+    
+    message("\nClustering motor primitives with k-means...")
+    # Progress bar
+    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
+                                     total=length(all_P), clear=F, width=50)
+    
+    # Apply k-means to motor primitives
+    # par(mfrow=c(2, 1))
+    clust_P <- lapply(all_P, function(x) {
+        
+        pb$tick()
+        
+        # Determine number of clusters by computing the within-group sum of squares
+        # for an increasing number of clusters and then searching for an elbow in the
+        # clusters vs. withinss curve
+        # nstart is set >1 due to instabilities found (of course this slows down computation)
+        kmeans_all <- list()
+        for (clust in 1:muscle_num) {
+            kmeans_all[[clust]] <- kmeans(x,
+                                          centers=clust,
+                                          nstart=20,
+                                          algorithm="Hartigan-Wong")
+        }
+        
+        withinss <- unlist(lapply(kmeans_all, function(y) sum(y$withinss)))
+        withinss <- withinss-min(withinss)
+        withinss <- withinss/max(withinss)
+        
+        # plot(x=c(1:muscle_num), y=withinss,
+        #      type="b",
+        #      xlab="Number of clusters", ylab="Within groups sum of squares")
+        
+        # Find the elbow in the clusters vs. withinss curve
+        MSE  <- 100                             # Initialise the Mean Squared Error (MSE)
+        iter <- 0                               # Initialise iterations
+        while (MSE>1e-03) {
+            iter <- iter+1
+            if (iter==muscle_num-1) {
+                break
+            }
+            withinss_interp <- data.frame(xx=c(1:(muscle_num-iter+1)),
+                                          yy=withinss[iter:(muscle_num)])
+            
+            # plot(x=withinss_interp$xx+iter,
+            #      y=withinss_interp$yy,
+            #      xlim=c(1, muscle_num),
+            #      ylim=c(0, 1),
+            #      ty="b")
+            
+            linear <- lm(yy~xx, withinss_interp)$fitted.values
+            MSE    <- sum((linear-withinss_interp$yy)^2)/nrow(withinss_interp)
+        }
+        clust <- iter
+        # abline(v=clust, col=2, lwd=2)
+        
+        kmeans_all[[clust]]
+    })
+    message("...done!")
+    
+    # Write number of clusters per condition in a simple way
+    clust_num_P <- unlist(lapply(clust_P, function(x) max(x$cluster)))
+    
+    # Apply k-means to motor modules
+    message("\nClustering motor modules with k-means...")
+    # Progress bar
+    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
+                                     total=length(all_M), clear=F, width=50)
+    
+    clust_M <- clust_P
+    
+    for (cond in conditions) {
+        pb$tick()
+        
+        # Use previously-determined number of clusters
+        clust_M[[cond]] <- kmeans(all_M[[cond]],
+                                  centers=clust_num_P[cond],
+                                  nstart=20,
+                                  algorithm="Hartigan-Wong")
+    }
+    message("...done!")
+    
+    order_list <- list()
+    
+    # Order synergies based on k-means clustering
+    for (cond in conditions) {
+        orders <- data.frame(clusters_P=clust_P[[cond]]$cluster,
+                             clusters_M=clust_M[[cond]]$cluster,
+                             FWHM=apply(all_P[[cond]], 1, function(x) length(which(x>=0.5))),
+                             CoA=apply(all_P[[cond]], 1, function(x) CoA(x)))
+        
+        clust_num <- clust_num_P[cond]
+        
+        # Arrange primitive- and module-based clusters in the same order
+        temp_P <- subset(orders, select=-c(clusters_M))
+        temp_M <- subset(orders, select=-c(clusters_P))
+        # Take average FWHM and CoA based on cluster
+        geoms_P <- data.frame(aggregate(FWHM~clusters_P, temp_P, mean),
+                              CoA=aggregate(CoA~clusters_P, temp_P, mean)$CoA)
+        geoms_M <- data.frame(aggregate(FWHM~clusters_M, temp_M, mean),
+                              CoA=aggregate(CoA~clusters_M, temp_M, mean)$CoA)
+        # Define score as sum of FWHM and CoA
+        geoms_P <- data.frame(clust_P=geoms_P$clusters_P,
+                              score=geoms_P$FWHM+geoms_P$CoA)
+        geoms_M <- data.frame(clust_M=geoms_M$clusters_M,
+                              score=geoms_M$FWHM+geoms_M$CoA)
+        
+        # Calculate mutual score residuals and find minimum
+        perms  <- gtools::permutations(nrow(geoms_P), r=2, repeats.allowed=T)
+        resids <- numeric()
+        for (perm in 1:nrow(perms)) {
+            resids[perm] <- (geoms_P$score[perms[perm, 1]]-geoms_M$score[perms[perm, 2]])^4
+        }
+        perms <- perms[sort(resids, decreasing=F, index.return=T)$ix, ]
+        perms <- data.frame(perms[-which(duplicated(perms[, 1])), ])
+        colnames(perms) <- c("old", "new")
+        
+        if (!identical(perms$old, perms$new)) {
+            temp_M <- orders$clusters_M
+            orders$clusters_M <- c(perms$old, temp_M)[match(temp_M, c(perms$new, temp_M))]
+        }
+        
+        # # Save first plots
+        # ggP <- ggplot(data=orders, aes(x=FWHM, y=CoA,
+        #                                colour=factor(clusters_P)))
+        # 
+        # ggM <- ggplot(data=orders, aes(x=FWHM, y=CoA,
+        #                                colour=factor(clusters_M)))
+        
+        # Find discordant classifications and label as "combined"
+        discordant <- which(orders$clusters_P!=orders$clusters_M)
+        orders$clusters_P[discordant] <- "combined"
+        orders$clusters_M[discordant] <- "combined"
+        
+        # Calculate mean primitives and then order using CoA
+        mean_P <- matrix(0, nrow=clust_num, ncol=points)
+        mean_M <- matrix(0, nrow=clust_num, ncol=muscle_num)
+        temp_P <- all_P[[cond]]
+        temp_M <- all_M[[cond]]
+        
+        # Remove old row names and replace with new orders
+        rownames(temp_P) <- gsub("[0-9]*$", "", rownames(temp_P))
+        rownames(temp_M) <- gsub("[0-9]*$", "", rownames(temp_M))
+        rownames(temp_P) <- paste0(rownames(temp_P), orders$clusters_P)
+        rownames(temp_M) <- paste0(rownames(temp_M), orders$clusters_M)
+        
+        # Remove combined
+        temp_P <- temp_P[-grep("combined", rownames(temp_P)), ]
+        temp_M <- temp_M[-grep("combined", rownames(temp_M)), ]
+        
+        # Calculate means
+        for (clust in 1:clust_num) {
+            temp_clust_P <- temp_P[grep(paste0("Syn", clust, "$"), rownames(temp_P)), ]
+            temp_clust_M <- temp_M[grep(paste0("Syn", clust, "$"), rownames(temp_M)), ]
+            mean_P[clust, ] <- colSums(temp_clust_P)
+            mean_M[clust, ] <- colSums(temp_clust_M)
+            mean_P[clust, ] <- mean_P[clust, ]-min(mean_P[clust, ])
+            mean_M[clust, ] <- mean_M[clust, ]-min(mean_M[clust, ])
+            mean_P[clust, ] <- mean_P[clust, ]/max(mean_P[clust, ])
+            mean_M[clust, ] <- mean_M[clust, ]/max(mean_M[clust, ])
+        }
+        # Create ordering rule
+        order_rule <- data.frame(old=c(1:clust_num),
+                                 new=order(apply(mean_P, 1, CoA)))
+        
+        # Apply new order to mean curves
+        mean_P <- mean_P[order_rule$new, ]
+        mean_M <- mean_M[order_rule$new, ]
+        rownames(mean_P) <- paste0("Syn", 1:nrow(mean_P))
+        rownames(mean_M) <- paste0("Syn", 1:nrow(mean_M))
+        colnames(mean_M) <- colnames(temp_M)
+        
+        # Apply new order to all
+        temp_P <- orders$clusters_P
+        temp_M <- orders$clusters_M
+        orders$clusters_P <- c(order_rule$old, temp_P)[match(temp_P, c(order_rule$new, temp_P))]
+        orders$clusters_M <- c(order_rule$old, temp_M)[match(temp_M, c(order_rule$new, temp_M))]
+        
+        # Plot classified syns
+        # Find plot size
+        dev_size <- dev.size(units="in")
+        # Margins are specified in inches following the order:
+        # bottom, left, top, right
+        # Reduction factor of margins to account for screens at different resolutions
+        red_factor <- 25
+        par(mfrow=c(clust_num, 2),
+            mai=c(dev_size[2]/red_factor,
+                  dev_size[1]/red_factor,
+                  dev_size[2]/red_factor,
+                  dev_size[1]/red_factor))
+        
+        for (syn in 1:clust_num) {
+            # Plot motor modules
+            barplot(mean_M[syn, ])
+            # Plot motor primitives
+            plot(x=c(1:ncol(mean_P)), y=mean_P[syn, ],
+                 ty="l", main=paste0("Synergy ", syn, ", ", cond),
+                 xlab="", ylab="",
+                 xaxt="n", yaxt="n", lwd=2)
+        }
+        
+        qq <- 1
+        while (!is.na(qq)) {
+            message("\nDo you want to change order of classified synergies (type 'y' for 'yes' or 'n' for 'no')?")
+            qq <- readline()
+            # Break if user decides
+            if (qq=="y" || qq=="n") break
+        }
+        
+        if (qq=="y" || qq=="ye" || qq=="yes") {
+            # Prompt for decision
+            message("Press Esc to stop (order will not be changed)")
+            orders_new <- numeric()
+            for (cc in 1:clust_num) {
+                pp <- 0.2
+                while (pp<1) {
+                    pp <- readline(paste0("Syn num to be associated with the curve ", cc, ": "))
+                    
+                    if (grepl("^$", pp)) {
+                        pp <- -1
+                    } else if (grepl("\\D", pp) && !grepl("^s$", pp)) {
+                        pp <- -1
+                    } else if (grepl("^s$", pp)) {
+                        pp <- 1000
+                    } else if  (as.numeric(pp)>clust_num){
+                        pp <- -1
+                    }
+                }
+                orders_new[cc] <- pp
+            }
+            
+            orders_new <- as.numeric(orders_new)
+            orders_new <- sort.int(orders_new, index.return=T)$ix
+            
+            # Re-create ordering rule
+            order_rule <- data.frame(old=c(1:clust_num),
+                                     new=orders_new)
+            
+            # Apply new order to mean curves
+            mean_P <- mean_P[order_rule$new, ]
+            mean_M <- mean_M[order_rule$new, ]
+            rownames(mean_P) <- paste0("Syn", 1:nrow(mean_P))
+            rownames(mean_M) <- paste0("Syn", 1:nrow(mean_M))
+            colnames(mean_M) <- colnames(temp_M)
+            
+            # Apply new order to all
+            temp_P <- orders$clusters_P
+            temp_M <- orders$clusters_M
+            orders$clusters_P <- c(order_rule$old, temp_P)[match(temp_P, c(order_rule$new, temp_P))]
+            orders$clusters_M <- c(order_rule$old, temp_M)[match(temp_M, c(order_rule$new, temp_M))]
+            
+            # Re-plot classified syns
+            par(mfrow=c(clust_num, 2),
+                mai=c(dev_size[2]/red_factor,
+                      dev_size[1]/red_factor,
+                      dev_size[2]/red_factor,
+                      dev_size[1]/red_factor))
+            
+            for (syn in 1:clust_num) {
+                # Plot motor modules
+                barplot(mean_M[syn, ])
+                # Plot motor primitives
+                plot(x=c(1:ncol(mean_P)), y=mean_P[syn, ],
+                     ty="l", main=paste0("Synergy ", syn, ", ", cond),
+                     xlab="", ylab="",
+                     xaxt="n", yaxt="n", lwd=2)
+            }
+            Sys.sleep(2)
+        }
+        
+        # Remove double classifications, if present
+        participants <- gsub("SYNS_", "", rownames(orders))
+        participants <- unique(gsub("_.*", "", participants))
+        
+        for (participant in participants) {
+            
+            trial <- orders[grep(paste0(participant, "_"), rownames(orders)), ]
+            trial$clusters_M <- NULL
+            
+            # Find duplicates
+            dupl <- which(duplicated(trial$clusters_P))
+            
+            if (length(dupl)>0) {
+                
+                for (syn in c(1:clust_num)) {
+                    
+                    dupl <- grep(paste0("^", syn, "$"), trial$clusters_P)
+                    
+                    if (length(dupl)<=1) {
+                        next
+                    } else {
+                        R2 <- numeric()
+                        P2 <- as.numeric(mean_P[syn, ])
+                        for (dd in c(1:length(dupl))) {
+                            trial_syn <- rownames(trial)[dupl[dd]]
+                            # Calculate R2 between each duplicated primitive and the mean
+                            P1  <- as.numeric(data_P[grep(trial_syn, rownames(data_P)), ])
+                            RSS <- sum((P1-P2)^2)
+                            SST <- sum((P1-mean(P1))^2)
+                            R2[dd] <- 1-(RSS/SST)
+                        }
+                        dupl <- dupl[-which.max(R2)]
+                        trial$clusters_P[dupl] <- "combined"
+                    }
+                }
+            }
+            
+            if (participant==participants[1]) {
+                orders_new <- trial
+            } else orders_new <- rbind(orders_new, trial)
+            
+        }
+        
+        # # Make last plots
+        # ggfinal <- ggplot(data=orders_new, aes(x=FWHM, y=CoA,
+        #                                        colour=factor(clusters_P)))
+        # 
+        # ggP <- ggP + geom_point(size=2) +
+        #     xlim(0, points) +
+        #     ylim(0, points) +
+        #     ggtitle(paste0(cond, " (primitive clustering)")) +
+        #     theme(legend.title=element_blank())
+        # 
+        # ggM <- ggM + geom_point(size=2) +
+        #     xlim(0, points) +
+        #     ylim(0, points) +
+        #     ggtitle(paste0(cond, " (module clustering)")) +
+        #     theme(legend.title=element_blank())
+        # 
+        # ggfinal <- ggfinal + geom_point(size=2) +
+        #     xlim(0, points) +
+        #     ylim(0, points) +
+        #     ggtitle(paste0(cond, " (final clustering)")) +
+        #     theme(legend.title=element_blank())
+        # 
+        # # gridExtra::grid.arrange(grobs=list(ggP, ggM, ggfinal), nrow=3, ncol=1)
+        
+        trial <- gsub("_Syn[0-9]*$", "", rownames(orders_new))
+        new   <- paste0(trial, "_Syn", orders_new$clusters_P)
+        
+        orders_new <- data.frame(old=rownames(orders_new),
+                                 new,
+                                 syn_classified=gsub(".*_Syn", "", new),
+                                 trial)
+        
+        order_list[[cond]] <- orders_new
+        
+        combined <- length(grep("Syncombined", orders_new$new))
+        total    <- nrow(orders_new)
+        
+        message("\n  Locomotion type: ", cond,
+                "\n  Total synergies: ", total,
+                "\n       Recognised: ", total-combined,
+                "\n         Combined: ", combined, " (~", round(combined/total*100, 0), "%)",
+                "\n         Clusters: ", clust_num, "\n")
+        
+        syn_perc <- numeric()
+        for (ss in 1:clust_num) {
+            syn_perc[ss] <- round(length(grep(paste0("^", ss, "$"),
+                                              orders_new$syn_classified))/length(participants)*100, 0)
+            message("             Syn", ss, ": ", syn_perc[ss], "%")
+        }
+    }
+    
+    orders <- plyr::ldply(order_list, data.frame)
+    
+    # Rename synergies in the correct order and save
+    SYNS_classified <- SYNS
+    
+    # Find unique trial names
+    trials <- which(!duplicated(orders$trial))
+    for (uu in seq_along(trials)) {
+        
+        # Read the classification
+        if (uu<length(trials)) {
+            classification <- orders$syn_classified[trials[uu]:(trials[uu+1]-1)]
+        } else {
+            classification <- orders$syn_classified[trials[uu]:nrow(orders)]
+        }
+        
+        trial <- orders$trial[trials[uu]]
+        
+        colnames(SYNS_classified[[trial]]$P) <- c("time", paste0("Syn", classification))
+        colnames(SYNS_classified[[trial]]$M) <- paste0("Syn", classification)
+    }
+    
+    message("\nSaving classified synergies...")
+    save(SYNS_classified, file=paste0(data_path, "SYNS_classified.RData"))
+    message("...done!")
+
+} else if (qq=="n" && ww=="n") {
+    # Unsupervised learning method to classify synergies based on NMF
     # Load muscle synergies if not already done
     if (all(!grepl("^SYNS$", objects()))) {
         load(paste0(data_path, "SYNS.RData"))
