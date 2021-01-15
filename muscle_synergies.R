@@ -522,16 +522,14 @@ if (test==1) {
     }
 } else if (test==0) qq <- "n"
 
-if (test==1) {
-    ww <- 1
-    while (!is.na(qq)) {
-        message("\nPlease choose a classification method: k-means (default, type 'k') or NMF (type 'n')",
-                "\nNOTE: k-means is faster but NMF gives similar results")
-        ww <- readline()
-        # Break if user decides
-        if (ww=="k" || ww=="n") break
-    }
-} else if (test==0) ww <- "k"
+ww <- 1
+while (!is.na(ww)) {
+    message("\nPlease choose a classification method: k-means (type 'k') or NMF (type 'n')",
+            "\nNOTE: k-means is faster but NMF gives similar results")
+    ww <- readline()
+    # Break if user decides
+    if (ww=="k" || ww=="n") break
+}
 
 if (qq=="n" && ww=="k") {
     # Unsupervised learning method to classify synergies based on k-means
