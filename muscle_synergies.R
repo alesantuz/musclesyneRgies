@@ -531,8 +531,9 @@ while (!is.na(ww)) {
     if (ww=="k" || ww=="n") break
 }
 
-if (qq=="n" && ww=="k") {
-    # Unsupervised learning method to classify synergies based on k-means
+# Load data and define common functions
+
+if (qq=="n") {
     # Load muscle synergies if not already done
     if (all(!grepl("^SYNS$", objects()))) {
         load(paste0(data_path, "SYNS.RData"))
@@ -684,6 +685,122 @@ if (qq=="n" && ww=="k") {
         CoAt*points/360
     }
     
+    # Define NMF function
+    NMFn <- function(V)
+    {
+        R2_target <- 0.01               # Convergence criterion (percent of the R2 value)
+        R2_cross  <- numeric()          # R2 values for cross validation and syn number assessment
+        M_list    <- list()             # To save factorisation M matrices (synergies)
+        P_list    <- list()             # To save factorisation P matrices (primitives)
+        
+        # Original matrix
+        V      <- as.matrix(V)
+        V[V<0] <- 0                     # Set negative values to zero
+        temp   <- V
+        temp[temp==0] <- Inf
+        V[V==0] <- min(temp, na.rm=T)   # Set the zeros to the smallest non-zero entry in V
+        
+        m <- nrow(V)                    # Number of primitives in the data-set
+        n <- ncol(V)                    # Number of time points
+        
+        # Determine the maximum number of synergies by searching for the maximum rank
+        temp <- as.numeric(gsub(".*\\_Syn", "", rownames(V)))
+        # Add one because interpolation must happen with at least two points
+        max_syns <- max(temp)+1
+        
+        for (r in 1:max_syns) {         # Run NMF with different initial conditions
+            R2_choice <- numeric()      # Collect the R2 values for each syn and choose the max
+            
+            # Preallocate to then choose those with highest R2
+            M_temp <- list()
+            P_temp <- list()
+            
+            for (j in 1:5) {            # Run NMF 5 times for each syn and choose best run
+                # To save error values
+                R2  <- numeric()        # 1st cost function (R squared)
+                SST <- numeric()        # Total sum of squares
+                RSS <- numeric()        # Residual sum of squares or min reconstruction error
+                
+                # Initialise iterations and define max number of iterations
+                iter     <- 1
+                max_iter <- 1000
+                # Initialise the two factorisation matrices with random values
+                # (uniform distribution)
+                P <- matrix(runif(r*n, min=0.01, max=1), nrow=r, ncol=n)
+                M <- matrix(runif(m*r, min=0.01, max=1), nrow=m, ncol=r)
+                
+                # Iteration zero
+                P   <- P*(t(M)%*%V)/(t(M)%*%M%*%P)
+                M   <- M*(V%*%t(P))/(M%*%P%*%t(P))
+                Vr  <- M%*%P          # Reconstructed matrix
+                RSS <- sum((V-Vr)^2)
+                SST <- sum((V-mean(V))^2)
+                R2[iter] <- 1-(RSS/SST)
+                
+                # l2-norm normalisation which eliminates trivial scale indeterminacies
+                for (kk in 1:r) {
+                    norm    <- sqrt(sum(M[, kk]^2))
+                    M[, kk] <- M[, kk]/norm
+                    P[kk, ] <- P[kk, ]*norm
+                }
+                
+                # Start iterations for NMF convergence
+                for (iter in iter:max_iter)  {
+                    P   <- P*(t(M)%*%V)/(t(M)%*%M%*%P)
+                    M   <- M*(V%*%t(P))/(M%*%P%*%t(P))
+                    Vr  <- M%*%P
+                    RSS <- sum((V-Vr)^2)
+                    SST <- sum((V-mean(V))^2)
+                    R2[iter] <- 1-(RSS/SST)
+                    
+                    # l2-norm normalisation
+                    for (kk in 1:r) {
+                        norm    <- sqrt(sum(M[, kk]^2))
+                        M[, kk] <- M[, kk]/norm
+                        P[kk, ] <- P[kk, ]*norm
+                    }
+                    
+                    # Check if the increase of R2 in the last 20 iterations is less than the target
+                    if (iter>20) {
+                        R2_diff <- R2[iter]-R2[iter-20]
+                        if (R2_diff<R2[iter]*R2_target/100) {
+                            break
+                        }
+                    }
+                }
+                R2_choice[j] <- R2[iter]
+                
+                M_temp[[j]]  <- M
+                P_temp[[j]]  <- P
+            }
+            
+            choice <- which.max(R2_choice)
+            
+            R2_cross[r] <- R2_choice[choice]
+            M_list[[r]] <- M_temp[[choice]]
+            P_list[[r]] <- P_temp[[choice]]
+        }
+        
+        # Choose the minimum number of principal shapes using the R2 criterion
+        MSE  <- 100                     # Initialise the Mean Squared Error (MSE)
+        iter <- 0                       # Initialise iterations
+        while (MSE>1e-04) {
+            iter <- iter+1
+            if (iter==r-1) {
+                break
+            }
+            R2_interp <- data.frame(synergies=c(1:(r-iter+1)),
+                                    R2_values=R2_cross[iter:r])
+            
+            lin <- lm(R2_values~synergies, R2_interp)$fitted.values
+            MSE <- sum((lin-R2_interp$R2_values)^2)/nrow(R2_interp)
+        }
+        syns_R2 <- iter
+        
+        return(list(M=M_list[[syns_R2]],
+                    P=P_list[[syns_R2]]))
+    }
+    
     # Find different conditions
     # (trials must be named as stated in the beginning of this script)
     # "*": 0 or more
@@ -697,15 +814,13 @@ if (qq=="n" && ww=="k") {
     names(all_P) <- conditions
     all_M <- all_P
     for (condition in conditions) {
-        all_P[[condition]] <- data_P[grep(condition, rownames(data_P)), ]
-        all_M[[condition]] <- as.matrix(data_M[grep(condition, rownames(data_M)), ])
+        all_P[[condition]] <- data_P[grep(paste0("_", condition, "_"), rownames(data_P)), ]
+        all_M[[condition]] <- as.matrix(data_M[grep(paste0("_", condition, "_"), rownames(data_M)), ])
     }
-    
-    # save(all_P, file=paste0(data_path, "primitives_for_clustering.RData"))
-    # save(all_M, file=paste0(data_path, "modules_for_clustering.RData"))
-    # load(paste0(data_path, "primitives_for_clustering.RData"))
-    # load(paste0(data_path, "modules_for_clustering.RData"))
-    
+}
+
+if (qq=="n" && ww=="k") {
+    # Unsupervised learning method to classify synergies based on k-means
     message("\nClustering motor primitives with k-means...")
     # Progress bar
     pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
@@ -1096,232 +1211,6 @@ if (qq=="n" && ww=="k") {
 
 } else if (qq=="n" && ww=="n") {
     # Unsupervised learning method to classify synergies based on NMF
-    # Load muscle synergies if not already done
-    if (all(!grepl("^SYNS$", objects()))) {
-        load(paste0(data_path, "SYNS.RData"))
-    }
-    
-    # Get concatenated primitives
-    SYNS_P <- lapply(SYNS, function(x) x$P)
-    
-    # Make sure that all motor primitives are normalized to the same amount of points
-    points <- unlist(lapply(SYNS_P, function(x) max(x$time)))
-    
-    if (sd(points)!=0) {
-        message("\nNot all motor primitives are normalised to the same amount of points!",
-                "\nPlease re-check your data\n")
-    } else points <- unique(points)
-    
-    message("\nCalculating mean motor primitives...")
-    
-    # Progress bar
-    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                     total=length(SYNS_P), clear=F, width=50)
-    
-    SYNS_P <- lapply(SYNS_P, function(x) {
-        
-        pb$tick()
-        
-        x$time <- NULL
-        temp   <- matrix(0, nrow=points, ncol=ncol(x))
-        
-        for (cc in seq(1, (1+nrow(x)-points), points)) {
-            temp <- temp+x[c(cc:(cc+points-1)), ]
-        }
-        
-        # Divide by the number of cycles to get mean value
-        temp <- temp/(nrow(x)/points)
-        
-        # Amplitude normalisation
-        x <- apply(temp, 2, function(y) y/(max(y)))
-        
-        # Transpose to facilitate visualisation
-        return(t(x))
-    })
-    message("...done!")
-    
-    message("\nPutting primitives in a single data frame...")
-    
-    # Progress bar
-    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                     total=length(SYNS_P), clear=F, width=50)
-    
-    data <- plyr::ldply(SYNS_P, function(x) {
-        pb$tick()
-        data.frame(x)
-    })
-    message("...done!")
-    
-    # Give names to primitives (start from synergy zero because
-    # the function "make.unique" works like that)
-    # Find non-duplicated names and assign "Syn0" to them
-    syn0           <- which(!duplicated(data$.id))
-    data$.id       <- make.unique(data$.id)
-    data$.id[syn0] <- paste0(data$.id[syn0], "_Syn0")
-    # Assign incremental Syn number to other names
-    data$.id <- gsub("\\.", "_Syn", data$.id)
-    # Start from Syn1 instead that from Syn0
-    temp1 <- gsub("[0-9]$", "", data$.id)
-    temp2 <- as.numeric(gsub(".*_Syn", "", data$.id))+1
-    temp3 <- paste0(temp1, temp2)
-    # Assign new names to row names and remove id column
-    rownames(data) <- temp3
-    data$.id       <- NULL
-    
-    # Filter primitives to improve classification
-    data <- t(apply(data, 1, function(x) {
-        
-        # Build filter
-        LP <- signal::butter(4, 10/(points/2), type="low")
-        # Apply filter
-        x  <- signal::filtfilt(LP, t(x))
-        
-        # Remove negative entries
-        x[x<0] <- 0
-        # Subtract the minimum
-        x <- x-min(x)
-        # Set zeroes to smallest non-negative entry
-        temp <- x
-        temp[temp==0] <- Inf
-        x[x==0] <- min(temp, na.rm=T)
-        # Normalise to maximum
-        x <- x/max(x)
-        
-        return(x)
-    }))
-    
-    # Classify primitives with NMF
-    # Define NMF function
-    NMFn <- function(V)
-    {
-        R2_target <- 0.01               # Convergence criterion (percent of the R2 value)
-        R2_cross  <- numeric()          # R2 values for cross validation and syn number assessment
-        M_list    <- list()             # To save factorisation M matrices (synergies)
-        P_list    <- list()             # To save factorisation P matrices (primitives)
-        
-        # Original matrix
-        V      <- as.matrix(V)
-        V[V<0] <- 0                     # Set negative values to zero
-        temp   <- V
-        temp[temp==0] <- Inf
-        V[V==0] <- min(temp, na.rm=T)   # Set the zeros to the smallest non-zero entry in V
-        
-        m <- nrow(V)                    # Number of primitives in the data-set
-        n <- ncol(V)                    # Number of time points
-        
-        # Determine the maximum number of synergies by searching for the maximum rank
-        temp <- as.numeric(gsub(".*\\_Syn", "", rownames(V)))
-        # Add one because interpolation must happen with at least two points
-        max_syns <- max(temp)+1
-        
-        for (r in 1:max_syns) {         # Run NMF with different initial conditions
-            R2_choice <- numeric()      # Collect the R2 values for each syn and choose the max
-            
-            # Preallocate to then choose those with highest R2
-            M_temp <- list()
-            P_temp <- list()
-            
-            for (j in 1:5) {            # Run NMF 5 times for each syn and choose best run
-                # To save error values
-                R2  <- numeric()        # 1st cost function (R squared)
-                SST <- numeric()        # Total sum of squares
-                RSS <- numeric()        # Residual sum of squares or min reconstruction error
-                
-                # Initialise iterations and define max number of iterations
-                iter     <- 1
-                max_iter <- 1000
-                # Initialise the two factorisation matrices with random values
-                # (uniform distribution)
-                P <- matrix(runif(r*n, min=0.01, max=1), nrow=r, ncol=n)
-                M <- matrix(runif(m*r, min=0.01, max=1), nrow=m, ncol=r)
-                
-                # Iteration zero
-                P   <- P*(t(M)%*%V)/(t(M)%*%M%*%P)
-                M   <- M*(V%*%t(P))/(M%*%P%*%t(P))
-                Vr  <- M%*%P          # Reconstructed matrix
-                RSS <- sum((V-Vr)^2)
-                SST <- sum((V-mean(V))^2)
-                R2[iter] <- 1-(RSS/SST)
-                
-                # l2-norm normalisation which eliminates trivial scale indeterminacies
-                for (kk in 1:r) {
-                    norm    <- sqrt(sum(M[, kk]^2))
-                    M[, kk] <- M[, kk]/norm
-                    P[kk, ] <- P[kk, ]*norm
-                }
-                
-                # Start iterations for NMF convergence
-                for (iter in iter:max_iter)  {
-                    P   <- P*(t(M)%*%V)/(t(M)%*%M%*%P)
-                    M   <- M*(V%*%t(P))/(M%*%P%*%t(P))
-                    Vr  <- M%*%P
-                    RSS <- sum((V-Vr)^2)
-                    SST <- sum((V-mean(V))^2)
-                    R2[iter] <- 1-(RSS/SST)
-                    
-                    # l2-norm normalisation
-                    for (kk in 1:r) {
-                        norm    <- sqrt(sum(M[, kk]^2))
-                        M[, kk] <- M[, kk]/norm
-                        P[kk, ] <- P[kk, ]*norm
-                    }
-                    
-                    # Check if the increase of R2 in the last 20 iterations is less than the target
-                    if (iter>20) {
-                        R2_diff <- R2[iter]-R2[iter-20]
-                        if (R2_diff<R2[iter]*R2_target/100) {
-                            break
-                        }
-                    }
-                }
-                R2_choice[j] <- R2[iter]
-                
-                M_temp[[j]]  <- M
-                P_temp[[j]]  <- P
-            }
-            
-            choice <- which.max(R2_choice)
-            
-            R2_cross[r] <- R2_choice[choice]
-            M_list[[r]] <- M_temp[[choice]]
-            P_list[[r]] <- P_temp[[choice]]
-        }
-        
-        # Choose the minimum number of principal shapes using the R2 criterion
-        MSE  <- 100                     # Initialise the Mean Squared Error (MSE)
-        iter <- 0                       # Initialise iterations
-        while (MSE>1e-04) {
-            iter <- iter+1
-            if (iter==r-1) {
-                break
-            }
-            R2_interp <- data.frame(synergies=c(1:(r-iter+1)),
-                                    R2_values=R2_cross[iter:r])
-            
-            lin <- lm(R2_values~synergies, R2_interp)$fitted.values
-            MSE <- sum((lin-R2_interp$R2_values)^2)/nrow(R2_interp)
-        }
-        syns_R2 <- iter
-        
-        return(list(M=M_list[[syns_R2]],
-                    P=P_list[[syns_R2]]))
-    }
-    
-    # Find different conditions
-    # (trials must be named as stated in the beginning of this script)
-    # "*": 0 or more
-    # "+": 1 or more
-    conditions <- gsub("SYNS_ID[0-9]+_", "", rownames(data))
-    conditions <- unique(gsub("_Syn.*", "", conditions))
-    conditions <- unique(gsub("_[0-9]+$", "", conditions))
-    
-    # Build list with the trials of the different conditions
-    all_trials <- vector("list", length(conditions))
-    names(all_trials) <- conditions
-    for (condition in conditions) {
-        all_trials[[condition]] <- data[grep(paste0("_", condition, "_"), rownames(data)), ]
-    }
-    
     # Apply NMF
     sys_date <- gsub(" [0-9][0-9]:[0-9][0-9]:[0-9][0-9]$", "", Sys.time())
     sys_time <- gsub("^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] ", "", Sys.time())
@@ -1329,7 +1218,7 @@ if (qq=="n" && ww=="k") {
     message("\nClassify motor primitives using NMF\nStarted on ", sys_date, " at ", sys_time)
     
     tictoc <- system.time({
-        data_NMF <- parallel::parLapply(cl, all_trials, NMFn)
+        data_NMF <- parallel::parLapply(cl, all_P, NMFn)
     })
     
     ll <- sum(unlist(lapply(data_NMF, function(x) nrow(x$M))))
@@ -1353,40 +1242,7 @@ if (qq=="n" && ww=="k") {
             "\nAverage trial comp. time: ", round(tictoc[[3]]/ll, 2), " s\n",
             "\n- - - - - - - - - - - - - - - - - - - - - - -")
     
-    # Define centre of activity (CoA)
-    CoA <- function(x) {
-        
-        points <- length(x)
-        
-        AA <- numeric()
-        BB <- numeric()
-        
-        for (pp in 1:points) {
-            alpha  <- 360*(pp-1)/(points-1)*pi/180
-            vec    <- x[pp]
-            AA[pp] <- vec*cos(alpha)
-            BB[pp] <- vec*sin(alpha)
-        }
-        AA <- sum(AA)
-        BB <- sum(BB)
-        
-        CoAt <- atan(BB/AA)*180/pi
-        
-        # To keep the sign
-        if (AA>0 && BB>0) {
-            CoAt <- CoAt  
-        } else if (AA<0 && BB>0) {
-            CoAt <- CoAt+180
-        }        else if (AA<0 && BB<0) {
-            CoAt <- CoAt+180
-        }        else if (AA>0 && BB<0) {
-            CoAt <- CoAt+360
-        }
-        
-        CoAt*points/360
-    }
-    
-    data_all   <- data
+    data_all   <- data_P
     order_list <- list()
     
     for (ll in seq_along(data_NMF)) {
@@ -1527,7 +1383,7 @@ if (qq=="n" && ww=="k") {
                 temp[tt, -choice] <- NA
                 # Calculate R2 between curve and primitive
                 P1  <- as.numeric(data_NMF_P[choice, ])
-                P2  <- as.numeric(data[tt, ])
+                P2  <- as.numeric(data_P[tt, ])
                 RSS <- sum((P1-P2)^2)
                 SST <- sum((P1-mean(P1))^2)
                 R2  <- 1-(RSS/SST)
