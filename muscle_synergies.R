@@ -539,6 +539,21 @@ if (qq=="n") {
         load(paste0(data_path, "SYNS.RData"))
     }
     
+    # Compatibility check -----
+    # Function to rename H and W to P and M, respectively
+    rename_H_W <- function(x) {
+      temp <- names(x)
+      temp[temp=="H"] <- "P"
+      temp[temp=="W"] <- "M"
+      names(x) <- temp
+      return(x)
+    }
+    # Check for "old" names of primitives (H) and modules (W)
+    if (length(grep("W", names(SYNS[[1]])))>0) {
+      SYNS <- lapply(SYNS, rename_H_W)
+    }
+  
+    # Create data sets P and M -----
     # Get concatenated primitives
     SYNS_P <- lapply(SYNS, function(x) x$P)
     # Get motor modules
@@ -559,55 +574,33 @@ if (qq=="n") {
         break
     }
     
+    # Calculate average motor primitive
     message("\nCalculating mean gait cycles...")
+    # Function to calculate
+    mean_P <- function(x) {
+      x$time <- NULL
+      temp   <- matrix(0, nrow=points, ncol=ncol(x))
     
-    # Progress bar
-    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                     total=length(SYNS_P), clear=F, width=50)
-    
-    SYNS_P <- lapply(SYNS_P, function(x) {
-        
-        pb$tick()
-        
-        x$time <- NULL
-        temp   <- matrix(0, nrow=points, ncol=ncol(x))
-        
-        for (cc in seq(1, (1+nrow(x)-points), points)) {
-            temp <- temp+x[c(cc:(cc+points-1)), ]
-        }
-        
-        # Divide by the number of cycles to get mean value
-        temp <- temp/(nrow(x)/points)
-        
-        # Amplitude normalisation
-        x <- apply(temp, 2, function(y) y/(max(y)))
-        
-        # Transpose to facilitate visualisation
-        return(t(x))
-    })
+      for (cc in seq(1, (1+nrow(x)-points), points)) {
+        temp <- temp+x[c(cc:(cc+points-1)), ]
+      }
+      temp <- temp/(nrow(x)/points)       # Divide by No. of cycles to get mean value
+      x    <- apply(temp, 2, function(y) y/(max(y)))        # Amplitude normalization
+      return(t(x))                            # Transpose to facilitate visualization
+    }
+    SYNS_P <- lapply(SYNS_P, mean_P)
     message("...done!")
     
-    message("\nPutting primitives into a single data frame...")
-    # Progress bar
-    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                     total=length(SYNS_P), clear=F, width=50)
+    # Functions for creating single data frames
+    make_data_frame_P <- function(x) {data.frame(x)}
+    make_data_frame_M <- function(x) {t(data.frame(x))}
     
-    data_P <- plyr::ldply(SYNS_P, function(x) {
-        pb$tick()
-        data.frame(x)
-    })
+    message("\nPutting primitives into a single data frame...")
+    data_P <- plyr::ldply(SYNS_P, make_data_frame_P)
     message("...done!")
     
     message("\nPutting modules into a single data frame...")
-    # Progress bar
-    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                     total=length(SYNS_M), clear=F, width=50)
-    
-    data_M <- plyr::ldply(SYNS_M, function(x) {
-        pb$tick()
-        t(data.frame(x))
-        
-    })
+    data_M <- plyr::ldply(SYNS_M, make_data_frame_M)
     message("...done!")
     
     # Check if names are the same for primitives and modules
@@ -637,26 +630,18 @@ if (qq=="n") {
     data_M$.id <- NULL
     
     # Filter primitives to improve classification
-    data_P <- t(apply(data_P, 1, function(x) {
-        
-        # Build filter
-        LP <- signal::butter(4, 10/(points/2), type="low")
-        # Apply filter
-        x  <- signal::filtfilt(LP, t(x))
-        
-        # Remove negative entries
-        x[x<0] <- 0
-        # Subtract the minimum
-        x <- x-min(x)
-        # Set zeroes to smallest non-negative entry
-        temp <- x
-        temp[temp==0] <- Inf
-        x[x==0] <- min(temp, na.rm=T)
-        # Normalise to maximum
-        x <- x/max(x)
-        
-        return(x)
-    }))
+    filter_P <- function(x) {
+      LP <- signal::butter(4, 10/(points/2), type="low")         # Build filter
+      x  <- signal::filtfilt(LP, t(x))                           # Apply filter
+      x[x<0] <- 0                                     # Remove negative entries
+      x <- x-min(x)                                   # Subtract the minimum
+      temp <- x                     # Set zeroes to smallest non-negative entry
+      temp[temp==0] <- Inf
+      x[x==0] <- min(temp, na.rm=T)
+      x <- x/max(x)                 # Normalise to maximum
+      return(x)
+    }
+    data_P <- t(apply(data_P, 1, filter_P ))
     
     # Define centre of activity (CoA)
     CoA <- function(x) {
@@ -686,8 +671,8 @@ if (qq=="n") {
     }
     
     # Define NMF function
-    NMFn <- function(V)
-    {
+    NMFn <- function(V) {
+        
         R2_target <- 0.01               # Convergence criterion (percent of the R2 value)
         R2_cross  <- numeric()          # R2 values for cross validation and syn number assessment
         M_list    <- list()             # To save factorisation M matrices (synergies)
@@ -801,6 +786,7 @@ if (qq=="n") {
                     P=P_list[[syns_R2]]))
     }
     
+    # Define conditions -----
     # Find different conditions
     # (trials must be named as stated in the beginning of this script)
     # "*": 0 or more
@@ -822,61 +808,56 @@ if (qq=="n") {
 if (qq=="n" && ww=="k") {
     # Unsupervised learning method to classify synergies based on k-means
     message("\nClustering motor primitives with k-means...")
-    # Progress bar
-    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                     total=length(all_P), clear=F, width=50)
     
-    # Apply k-means to motor primitives
-    # par(mfrow=c(2, 1))
-    clust_P <- lapply(all_P, function(x) {
+    # Function to cluster motor primitives
+    # Determine number of clusters by computing the within-group sum of squares
+    # for an increasing number of clusters and then searching for an elbow in the
+    # clusters vs. withinss curve
+    # nstart is set >1 due to instabilities found (of course this slows down computation)
+  
+    p_cluster <- function(x) {
+      kmeans_all <- list()
+      for (clust in 1:muscle_num) {
+        kmeans_all[[clust]] <- kmeans(x, centers=clust, nstart=20, algorithm="Hartigan-Wong")
+      }
         
-        pb$tick()
+      withinss <- unlist(lapply(kmeans_all, function(y) sum(y$withinss)))
+      withinss <- withinss-min(withinss)
+      withinss <- withinss/max(withinss)
         
-        # Determine number of clusters by computing the within-group sum of squares
-        # for an increasing number of clusters and then searching for an elbow in the
-        # clusters vs. withinss curve
-        # nstart is set >1 due to instabilities found (of course this slows down computation)
-        kmeans_all <- list()
-        for (clust in 1:muscle_num) {
-            kmeans_all[[clust]] <- kmeans(x,
-                                          centers=clust,
-                                          nstart=20,
-                                          algorithm="Hartigan-Wong")
+      # Find the elbow in the clusters vs. withinss curve
+      MSE  <- 100                             # Initialise the Mean Squared Error (MSE)
+      iter <- 0                               # Initialise iterations
+      while (MSE>1e-03) {
+        iter <- iter+1
+        if (iter==muscle_num-1) {
+          break
         }
+        withinss_interp <- data.frame(xx=c(1:(muscle_num-iter+1)),
+                                      yy=withinss[iter:(muscle_num)])
         
-        withinss <- unlist(lapply(kmeans_all, function(y) sum(y$withinss)))
-        withinss <- withinss-min(withinss)
-        withinss <- withinss/max(withinss)
-        
+        linear <- lm(yy~xx, withinss_interp)$fitted.values
+        MSE    <- sum((linear-withinss_interp$yy)^2)/nrow(withinss_interp)
+          
+        # # Additional plots (if needed)
+        # par(mfrow=c(2, 1))
         # plot(x=c(1:muscle_num), y=withinss,
         #      type="b",
         #      xlab="Number of clusters", ylab="Within groups sum of squares")
+        # 
+        # plot(x=withinss_interp$xx+iter,
+        #      y=withinss_interp$yy,
+        #      xlim=c(1, muscle_num),
+        #      ylim=c(0, 1),
+        #      ty="b")
+      }
+      clust <- iter
+      # abline(v=clust, col=2, lwd=2)
         
-        # Find the elbow in the clusters vs. withinss curve
-        MSE  <- 100                             # Initialise the Mean Squared Error (MSE)
-        iter <- 0                               # Initialise iterations
-        while (MSE>1e-03) {
-            iter <- iter+1
-            if (iter==muscle_num-1) {
-                break
-            }
-            withinss_interp <- data.frame(xx=c(1:(muscle_num-iter+1)),
-                                          yy=withinss[iter:(muscle_num)])
-            
-            # plot(x=withinss_interp$xx+iter,
-            #      y=withinss_interp$yy,
-            #      xlim=c(1, muscle_num),
-            #      ylim=c(0, 1),
-            #      ty="b")
-            
-            linear <- lm(yy~xx, withinss_interp)$fitted.values
-            MSE    <- sum((linear-withinss_interp$yy)^2)/nrow(withinss_interp)
-        }
-        clust <- iter
-        # abline(v=clust, col=2, lwd=2)
-        
-        kmeans_all[[clust]]
-    })
+      kmeans_all[[clust]]
+    }
+    # Apply k-means to motor primitives
+    clust_P <- lapply(all_P, p_cluster)
     message("...done!")
     
     # Write number of clusters per condition in a simple way
@@ -1217,7 +1198,7 @@ if (qq=="n" && ww=="k") {
         #     ggtitle(paste0(cond, " (final clustering)")) +
         #     theme(legend.title=element_blank())
         # 
-        # # gridExtra::grid.arrange(grobs=list(ggP, ggM, ggfinal), nrow=3, ncol=1)
+        # # gridExtra::grid.arrange(grobs=list(ggP, ggM, ggfinal), nrow=1, ncol=3)
         
         trial <- gsub("_Syn[0-9]*$", "", rownames(orders_new))
         new   <- paste0(trial, "_Syn", orders_new$clusters_P)
