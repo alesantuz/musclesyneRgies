@@ -532,7 +532,6 @@ while (!is.na(ww)) {
 }
 
 # Load data and define common functions
-
 if (qq=="n") {
     # Load muscle synergies if not already done
     if (all(!grepl("^SYNS$", objects()))) {
@@ -963,102 +962,72 @@ if (qq=="n" && ww=="k") {
             
             # Find discordant classifications and label as "combined"
             discordant <- which(orders$clusters_P!=orders$clusters_M)
-            orders$clusters_P[discordant] <- "combined"
-            orders$clusters_M[discordant] <- "combined"
+            # But first check if all clusters are there
+            clust_test <- orders$clusters_P
+            clust_test <- unique(clust_test[-discordant])
             
-            # Calculate mean primitives and then order using CoA
-            mean_P <- matrix(0, nrow=clust_num, ncol=points)
-            mean_M <- matrix(0, nrow=clust_num, ncol=muscle_num)
-            temp_P <- all_P[[cond]]
-            temp_M <- all_M[[cond]]
-            
-            # Remove old row names and replace with new orders
-            rownames(temp_P) <- gsub("[0-9]*$", "", rownames(temp_P))
-            rownames(temp_M) <- gsub("[0-9]*$", "", rownames(temp_M))
-            rownames(temp_P) <- paste0(rownames(temp_P), orders$clusters_P)
-            rownames(temp_M) <- paste0(rownames(temp_M), orders$clusters_M)
-            
-            # Remove combined, if present
-            if (any(grepl("combined", rownames(temp_P)))) {
-                temp_P <- temp_P[-grep("combined", rownames(temp_P)), ]
-                temp_M <- temp_M[-grep("combined", rownames(temp_M)), ]
+            if (length(clust_test)<clust_num) {
+                message("\nATTENTION: primitive- and module-based classification don't match!",
+                        "\nModule-based classification will be discarded for ", cond, "!")
+                
+                orders$clusters_M <- orders$clusters_P
+            } else {
+                orders$clusters_P[discordant] <- "combined"
+                orders$clusters_M[discordant] <- "combined"
             }
-            
-            # Calculate means
-            for (clust in 1:clust_num) {
-                temp_clust_P <- temp_P[grep(paste0("Syn", clust, "$"), rownames(temp_P)), ]
-                temp_clust_M <- temp_M[grep(paste0("Syn", clust, "$"), rownames(temp_M)), ]
-                mean_P[clust, ] <- colSums(temp_clust_P)
-                mean_M[clust, ] <- colSums(temp_clust_M)
-                mean_P[clust, ] <- mean_P[clust, ]-min(mean_P[clust, ])
-                mean_M[clust, ] <- mean_M[clust, ]-min(mean_M[clust, ])
-                mean_P[clust, ] <- mean_P[clust, ]/max(mean_P[clust, ])
-                mean_M[clust, ] <- mean_M[clust, ]/max(mean_M[clust, ])
-            }
-            # Create ordering rule
-            order_rule <- data.frame(old=c(1:clust_num),
-                                     new=order(apply(mean_P, 1, CoA)))
-            
-            # Apply new order to mean curves
-            mean_P <- mean_P[order_rule$new, ]
-            mean_M <- mean_M[order_rule$new, ]
-            rownames(mean_P) <- paste0("Syn", 1:nrow(mean_P))
-            rownames(mean_M) <- paste0("Syn", 1:nrow(mean_M))
-            colnames(mean_M) <- colnames(temp_M)
-            
-            # Apply new order to all
-            temp_P <- orders$clusters_P
-            temp_M <- orders$clusters_M
-            orders$clusters_P <- c(order_rule$old, temp_P)[match(temp_P, c(order_rule$new, temp_P))]
-            orders$clusters_M <- c(order_rule$old, temp_M)[match(temp_M, c(order_rule$new, temp_M))]
-            
         } else if (all(!duplicated(perms$old)) && any(!duplicated(perms$new))) {
             
-            message("ATTENTION: primitive- and module-based classification don't match!",
+            message("\nATTENTION: primitive- and module-based classification don't match!",
                     "\nModule-based classification will be discarded for ", cond, "!")
             
             orders$clusters_M <- orders$clusters_P
-            
-            # Calculate mean primitives and then order using CoA
-            mean_P <- matrix(0, nrow=clust_num, ncol=points)
-            mean_M <- matrix(0, nrow=clust_num, ncol=muscle_num)
-            temp_P <- all_P[[cond]]
-            temp_M <- all_M[[cond]]
-            
-            # Remove old row names and replace with new orders
-            rownames(temp_P) <- gsub("[0-9]*$", "", rownames(temp_P))
-            rownames(temp_M) <- gsub("[0-9]*$", "", rownames(temp_M))
-            rownames(temp_P) <- paste0(rownames(temp_P), orders$clusters_P)
-            rownames(temp_M) <- paste0(rownames(temp_M), orders$clusters_M)
-            
-            # Calculate means
-            for (clust in 1:clust_num) {
-                temp_clust_P <- temp_P[grep(paste0("Syn", clust, "$"), rownames(temp_P)), ]
-                temp_clust_M <- temp_M[grep(paste0("Syn", clust, "$"), rownames(temp_M)), ]
-                mean_P[clust, ] <- colSums(temp_clust_P)
-                mean_M[clust, ] <- colSums(temp_clust_M)
-                mean_P[clust, ] <- mean_P[clust, ]-min(mean_P[clust, ])
-                mean_M[clust, ] <- mean_M[clust, ]-min(mean_M[clust, ])
-                mean_P[clust, ] <- mean_P[clust, ]/max(mean_P[clust, ])
-                mean_M[clust, ] <- mean_M[clust, ]/max(mean_M[clust, ])
-            }
-            # Create ordering rule
-            order_rule <- data.frame(old=c(1:clust_num),
-                                     new=order(apply(mean_P, 1, CoA)))
-            
-            # Apply new order to mean curves
-            mean_P <- mean_P[order_rule$new, ]
-            mean_M <- mean_M[order_rule$new, ]
-            rownames(mean_P) <- paste0("Syn", 1:nrow(mean_P))
-            rownames(mean_M) <- paste0("Syn", 1:nrow(mean_M))
-            colnames(mean_M) <- colnames(temp_M)
-            
-            # Apply new order to all
-            temp_P <- orders$clusters_P
-            temp_M <- orders$clusters_M
-            orders$clusters_P <- c(order_rule$old, temp_P)[match(temp_P, c(order_rule$new, temp_P))]
-            orders$clusters_M <- c(order_rule$old, temp_M)[match(temp_M, c(order_rule$new, temp_M))]
         }
+        
+        # Calculate mean primitives and then order using CoA
+        mean_P <- matrix(0, nrow=clust_num, ncol=points)
+        mean_M <- matrix(0, nrow=clust_num, ncol=muscle_num)
+        temp_P <- all_P[[cond]]
+        temp_M <- all_M[[cond]]
+        
+        # Remove old row names and replace with new orders
+        rownames(temp_P) <- gsub("[0-9]*$", "", rownames(temp_P))
+        rownames(temp_M) <- gsub("[0-9]*$", "", rownames(temp_M))
+        rownames(temp_P) <- paste0(rownames(temp_P), orders$clusters_P)
+        rownames(temp_M) <- paste0(rownames(temp_M), orders$clusters_M)
+        
+        # Remove combined, if present
+        if (any(grepl("combined", rownames(temp_P)))) {
+            temp_P <- temp_P[-grep("combined", rownames(temp_P)), ]
+            temp_M <- temp_M[-grep("combined", rownames(temp_M)), ]
+        }
+        
+        # Calculate means
+        for (clust in 1:clust_num) {
+            temp_clust_P <- temp_P[grep(paste0("Syn", clust, "$"), rownames(temp_P)), ]
+            temp_clust_M <- temp_M[grep(paste0("Syn", clust, "$"), rownames(temp_M)), ]
+            mean_P[clust, ] <- colSums(temp_clust_P)
+            mean_M[clust, ] <- colSums(temp_clust_M)
+            mean_P[clust, ] <- mean_P[clust, ]-min(mean_P[clust, ])
+            mean_M[clust, ] <- mean_M[clust, ]-min(mean_M[clust, ])
+            mean_P[clust, ] <- mean_P[clust, ]/max(mean_P[clust, ])
+            mean_M[clust, ] <- mean_M[clust, ]/max(mean_M[clust, ])
+        }
+        # Create ordering rule
+        order_rule <- data.frame(old=c(1:clust_num),
+                                 new=order(apply(mean_P, 1, CoA)))
+        
+        # Apply new order to mean curves
+        mean_P <- mean_P[order_rule$new, ]
+        mean_M <- mean_M[order_rule$new, ]
+        rownames(mean_P) <- paste0("Syn", 1:nrow(mean_P))
+        rownames(mean_M) <- paste0("Syn", 1:nrow(mean_M))
+        colnames(mean_M) <- colnames(temp_M)
+        
+        # Apply new order to all
+        temp_P <- orders$clusters_P
+        temp_M <- orders$clusters_M
+        orders$clusters_P <- c(order_rule$old, temp_P)[match(temp_P, c(order_rule$new, temp_P))]
+        orders$clusters_M <- c(order_rule$old, temp_M)[match(temp_M, c(order_rule$new, temp_M))]
         
         # Plot classified syns
         # Find plot size
@@ -1125,7 +1094,6 @@ if (qq=="n" && ww=="k") {
             mean_M <- mean_M[order_rule$new, ]
             rownames(mean_P) <- paste0("Syn", 1:nrow(mean_P))
             rownames(mean_M) <- paste0("Syn", 1:nrow(mean_M))
-            colnames(mean_M) <- colnames(temp_M)
             
             # Apply new order to all
             temp_P <- orders$clusters_P
