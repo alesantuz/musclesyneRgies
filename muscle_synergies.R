@@ -518,18 +518,18 @@ if (test==1) {
                 "\nNOTE: new calculations might require a few minutes, depending on the size of the data set")
         qq <- readline()
         # Break if user decides
-        if (qq=="y" || qq=="n") break
+        if (qq=="n") {
+            ww <- 1
+            while (!is.na(ww)) {
+                message("\nPlease choose a classification method: k-means (type 'k') or NMF (type 'n')",
+                        "\nNOTE: k-means is faster but NMF gives similar results")
+                ww <- readline()
+                # Break if user decides
+                if (ww=="k" || ww=="n") break
+            }
+        } else if (qq=="y") break
     }
 } else if (test==0) qq <- "n"
-
-ww <- 1
-while (!is.na(ww)) {
-    message("\nPlease choose a classification method: k-means (type 'k') or NMF (type 'n')",
-            "\nNOTE: k-means is faster but NMF gives similar results")
-    ww <- readline()
-    # Break if user decides
-    if (ww=="k" || ww=="n") break
-}
 
 # Load data and define common functions
 if (qq=="n") {
