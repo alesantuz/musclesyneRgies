@@ -519,6 +519,7 @@ if (test==1) {
         qq <- readline()
         # Break if user decides
         if (qq=="n") {
+            # Prompt for classification method
             ww <- 1
             while (!is.na(ww)) {
                 message("\nPlease choose a classification method: k-means (type 'k') or NMF (type 'n')",
@@ -530,7 +531,18 @@ if (test==1) {
             break
         } else if (qq=="y") break
     }
-} else if (test==0) qq <- "n"
+} else if (test==0) {
+    qq <- "n"
+    # Prompt for classification method
+    ww <- 1
+    while (!is.na(ww)) {
+        message("\nPlease choose a classification method: k-means (type 'k') or NMF (type 'n')",
+                "\nNOTE: k-means is faster but NMF gives similar results")
+        ww <- readline()
+        # Break if user decides
+        if (ww=="k" || ww=="n") break
+    }
+}
 
 # Load data and define common functions
 if (qq=="n") {
