@@ -527,6 +527,7 @@ if (test==1) {
                 # Break if user decides
                 if (ww=="k" || ww=="n") break
             }
+            break
         } else if (qq=="y") break
     }
 } else if (test==0) qq <- "n"
@@ -1239,7 +1240,7 @@ if (qq=="n" && ww=="k") {
     message("\nSaving classified synergies...")
     save(SYNS_classified, file=paste0(data_path, "SYNS_classified.RData"))
     message("...done!")
-
+    
 } else if (qq=="n" && ww=="n") {
     # Unsupervised learning method to classify synergies based on NMF
     # Apply NMF
@@ -1579,7 +1580,6 @@ dir.create(path_for_graphs, showWarnings=F)
 
 # Define graphs export parameters and aesthetics
 ty       <- "png"   # File type
-re       <- 280     # Resolution in dpi
 wi       <- 2000    # Width in pixels
 he       <- 2500    # Height in pixels
 mte      <- 36      # Main title text size
@@ -1591,6 +1591,9 @@ c_min    <- "gray"  # Minor gridlines colour
 c_bars   <- "black"
 c_signal <- "black"
 c_thin   <- "grey70"
+
+# Resolution in dpi
+if (ty=="png") re <- 280 else if (ty=="svg") re <- 150
 
 # Get concatenated primitives
 SYNS_P <- lapply(SYNS_classified, function(x) x$P)
