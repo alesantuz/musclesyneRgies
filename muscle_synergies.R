@@ -137,6 +137,12 @@ if (qq=="n") {
             emg_data <- RAW_EMG[[ii]][1:(label-1), ]
         }
         
+        # Check for case of time column and convert to all lower if needed
+        if (any(grepl("Time", colnames(emg_data)))) {
+            to_lower <- grep("Time", colnames(emg_data))
+            colnames(emg_data)[to_lower] <- tolower(colnames(emg_data)[to_lower])
+        }
+        
         # Demean EMG (subtract mean value from the signal to eliminate offset shifts)
         time     <- emg_data$time
         emg_data <- apply(emg_data, 2, function(x) x-mean(x, na.rm=T))
