@@ -13,7 +13,7 @@ The file "muscle_synergies.R" contains a script that allows to extract muscle sy
 The code produces some diagnostic messages that will guide you through the process of:
 - Raw EMG filtering and normalization (STEP 1/4)
 - Muscle synergies extraction via NMF (STEP 2/4)
-- Muscle synergies classification via NMF (STEP 3/4)
+- Muscle synergies classification via NMF or k-means (STEP 3/4)
 - Plotting the classified synergies (STEP 4/4).
 
 There will be plots within RStudio in the 4th step, so make sure that the plot pane in RStudio is selected and large enough to accommodate multiple plots.
