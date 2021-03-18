@@ -89,6 +89,13 @@ if (qq=="n") {
         message("...done!")
     }
     
+    # Check for correct naming of trials
+    if (any(!grepl("^RAW_EMG_ID[0-9]+_.+_[0-9]+$", names(RAW_EMG))) ||
+        any(!grepl("^CYCLE_TIMES_ID[0-9]+_.+_[0-9]+$", names(CYCLE_TIMES)))) {
+        message("")
+        stop("\nATTENTION: your trials are not named after the guidelines!\nPlease double-check names.")
+    }
+    
     # Create "Graphs/EMG" folder if it does not exist
     path_for_graphs <- paste0(graph_path, "EMG", .Platform$file.sep)
     dir.create(path_for_graphs, showWarnings=F)
@@ -121,6 +128,12 @@ if (qq=="n") {
         }
         
         trial   <- gsub("RAW_EMG_", "", names(RAW_EMG[ii]))
+        
+        # Set "time" column name to small letters and muscles to capital
+        names(RAW_EMG[[ii]]) <- toupper(names(RAW_EMG[[ii]]))
+        names(RAW_EMG[[ii]])[grep("TIME", names(RAW_EMG[[ii]]))] <- "time"
+        
+        # Muscle list, including time
         muscles <- names(RAW_EMG[[ii]])
         
         # Trim to the first cy_max+2 cycles
@@ -135,12 +148,6 @@ if (qq=="n") {
             emg_data <- RAW_EMG[[ii]]
         } else {
             emg_data <- RAW_EMG[[ii]][1:(label-1), ]
-        }
-        
-        # Check for case of time column and convert to all lower if needed
-        if (any(grepl("Time", colnames(emg_data)))) {
-            to_lower <- grep("Time", colnames(emg_data))
-            colnames(emg_data)[to_lower] <- tolower(colnames(emg_data)[to_lower])
         }
         
         # Demean EMG (subtract mean value from the signal to eliminate offset shifts)
@@ -339,6 +346,12 @@ if (qq=="n") {
         message("...done!")
     }
     ll <- length(FILT_EMG)
+    
+    # Check for correct naming of trials
+    if (any(!grepl("^FILT_EMG_ID[0-9]+_.+_[0-9]+$", names(FILT_EMG)))) {
+        message("")
+        stop("\nATTENTION: your trials are not named after the guidelines!\nPlease double-check names.")
+    }
     
     # Define non-negative matrix factorisation function
     synsNMFn <- function(V)
@@ -555,6 +568,12 @@ if (qq=="n") {
     # Load muscle synergies if not already done
     if (all(!grepl("^SYNS$", objects()))) {
         load(paste0(data_path, "SYNS.RData"))
+    }
+    
+    # Check for correct naming of trials
+    if (any(!grepl("^SYNS_ID[0-9]+_.+_[0-9]+$", names(SYNS)))) {
+        message("")
+        stop("\nATTENTION: your trials are not named after the guidelines!\nPlease double-check names.")
     }
     
     # Get concatenated primitives
