@@ -1703,6 +1703,10 @@ for (condition in conditions) {
             t(x)
         })
         
+        # Remove empty trials, if present
+        data_P <- data_P[lapply(data_P, length)>0]
+        data_M <- data_M[lapply(data_M, length)>0]
+        
         # Put primitives in a single data frame
         data_P <- plyr::ldply(data_P, data.frame, .id="trial")
         # Put modules in a single data frame
