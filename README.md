@@ -1,6 +1,6 @@
 # musclesyneRgies (muscle synergy extraction in R)
 
-The file "muscle_synergies.R" contains a script that allows to extract muscle synergies from electromyographic (EMG) data through linear decomposition based on unsupervised machine learning. Specifically, here we adopted the non-negative matrix factorization (NMF) framework, due to the non-negative nature of EMG biosignals. However, this method can be applied to any other kind of data sets, from time series to images.
+The file "muscle_synergies.R" contains a script that allows to extract muscle synergies from electromyographic (EMG) data recorded during locomotion tasks (e.g., walking, running, etc.) through linear decomposition based on unsupervised machine learning. Specifically, here we adopted the non-negative matrix factorization (NMF) framework, due to the non-negative nature of EMG biosignals. However, this method can be applied to any other kind of data sets, from time series to images.
 
 # Quick instructions to run the script
 - [Download R](https://cran.r-project.org/mirrors.html) and install (if already installed, please update to version ≥4 and update all packages)
