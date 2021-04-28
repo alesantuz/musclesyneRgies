@@ -99,6 +99,9 @@ if (qq=="n") {
     # Create "Graphs/EMG" folder if it does not exist
     path_for_graphs <- paste0(graph_path, "EMG", .Platform$file.sep)
     dir.create(path_for_graphs, showWarnings=F)
+    # Create "Graphs/EMG/trials" folder if it does not exist
+    path_for_graphs <- paste0(path_for_graphs, "trials", .Platform$file.sep)
+    dir.create(path_for_graphs, showWarnings=F)
     
     # Global filter and normalisation parameters, change as needed
     HPo    <- 4             # High-pass filter order
@@ -107,7 +110,6 @@ if (qq=="n") {
     LPf    <- 20            # Low-pass filter frequency [Hz]
     points <- 200           # Gait cycle length (interpolated points)
     cy_max <- 30            # Max number of cycles to be analysed
-    cycles <- numeric()     # To save number of cycles considered
     
     # Preallocate to write results
     FILT_EMG   <- vector("list", length(RAW_EMG))
@@ -193,7 +195,7 @@ if (qq=="n") {
         
         # Trim first and last cycle to remove filtering effects
         c_time <- c_time[2:(nrow(c_time)-1), ]
-        cycs <- nrow(c_time)-1
+        cycs   <- nrow(c_time)-1
         # Remove excess cycles, if present
         if (cycs>cy_max) cycs <- cy_max
         
@@ -520,7 +522,137 @@ if (qq=="n") {
     message("\nSaving synergies...")
     save(SYNS, file=paste0(data_path, "SYNS.RData"))
     message("...done!")
+    
+    # Create "Graphs/NMF" folder if it does not exist
+    path_for_graphs <- paste0(graph_path, "NMF", .Platform$file.sep)
+    dir.create(path_for_graphs, showWarnings=F)
+    # Create "Graphs/NMF/trials" folder if it does not exist
+    path_for_graphs <- paste0(path_for_graphs, "trials", .Platform$file.sep)
+    dir.create(path_for_graphs, showWarnings=F)
+    
+    # Define graphs export parameters and aesthetics
+    ty       <- "png"   # File type
+    wi       <- 1800    # Width in pixels
+    he       <- 2500    # Height in pixels
+    mte      <- 20      # Main title text size
+    s_line   <- 0.9     # Line size
+    s_min    <- 0.05
+    c_back   <- "white" # Background colour
+    c_bord   <- "gray"  # Background border colour
+    c_min    <- "gray"  # Minor gridlines colour
+    c_bars   <- "black"
+    c_signal <- "black"
+    c_thin   <- "grey70"
+    
+    # Resolution in dpi
+    if (ty=="png") re <- 280 else if (ty=="svg") re <- 150
+    
+    # Get concatenated primitives
+    SYNS_P <- lapply(SYNS, function(x) x$P)
+    SYNS_M <- lapply(SYNS, function(x) x$M)
+    
+    max_syns   <- max(unlist(lapply(SYNS_M, function(x) ncol(x))))
+    
+    # Progress bar
+    pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
+                                     total=length(SYNS_M), clear=F, width=50)
+    
+    message("\nExporting graphs...\n")
+    
+    for (trial in names(SYNS_M)) {
+        
+        pb$tick()
+        
+        SYNS_P_temp <- SYNS_P[[grep(paste0("^", trial, "$"), names(SYNS_P))]]
+        SYNS_M_temp <- SYNS_M[[grep(paste0("^", trial, "$"), names(SYNS_M))]]
+        
+        time <- SYNS_P_temp$time
+        SYNS_P_temp$time <- NULL
+        points <- max(time)
+        
+        Cairo(file=paste0(path_for_graphs, trial, ".", ty),
+              type=ty, width=wi, height=he, pointsize=mte, dpi=re)
+        
+        varlist <- list()
+        
+        for (syn in 1:max_syns) {
+            
+            if (syn<=ncol(SYNS_M_temp)) {
+                
+                # Select relevant synergies
+                data_P <- data.frame(time,
+                                     value=SYNS_P_temp[, syn])
+                data_M <- data.frame(muscle=rownames(SYNS_M_temp),
+                                     value=SYNS_M_temp[, syn])
+                
+                # Normalise primitive
+                data_P$value <- data_P$value/max(data_P$value)
+                
+                # Organise primitives one cycle per row
+                data_P_temp <- matrix(0, nrow=nrow(data_P)/points, ncol=points)
+                for (cycle in 1:nrow(data_P_temp)) {
+                    start <- (cycle-1)*points+1
+                    stop <- start+points-1
+                    P_temp <- data_P$value[start:stop]
+                    data_P_temp[cycle, ] <- P_temp
+                }
+                
+                # Calculate mean and standard deviation of each cycle's primitive
+                data_P_av <- data.frame(time,
+                                        value=colMeans(data_P_temp))
+                data_P_sd <- data.frame(time,
+                                        ymin=data_P_av$value-apply(data_P_temp, 2, sd),
+                                        ymax=data_P_av$value+apply(data_P_temp, 2, sd))
+                
+                temp_P <- ggplot2::ggplot() +
+                    ggplot2::ggtitle(paste0("Motor primitive ", syn)) +
+                    ggplot2::ylim(-0.2, 1.2) +
+                    ggplot2::geom_ribbon(data=data_P_sd,
+                                         ggplot2::aes(x=time, ymin=ymin, ymax=ymax),
+                                         fill="grey80") +
+                    ggplot2::geom_line(data=data_P_av,
+                                       ggplot2::aes(x=time, y=value),
+                                       colour=c_signal, size=s_line) +
+                    ggplot2::theme(axis.title=ggplot2::element_blank(),
+                                   panel.background=ggplot2::element_rect(fill=c_back, colour=c_bord),
+                                   panel.grid.major=ggplot2::element_line(colour=c_min, size=s_min),
+                                   panel.grid.minor=ggplot2::element_blank(),
+                                   legend.position="none")
+                
+                temp_M <- ggplot2::ggplot() +
+                    ggplot2::ggtitle(paste0("Motor module ", syn)) +
+                    ggplot2::ylim(0, 1) +
+                    ggplot2::geom_hline(yintercept=c(0.25, 0.5, 0.75, 1), size=s_min, color=c_thin) +
+                    ggplot2::geom_bar(data=data_M,
+                                      ggplot2::aes(x=muscle, y=value),
+                                      fill=c_bars, alpha=0.3,
+                                      stat="identity") +
+                    ggplot2::scale_x_discrete(limits=data_M$muscle) +
+                    ggplot2::theme(axis.title=ggplot2::element_blank(),
+                                   axis.text.y=ggplot2::element_blank(),
+                                   panel.background=ggplot2::element_rect(fill=c_back, colour=c_bord),
+                                   panel.grid.major=ggplot2::element_blank(),
+                                   panel.grid.minor=ggplot2::element_blank(),
+                                   axis.ticks=ggplot2::element_blank(),
+                                   legend.position="none")
+            } else {
+                temp_P <- NULL
+                temp_M <- NULL
+            }
+            
+            varname_P <- paste0("r", 2*syn)
+            varname_M <- paste0("r", 2*syn-1)
+            varlist[[2*syn]]   <- assign(varname_P, temp_P)
+            varlist[[2*syn-1]] <- assign(varname_M, temp_M)
+        }
+        
+        suppressWarnings(gridExtra::grid.arrange(grobs=varlist, nrow=max_syns, ncol=2,
+                                                 top=(paste0("Synergies - ", trial))))
+        
+        dev.off() # Close Cairo export
+    }
 }
+message("\n...done!")
 
 # STEP 3 - Classification of muscle synergies ----
 message("\n###############################################",
@@ -1619,7 +1751,7 @@ dir.create(path_for_graphs, showWarnings=F)
 ty       <- "png"   # File type
 wi       <- 2000    # Width in pixels
 he       <- 2500    # Height in pixels
-mte      <- 36      # Main title text size
+mte      <- 20      # Main title text size
 s_line   <- 0.9     # Line size
 s_min    <- 0.05
 c_back   <- "white" # Background colour
