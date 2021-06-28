@@ -41,7 +41,7 @@ if (all(file.exists("CYCLE_TIMES.RData", "RAW_EMG.RData"))) {
 } else {
     if (.Platform$OS.type=="windows") {
         data_path <- choose.dir(caption="Select data folder")
-        data_path <- gsub("\\\\", .Platform$file.sep, data_path)
+        data_path <- paste0(gsub("\\\\", .Platform$file.sep, data_path), .Platform$file.sep)
     } else {
         data_path <- tcltk::tk_choose.dir(caption="Select data folder")
     }
@@ -397,12 +397,12 @@ if (qq=="n") {
                 iter     <- 1
                 max_iter <- 1000
                 # Initialise the two factorisation matrices with random values (uniform distribution)
-                P <- matrix(runif(r*n, min=0.01, max=1), nrow=r, ncol=n)
-                M <- matrix(runif(m*r, min=0.01, max=1), nrow=m, ncol=r)
+                P <- matrix(runif(r*n, min=min(V), max=max(V)), nrow=r, ncol=n)
+                M <- matrix(runif(m*r, min=min(V), max=max(V)), nrow=m, ncol=r)
                 
                 # Iteration zero
-                P   <- P*(t(M)%*%V)/(t(M)%*%M%*%P)
-                M   <- M*(V%*%t(P))/(M%*%P%*%t(P))
+                P   <- P*crossprod(M, V)/crossprod((crossprod(M, M)), P)
+                M   <- M*tcrossprod(V, P)/tcrossprod(M, tcrossprod(P, P))
                 Vr  <- M%*%P          # Reconstructed matrix
                 RSS <- sum((V-Vr)^2)
                 SST <- sum((V-mean(V))^2)
@@ -419,8 +419,8 @@ if (qq=="n") {
                 
                 # Start iterations for NMF convergence
                 for (iter in iter:max_iter)  {
-                    P   <- P*(t(M)%*%V)/(t(M)%*%M%*%P)
-                    M   <- M*(V%*%t(P))/(M%*%P%*%t(P))
+                    P   <- P*crossprod(M, V)/crossprod((crossprod(M, M)), P)
+                    M   <- M*tcrossprod(V, P)/tcrossprod(M, tcrossprod(P, P))
                     Vr  <- M%*%P
                     RSS <- sum((V-Vr)^2)
                     SST <- sum((V-mean(V))^2)
@@ -895,12 +895,12 @@ if (qq=="n") {
                 max_iter <- 1000
                 # Initialise the two factorisation matrices with random values
                 # (uniform distribution)
-                P <- matrix(runif(r*n, min=0.01, max=1), nrow=r, ncol=n)
-                M <- matrix(runif(m*r, min=0.01, max=1), nrow=m, ncol=r)
+                P <- matrix(runif(r*n, min=min(V), max=max(V)), nrow=r, ncol=n)
+                M <- matrix(runif(m*r, min=min(V), max=max(V)), nrow=m, ncol=r)
                 
                 # Iteration zero
-                P   <- P*(t(M)%*%V)/(t(M)%*%M%*%P)
-                M   <- M*(V%*%t(P))/(M%*%P%*%t(P))
+                P   <- P*crossprod(M, V)/crossprod((crossprod(M, M)), P)
+                M   <- M*tcrossprod(V, P)/tcrossprod(M, tcrossprod(P, P))
                 Vr  <- M%*%P          # Reconstructed matrix
                 RSS <- sum((V-Vr)^2)
                 SST <- sum((V-mean(V))^2)
@@ -915,8 +915,8 @@ if (qq=="n") {
                 
                 # Start iterations for NMF convergence
                 for (iter in iter:max_iter)  {
-                    P   <- P*(t(M)%*%V)/(t(M)%*%M%*%P)
-                    M   <- M*(V%*%t(P))/(M%*%P%*%t(P))
+                    P   <- P*crossprod(M, V)/crossprod((crossprod(M, M)), P)
+                    M   <- M*tcrossprod(V, P)/tcrossprod(M, tcrossprod(P, P))
                     Vr  <- M%*%P
                     RSS <- sum((V-Vr)^2)
                     SST <- sum((V-mean(V))^2)
@@ -1175,8 +1175,19 @@ if (qq=="n" && ww=="k") {
         for (clust in 1:clust_num) {
             temp_clust_P <- temp_P[grep(paste0("Syn", clust, "$"), rownames(temp_P)), ]
             temp_clust_M <- temp_M[grep(paste0("Syn", clust, "$"), rownames(temp_M)), ]
-            mean_P[clust, ] <- colSums(temp_clust_P)
-            mean_M[clust, ] <- colSums(temp_clust_M)
+            
+            if (all(class(temp_clust_P)!="numeric")) {
+                mean_P[clust, ] <- colSums(temp_clust_P)
+            } else {
+                mean_P[clust, ] <- temp_clust_P
+            }
+            
+            if (all(class(temp_clust_M)!="numeric")) {
+                mean_M[clust, ] <- colSums(temp_clust_M)
+            } else {
+                mean_M[clust, ] <- temp_clust_M
+            }
+            
             mean_P[clust, ] <- mean_P[clust, ]-min(mean_P[clust, ])
             mean_M[clust, ] <- mean_M[clust, ]-min(mean_M[clust, ])
             mean_P[clust, ] <- mean_P[clust, ]/max(mean_P[clust, ])
