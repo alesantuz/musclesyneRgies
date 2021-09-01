@@ -674,7 +674,7 @@ if (test==1) {
             ww <- 1
             while (!is.na(ww)) {
                 message("\nPlease choose a classification method: k-means (type 'k') or NMF (type 'n')",
-                        "\nNOTE: k-means is faster but NMF gives similar results")
+                        "\nNOTE: results might differ depending on the classification method")
                 ww <- readline()
                 # Break if user decides
                 if (ww=="k" || ww=="n") break
@@ -1823,11 +1823,18 @@ pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
 
 message("\nExporting graphs...\n")
 
+# To save the classification method in the file name
+if (ww=="k") {
+    class_method <- "_k-means_classification"
+} else if (ww=="n") {
+    class_method <- "_NMF_classification"
+}
+
 for (condition in conditions) {
     
     pb$tick()
     
-    Cairo(file=paste0(path_for_graphs, "SYNS_", condition, ".", ty),
+    Cairo(file=paste0(path_for_graphs, "SYNS_", condition, class_method, ".", ty),
           type=ty, width=wi, height=he, pointsize=mte, dpi=re)
     
     SYNS_P_temp <- SYNS_P_all[grep(paste0("_", condition, "_"), names(SYNS_P_all))]
