@@ -570,8 +570,8 @@ if (qq=="n") {
         SYNS_P_temp$time <- NULL
         points <- max(time)
         
-        Cairo(file=paste0(path_for_graphs, trial, ".", ty),
-              type=ty, width=wi, height=he, pointsize=mte, dpi=re)
+        Cairo::Cairo(file=paste0(path_for_graphs, trial, ".", ty),
+                     type=ty, width=wi, height=he, pointsize=mte, dpi=re)
         
         varlist <- list()
         
@@ -688,7 +688,7 @@ if (test==1) {
     ww <- 1
     while (!is.na(ww)) {
         message("\nPlease choose a classification method: k-means (type 'k') or NMF (type 'n')",
-                "\nNOTE: k-means is faster but NMF gives similar results")
+                "\nNOTE: results might differ depending on the classification method")
         ww <- readline()
         # Break if user decides
         if (ww=="k" || ww=="n") break
@@ -706,6 +706,13 @@ if (qq=="n") {
     if (any(!grepl("^SYNS_ID[0-9]+_.+_[0-9]+$", names(SYNS)))) {
         message("")
         stop("\nATTENTION: your trials are not named after the guidelines!\nPlease double-check names.")
+    }
+    
+    # To save the classification method in the SYNS_classified list
+    if (ww=="k") {
+        class_method <- "k-means"
+    } else if (ww=="n") {
+        class_method <- "NMF"
     }
     
     # Get concatenated primitives
@@ -1415,6 +1422,7 @@ if (qq=="n" && ww=="k") {
         
         colnames(SYNS_classified[[trial]]$P) <- c("time", paste0("Syn", classification))
         colnames(SYNS_classified[[trial]]$M) <- paste0("Syn", classification)
+        SYNS_classified[[trial]]$classification <- class_method
     }
     
     message("\nSaving classified synergies...")
@@ -1738,6 +1746,7 @@ if (qq=="n" && ww=="k") {
         
         colnames(SYNS_classified[[trial]]$P) <- c("time", paste0("Syn", classification))
         colnames(SYNS_classified[[trial]]$M) <- paste0("Syn", classification)
+        SYNS_classified[[trial]]$classification <- class_method
     }
     
     message("\nSaving classified synergies...")
@@ -1774,6 +1783,9 @@ c_thin   <- "grey70"
 
 # Resolution in dpi
 if (ty=="png") re <- 280 else if (ty=="svg") re <- 150
+
+# Get classification method
+class_method <- unique(unlist(lapply(SYNS_classified, function(x) x$classification)))
 
 # Get concatenated primitives
 SYNS_P <- lapply(SYNS_classified, function(x) x$P)
@@ -1823,22 +1835,19 @@ pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
 
 message("\nExporting graphs...\n")
 
-# To save the classification method in the file name
-if (ww=="k") {
-    class_method <- "_k-means_classification"
-} else if (ww=="n") {
-    class_method <- "_NMF_classification"
-}
-
 for (condition in conditions) {
     
     pb$tick()
     
-    Cairo(file=paste0(path_for_graphs, "SYNS_", condition, class_method, ".", ty),
-          type=ty, width=wi, height=he, pointsize=mte, dpi=re)
+    Cairo::Cairo(file=paste0(path_for_graphs, "SYNS_", condition, "_",
+                             class_method, "_classification.", ty),
+                 type=ty, width=wi, height=he, pointsize=mte, dpi=re)
     
-    SYNS_P_temp <- SYNS_P_all[grep(paste0("_", condition, "_"), names(SYNS_P_all))]
-    SYNS_M_temp <- SYNS_M_all[grep(paste0("_", condition, "_"), names(SYNS_M_all))]
+    SYNS_P_temp <- SYNS_P_all[grep(paste0("_", condition), names(SYNS_P_all))]
+    SYNS_M_temp <- SYNS_M_all[grep(paste0("_", condition), names(SYNS_M_all))]
+    
+    points  <- unique(unlist(lapply(SYNS_P_temp, function(x) nrow(x))))
+    muscles <- unique(unlist(lapply(SYNS_M_temp, function(x) rownames(x))))
     
     varlist <- list()
     
@@ -1911,14 +1920,46 @@ for (condition in conditions) {
                                axis.ticks=ggplot2::element_blank(),
                                legend.position="none")
         } else {
-            temp_P <- NULL
-            temp_M <- NULL
+            data_P_av <- data.frame(time=c(1:points),
+                                    value=-0.2)
+            data_M_av <- data.frame(muscle=muscles,
+                                    value=0)
+            
+            temp_P <- ggplot2::ggplot() +
+                ggplot2::ggtitle(paste0("Motor primitive ", syn)) +
+                ggplot2::ylim(-0.2, 1.2) +
+                ggplot2::geom_line(data=data_P_av,
+                                   ggplot2::aes(x=time, y=value),
+                                   colour="transparent") +
+                ggplot2::theme(axis.title=ggplot2::element_blank(),
+                               panel.background=ggplot2::element_rect(fill=c_back, colour=c_bord),
+                               panel.grid.major=ggplot2::element_line(colour=c_min, size=s_min),
+                               panel.grid.minor=ggplot2::element_blank(),
+                               legend.position="none")
+            
+            temp_M <- ggplot2::ggplot() +
+                ggplot2::ggtitle(paste0("Motor module ", syn)) +
+                ggplot2::ylim(0, 1) +
+                ggplot2::geom_hline(yintercept=c(0.25, 0.5, 0.75, 1), size=s_min, color=c_thin) +
+                ggplot2::geom_bar(data=data_M_av,
+                                  ggplot2::aes(x=muscle, y=value),
+                                  fill="transparent", alpha=0.3,
+                                  stat="identity") +
+                ggplot2::scale_x_discrete(limits=data_M_av$muscle) +
+                ggplot2::theme(axis.title=ggplot2::element_blank(),
+                               axis.text.y=ggplot2::element_blank(),
+                               panel.background=ggplot2::element_rect(fill=c_back, colour=c_bord),
+                               panel.grid.major=ggplot2::element_blank(),
+                               panel.grid.minor=ggplot2::element_blank(),
+                               axis.ticks=ggplot2::element_blank(),
+                               legend.position="none")
         }
         
         varname_P <- paste0("r", 2*syn)
         varname_M <- paste0("r", 2*syn-1)
         varlist[[2*syn]]   <- assign(varname_P, temp_P)
         varlist[[2*syn-1]] <- assign(varname_M, temp_M)
+        
     }
     
     suppressWarnings(gridExtra::grid.arrange(grobs=varlist, nrow=max_syns, ncol=2,
