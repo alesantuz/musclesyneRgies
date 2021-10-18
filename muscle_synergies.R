@@ -1099,9 +1099,9 @@ if (qq=="n" && ww=="k") {
                               CoA=aggregate(CoA~clusters_M, temp_M, mean)$CoA)
         # Define score as sum of FWHM and CoA and normalise to number of points
         geoms_P <- data.frame(clust_P=geoms_P$clusters_P,
-                              score=(geoms_P$FWHM+geoms_P$CoA)/(2*points))
+                              score=geoms_P$FWHM*geoms_P$CoA)
         geoms_M <- data.frame(clust_M=geoms_M$clusters_M,
-                              score=(geoms_M$FWHM+geoms_M$CoA)/(2*points))
+                              score=geoms_M$FWHM*geoms_M$CoA)
         
         # Calculate mutual score squared residuals and find minimum
         perms  <- gtools::permutations(nrow(geoms_P), r=2, repeats.allowed=T)
