@@ -93,7 +93,7 @@ if (test==1) {
             "\nNOTE: new calculations might require a few minutes, depending on the size of the data set")
     qq <- readline()
     # Break if user decides
-    if (qq=="y" || qq=="n") break
+    if (qq=="y" || qq=="yes" || qq=="n" || qq=="no") break
   }
 } else if (test==0) qq <- "n"
 
@@ -353,11 +353,11 @@ if (test==1) {
             "\nNOTE: new calculations might require a few hours, depending on the size of the data set")
     qq <- readline()
     # Break if user decides
-    if (qq=="y" || qq=="n") break
+    if (qq=="y" || qq=="yes" || qq=="n" || qq=="no") break
   }
 } else if (test==0) qq <- "n"
 
-if (qq=="n") {
+if (qq=="n" || qq=="no") {
   # Load filtered EMG data if not already done
   if (all(!grepl("^FILT_EMG$", objects()))) {
     message("\nLoading filtered EMG...")
@@ -686,7 +686,7 @@ if (test==1) {
             "\nNOTE: new calculations might require a few minutes, depending on the size of the data set")
     qq <- readline()
     # Break if user decides
-    if (qq=="n") {
+    if (qq=="n" || qq=="no") {
       # Prompt for classification method
       ww <- 1
       while (!is.na(ww)) {
@@ -697,7 +697,7 @@ if (test==1) {
         if (ww=="k" || ww=="n") break
       }
       break
-    } else if (qq=="y") break
+    } else if (qq=="y" || qq=="yes") break
   }
 } else if (test==0) {
   qq <- "n"
@@ -713,7 +713,7 @@ if (test==1) {
 }
 
 # Load data and define common functions
-if (qq=="n") {
+if (qq=="n" || qq=="no") {
   # Load muscle synergies if not already done
   if (all(!grepl("^SYNS$", objects()))) {
     load(paste0(data_path, "SYNS.RData"))
@@ -1016,7 +1016,7 @@ if (qq=="n") {
   }
 }
 
-if (qq=="n" && ww=="k") {
+if ((qq=="n" || qq=="no") && ww=="k") {
   # Unsupervised learning method to classify synergies based on k-means
   message("\nClustering motor primitives with k-means...")
   # Progress bar
@@ -1237,38 +1237,80 @@ if (qq=="n" && ww=="k") {
       message("\nDo you want to change order of classified synergies (type 'y' for 'yes' or 'n' for 'no')?")
       qq <- readline()
       # Break if user decides
-      if (qq=="y" || qq=="n") break
+      if (qq=="y" || qq=="yes" || qq=="n" || qq=="no") break
     }
     
-    if (qq=="y" || qq=="ye" || qq=="yes") {
-      # Prompt for decision
-      message("Press Esc to stop (order will not be changed)")
-      orders_new <- numeric()
-      for (cc in 1:clust_num) {
-        pp <- 0.2
-        while (pp<1) {
-          pp <- readline(paste0("Syn num to be associated with the curve ", cc, ": "))
-          
-          if (grepl("^$", pp)) {
-            pp <- -1
-          } else if (grepl("\\D", pp) && !grepl("^s$", pp)) {
-            pp <- -1
-          } else if (grepl("^s$", pp)) {
-            pp <- 1000
-          } else if  (as.numeric(pp)>clust_num){
-            pp <- -1
+    if (qq=="y" || qq=="yes") {
+      
+      rep <- "n"
+      while (rep=="n" || rep=="no") {
+        
+        # Prompt for decision
+        message("Press Esc to stop (classification will be interrupted)")
+        orders_new <- numeric()
+        for (cc in 1:clust_num) {
+          pp <- 0.2
+          while (pp<1) {
+            pp <- readline(paste0("Syn num to be associated with the curve ", cc, ": "))
+            
+            if (grepl("^$", pp)) {
+              pp <- -1
+            } else if (grepl("\\D", pp) && !grepl("^s$", pp)) {
+              pp <- -1
+            } else if (grepl("^s$", pp)) {
+              pp <- 1000
+            } else if  (as.numeric(pp)>clust_num){
+              pp <- -1
+            }
+          }
+          orders_new[cc] <- pp
+        }
+        orders_new <- as.numeric(orders_new)
+        orders_new <- sort.int(orders_new, index.return=T)$ix
+        
+        # Re-create ordering rule
+        order_rule <- data.frame(old=c(1:clust_num),
+                                 new=orders_new)
+        
+        # Make new plots for checking
+        mean_P_temp <- mean_P[order_rule$new, ]
+        mean_M_temp <- mean_M[order_rule$new, ]
+        rownames(mean_P_temp) <- paste0("Syn", 1:nrow(mean_P_temp))
+        rownames(mean_M_temp) <- paste0("Syn", 1:nrow(mean_M_temp))
+        
+        # Re-plot classified synergies
+        par(mfrow=c(clust_num, 2),
+            mai=c(dev_size[2]/red_factor,
+                  dev_size[1]/red_factor,
+                  dev_size[2]/red_factor,
+                  dev_size[1]/red_factor))
+        
+        for (syn in 1:clust_num) {
+          # Plot motor modules
+          barplot(mean_M_temp[syn, ])
+          # Plot motor primitives
+          plot(x=c(1:ncol(mean_P_temp)), y=mean_P_temp[syn, ],
+               ty="l", main=paste0("Synergy ", syn, ", ", cond),
+               xlab="", ylab="",
+               xaxt="n", yaxt="n", lwd=2)
+        }
+        Sys.sleep(2)
+        
+        message("\nAre you sure (see new plot, type 'y' for 'yes' or 'n' for 'no')?")
+        rep <- readline()
+        
+        if (rep=="n" || rep=="no") {
+          for (syn in 1:clust_num) {
+            # Plot motor modules
+            barplot(mean_M[syn, ])
+            # Plot motor primitives
+            plot(x=c(1:ncol(mean_P)), y=mean_P[syn, ],
+                 ty="l", main=paste0("Synergy ", syn, ", ", cond),
+                 xlab="", ylab="",
+                 xaxt="n", yaxt="n", lwd=2)
           }
         }
-        orders_new[cc] <- pp
       }
-      
-      orders_new <- as.numeric(orders_new)
-      orders_new <- sort.int(orders_new, index.return=T)$ix
-      
-      # Re-create ordering rule
-      order_rule <- data.frame(old=c(1:clust_num),
-                               new=orders_new)
-      
       # Apply new order to mean curves
       mean_P <- mean_P[order_rule$new, ]
       mean_M <- mean_M[order_rule$new, ]
@@ -1280,24 +1322,6 @@ if (qq=="n" && ww=="k") {
       temp_M <- orders$clusters_M
       orders$clusters_P <- c(order_rule$old, temp_P)[match(temp_P, c(order_rule$new, temp_P))]
       orders$clusters_M <- c(order_rule$old, temp_M)[match(temp_M, c(order_rule$new, temp_M))]
-      
-      # Re-plot classified syns
-      par(mfrow=c(clust_num, 2),
-          mai=c(dev_size[2]/red_factor,
-                dev_size[1]/red_factor,
-                dev_size[2]/red_factor,
-                dev_size[1]/red_factor))
-      
-      for (syn in 1:clust_num) {
-        # Plot motor modules
-        barplot(mean_M[syn, ])
-        # Plot motor primitives
-        plot(x=c(1:ncol(mean_P)), y=mean_P[syn, ],
-             ty="l", main=paste0("Synergy ", syn, ", ", cond),
-             xlab="", ylab="",
-             xaxt="n", yaxt="n", lwd=2)
-      }
-      Sys.sleep(2)
     }
     
     # Remove double classifications, if present
@@ -1415,7 +1439,7 @@ if (qq=="n" && ww=="k") {
   save(SYNS_classified, file=paste0(data_path, "SYNS_classified.RData"))
   message("...done!")
   
-} else if (qq=="n" && ww=="n") {
+} else if ((qq=="n" || qq=="no") && ww=="n") {
   # Unsupervised learning method to classify synergies based on NMF
   # Apply NMF
   sys_date <- gsub(" [0-9][0-9]:[0-9][0-9]:[0-9][0-9]$", "", Sys.time())
@@ -1505,35 +1529,87 @@ if (qq=="n" && ww=="k") {
       message("\nDo you want to change order of classified synergies (type 'y' for 'yes' or 'n' for 'no')?")
       qq <- readline()
       # Break if user decides
-      if (qq=="y" || qq=="n") break
+      if (qq=="y" || qq=="yes" || qq=="n" || qq=="no") break
     }
     
-    if (qq=="y" || qq=="ye" || qq=="yes") {
-      # Prompt for decision
-      message("Press Esc to stop (order will not be changed)")
-      orders_new <- numeric()
-      for (cc in 1:nrow(data_NMF_P)) {
-        pp <- 0.2
-        while (pp<1) {
-          pp <- readline(paste0("Syn num to be associated with the curve ", cc, ": "))
-          
-          if (grepl("^$", pp)) {
-            pp <- -1
-          } else if (grepl("\\D", pp) && !grepl("^s$", pp)) {
-            pp <- -1
-          } else if (grepl("^s$", pp)) {
-            pp <- 1000
-          } else if  (as.numeric(pp)>syns_num_n){
-            pp <- -1
+    if (qq=="y" || qq=="yes") {
+      
+      rep <- "n"
+      while (rep=="n" || rep=="no") {
+        
+        # Prompt for decision
+        message("Press Esc to stop (order will not be changed)")
+        orders_new <- numeric()
+        for (cc in 1:nrow(data_NMF_P)) {
+          pp <- 0.2
+          while (pp<1) {
+            pp <- readline(paste0("Syn num to be associated with the curve ", cc, ": "))
+            
+            if (grepl("^$", pp)) {
+              pp <- -1
+            } else if (grepl("\\D", pp) && !grepl("^s$", pp)) {
+              pp <- -1
+            } else if (grepl("^s$", pp)) {
+              pp <- 1000
+            } else if  (as.numeric(pp)>syns_num_n){
+              pp <- -1
+            }
+          }
+          orders_new[cc] <- pp
+        }
+        
+        orders_new <- as.numeric(orders_new)
+        
+        orders <- sort.int(orders_new, index.return=T)$ix
+        
+        # Make new plots for checking
+        data_NMF_P_temp <- data_NMF_P[orders, ]
+        data_NMF_M_temp <- data_NMF_M[, orders]
+        
+        # Normalise to 1
+        data_NMF_P_temp <- data.frame(t(apply(data_NMF_P_temp, 1, function(x) x/max(x))))
+        data_NMF_M_temp <- data.frame(apply(data_NMF_M_temp, 2, function(x) x/max(x)))
+        
+        rownames(data_NMF_P_temp) <- paste0("Syn", 1:nrow(data_NMF_P_temp))
+        colnames(data_NMF_M_temp) <- paste0("Syn", 1:ncol(data_NMF_M_temp))
+        
+        # Re-plot classified syns
+        par(mfrow=c(syns_num_n, 2),
+            mai=c(dev_size[2]/red_factor,
+                  dev_size[1]/red_factor,
+                  dev_size[2]/red_factor,
+                  dev_size[1]/red_factor))
+        
+        for (syn in 1:syns_num_n) {
+          plot(x=c(1:ncol(data_NMF_P_temp)), y=data_NMF_P_temp[syn, ],
+               ty="l", main=paste0("Synergy ", syn, ", ", cond),
+               xlab="", ylab="",
+               xaxt="n", yaxt="n", lwd=2)
+          barplot(sort(data_NMF_M_temp[, syn], decreasing=T))
+          abline(h=seq(0.2, 0.8, 0.1), col=2)
+          tot <- length(data_NMF_M_temp[, syn])
+          abline(v=tot*seq(0, 1, 0.25), col=2)
+        }
+        
+        Sys.sleep(2)
+        
+        message("\nAre you sure (see new plot, type 'y' for 'yes' or 'n' for 'no')?")
+        rep <- readline()
+        
+        if (rep=="n" || rep=="no") {
+          for (syn in 1:syns_num_n) {
+            plot(x=c(1:ncol(data_NMF_P)), y=data_NMF_P[syn, ],
+                 ty="l", main=paste0("Synergy ", syn, ", ", cond),
+                 xlab="", ylab="",
+                 xaxt="n", yaxt="n", lwd=2)
+            barplot(sort(data_NMF_M[, syn], decreasing=T))
+            abline(h=seq(0.2, 0.8, 0.1), col=2)
+            tot <- length(data_NMF_M[, syn])
+            abline(v=tot*seq(0, 1, 0.25), col=2)
           }
         }
-        orders_new[cc] <- pp
       }
-      
-      orders_new <- as.numeric(orders_new)
-      
-      orders <- sort.int(orders_new, index.return=T)$ix
-      
+      # Apply new orders
       data_NMF_P <- data_NMF_P[orders, ]
       data_NMF_M <- data_NMF_M[, orders]
       
@@ -1543,25 +1619,6 @@ if (qq=="n" && ww=="k") {
       
       rownames(data_NMF_P) <- paste0("Syn", 1:nrow(data_NMF_P))
       colnames(data_NMF_M) <- paste0("Syn", 1:ncol(data_NMF_M))
-      
-      # Re-plot classified syns
-      par(mfrow=c(syns_num_n, 2),
-          mai=c(dev_size[2]/red_factor,
-                dev_size[1]/red_factor,
-                dev_size[2]/red_factor,
-                dev_size[1]/red_factor))
-      
-      for (syn in 1:syns_num_n) {
-        plot(x=c(1:ncol(data_NMF_P)), y=data_NMF_P[syn, ],
-             ty="l", main=paste0("Synergy ", syn, ", ", cond),
-             xlab="", ylab="",
-             xaxt="n", yaxt="n", lwd=2)
-        barplot(sort(data_NMF_M[, syn], decreasing=T))
-        abline(h=seq(0.2, 0.8, 0.1), col=2)
-        tot <- length(data_NMF_M[, syn])
-        abline(v=tot*seq(0, 1, 0.25), col=2)
-      }
-      Sys.sleep(2)
     }
     
     # Now search for syns having module bigger than "M_threshold"
