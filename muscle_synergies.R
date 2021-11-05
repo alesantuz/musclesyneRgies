@@ -116,9 +116,12 @@ if (qq=="n") {
   # Create "Graphs/EMG" folder if it does not exist
   path_for_graphs <- paste0(graph_path, "EMG", .Platform$file.sep)
   dir.create(path_for_graphs, showWarnings=F)
-  # Create "Graphs/EMG/trials" folder if it does not exist
-  path_for_graphs <- paste0(path_for_graphs, "trials", .Platform$file.sep)
-  dir.create(path_for_graphs, showWarnings=F)
+  # Create "Graphs/EMG/raw" folder if it does not exist
+  subfolder <- paste0(path_for_graphs, "raw", .Platform$file.sep)
+  dir.create(subfolder, showWarnings=F)
+  # Create "Graphs/EMG/filtered" folder if it does not exist
+  subfolder <- paste0(path_for_graphs, "filtered", .Platform$file.sep)
+  dir.create(subfolder, showWarnings=F)
   
   # Global filter and normalisation parameters, change as needed
   HPo    <- 4             # High-pass filter order
@@ -127,6 +130,7 @@ if (qq=="n") {
   LPf    <- 20            # Low-pass filter frequency [Hz]
   points <- 200           # Gait cycle length (interpolated points)
   cy_max <- 30            # Max number of cycles to be analysed
+  raw_pl <- 3             # Time window in [s] from end of trial to plot raw EMG
   
   # Preallocate to write results
   FILT_EMG   <- vector("list", length(RAW_EMG))
@@ -169,13 +173,55 @@ if (qq=="n") {
       emg_data <- RAW_EMG[[ii]][1:(label-1), ]
     }
     
+    # EMG system acquisition frequency [Hz]
+    freq <- round(1/(mean(diff(emg_data[, "time"]), na.rm=T)), 0)
+    
     # Demean EMG (subtract mean value from the signal to eliminate offset shifts)
     time     <- emg_data$time
     emg_data <- apply(emg_data, 2, function(x) x-mean(x, na.rm=T))
     emg_data[, "time"] <- time
     
-    # EMG system acquisition frequency [Hz]
-    freq <- round(1/(mean(diff(emg_data[, "time"]), na.rm=T)), 0)
+    # Plot last "raw_pl" seconds of trial's raw EMG
+    start <- nrow(emg_data)-freq*raw_pl+1
+    stop  <- nrow(emg_data)
+    Cairo::Cairo(file=paste0(path_for_graphs, "raw", .Platform$file.sep, "temp.", ty),
+                 width=wi, height=he/5*(length(muscles)-1), pointsize=12, dpi=re)
+    varlist <- list()
+    
+    for (mm in 2:length(muscles)) {
+      data <- data.frame(emg_data[start:stop, "time"],
+                         emg_data[start:stop, grep(paste0("^", muscles[mm], "$"), colnames(emg_data))])
+      colnames(data) <- c("time", "signal")
+      
+      data$signal <- data$signal/max(data$signal, na.rm=T)
+      data$signal <- data$signal/min(data$signal, na.rm=T)
+      
+      varname <- paste("pp", mm, sep = "")
+      
+      temp <- ggplot2::ggplot() +
+        ggplot2::ggtitle(muscles[mm]) +
+        ggplot2::ylim(-1, 1) +
+        ggplot2::geom_line(data=data,
+                           ggplot2::aes(x=time,  y=signal),
+                           colour="black", size=0.3) +
+        ggplot2::theme(axis.title=ggplot2::element_blank(),
+                       panel.background=ggplot2::element_rect(fill="white", colour="gray"),
+                       panel.grid.major=ggplot2::element_line(colour="gray", size=0.05),
+                       panel.grid.minor=ggplot2::element_blank(),
+                       legend.position = "none")
+      
+      varlist[[mm-1]] <- assign(varname, temp)
+    }
+    
+    gridExtra::grid.arrange(grobs=varlist,
+                            nrow=length(varlist),
+                            ncol=1,
+                            top=(paste0(trial, sep="")))
+    
+    dev.off() # Close Cairo export
+    
+    file.rename(paste0(path_for_graphs, "raw", .Platform$file.sep, "temp.png"),
+                paste0(path_for_graphs, "raw", .Platform$file.sep, "EMG_raw_last_", raw_pl, "_s_", trial, ".", ty))
     
     # Filtering
     emg_data_filt <- emg_data
@@ -294,8 +340,8 @@ if (qq=="n") {
     emg_data_av[, "time"] <- c(1:points)
     
     # Make graphs
-    Cairo::Cairo(file=paste0(path_for_graphs, "temp.png", sep=""),
-                 width=1500, height=1500, pointsize=12, dpi=120)
+    Cairo::Cairo(file=paste0(path_for_graphs, "filtered", .Platform$file.sep, "temp.", ty),
+                 width=wi, height=he*0.75, pointsize=12, dpi=re/2)
     varlist <- list()
     
     for (mm in 2:length(muscles)) {
@@ -327,8 +373,8 @@ if (qq=="n") {
     
     dev.off() # Close Cairo export
     
-    file.rename(paste0(path_for_graphs, "temp.png"),
-                paste0(path_for_graphs, "EMG_average_", trial, ".png", sep=""))
+    file.rename(paste0(path_for_graphs, "filtered", .Platform$file.sep, "temp.png"),
+                paste0(path_for_graphs, "filtered", .Platform$file.sep, "EMG_average_", trial, ".", ty))
   }
   
   names(FILT_EMG) <- list_names
