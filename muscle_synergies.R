@@ -19,6 +19,7 @@ pkgs_list <- c("tcltk",
                "progress",
                "signal",
                "gtools",
+               "umap",
                "Cairo",
                "ggplot2",
                "gridExtra",
@@ -164,7 +165,7 @@ if (qq=="n") {
     c_time <- CYCLE_TIMES[[grep(trial, names(CYCLE_TIMES))]]
     trim   <- c_time$touchdown[cy_max+2]
     
-    # Check if there are more than cy_max cycles and do not trim if false
+    # Check if there are more than cy_max+2 cycles and do not trim if false
     label <- which(RAW_EMG[[ii]]$time>trim)[1]
     
     if (is.na(label)) {
@@ -184,6 +185,8 @@ if (qq=="n") {
     # Plot last "raw_pl" seconds of trial's raw EMG
     start <- nrow(emg_data)-freq*raw_pl+1
     stop  <- nrow(emg_data)
+    if(start<=0) start <- 1
+    
     Cairo::Cairo(file=paste0(path_for_graphs, "raw", .Platform$file.sep, "temp.", ty),
                  width=wi, height=he/5*(length(muscles)-1), pointsize=12, dpi=re)
     varlist <- list()
@@ -1413,7 +1416,7 @@ if ((qq=="n" || qq=="no") && ww=="k") {
       
     }
     
-    # Save plots of clustered synergies
+    # Save plots of clustered synergies' scores
     Cairo::Cairo(file=paste0(path_for_graphs, "SYNS_", cond, "_",
                              class_method, "_classification_clusters.", ty),
                  type=ty, width=0.9*wi, height=0.72*wi, pointsize=mte, dpi=re)
@@ -1901,11 +1904,95 @@ max_syns   <- max(unlist(lapply(SYNS_M_all, function(x) ncol(x))))
 conditions <- gsub("^SYNS_ID[0-9]+_", "", names(SYNS_M_all))
 conditions <- unique(gsub("_[0-9]+$", "", conditions))
 
+# Export UMAP plots
 # Progress bar
 pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
                                  total=length(conditions), clear=F, width=50)
 
-message("\nExporting graphs...\n")
+message("\nExporting UMAP plots...\n")
+
+for (condition in conditions) {
+  
+  pb$tick()
+  
+  SYNS_P_temp <- SYNS_P[grep(paste0("_", condition), names(SYNS_P))]
+  SYNS_M_temp <- SYNS_M[grep(paste0("_", condition), names(SYNS_M))]
+  
+  # Calculate mean motor primitives
+  SYNS_P_temp <- lapply(SYNS_P_temp, function(x) {
+    points <- max(x$time)
+    x$time <- NULL
+    
+    if (ncol(x)>0) {
+      temp   <- matrix(0, nrow=points, ncol=ncol(x))
+      
+      colnames(temp) <- colnames(x)
+      
+      for (cc in seq(1, (1+nrow(x)-points), points)) {
+        temp <- temp+x[c(cc:(cc+points-1)), ]
+      }
+      
+      # Divide by the number of cycles to get mean value
+      temp <- temp/(nrow(x)/points)
+      
+      # Minimum subtraction
+      x <- apply(temp, 2, function(y) y-min(y))
+      # Amplitude normalisation
+      x <- apply(temp, 2, function(y) y/max(y))
+    }
+    
+    return(data.frame(x))
+  })
+  
+  data_P <- lapply(SYNS_P_temp, function(x) data.frame(trial=colnames(x), t(x)))
+  data_M <- lapply(SYNS_M_temp, function(x) t(x))
+  data_P <- plyr::ldply(data_P, data.frame, .id="trial")
+  data_M <- plyr::ldply(data_M, data.frame, .id="trial")
+  
+  data_syns <- data_P$trial
+  if (any(grepl("Syncombined\\.", data_syns))) {
+    data_syns <- gsub("Syncombined.+", "Syncombined", data_syns)
+  }
+  
+  data_P$trial <- NULL
+  data_M$trial <- NULL
+  
+  umap_P <- data.frame(data_syns, umap::umap(data_P)$layout)
+  umap_M <- data.frame(data_syns, umap::umap(data_M)$layout)
+  
+  colnames(umap_P) <- c("syn", "UMAP1", "UMAP2")
+  colnames(umap_M) <- colnames(umap_P)
+  
+  Cairo::Cairo(file=paste0(path_for_graphs, "UMAP_SYNS_", condition, "_",
+                           class_method, "_classification.", ty),
+               type=ty, width=0.9*wi, height=1.42*wi, pointsize=mte, dpi=re)
+  
+  ggumap_M <- ggplot2::ggplot(data=umap_M,
+                              ggplot2::aes(x=UMAP1, y=UMAP2,
+                                           colour=factor(syn))) +
+    ggplot2::geom_point(size=4, alpha=0.5) +
+    ggplot2::ggtitle(paste0(condition, " - UMAP (motor modules)")) +
+    ggplot2::theme(legend.title=ggplot2::element_blank())
+  
+  ggumap_P <- ggplot2::ggplot(data=umap_P,
+                              ggplot2::aes(x=UMAP1, y=UMAP2,
+                                           colour=factor(syn))) +
+    ggplot2::geom_point(size=4, alpha=0.5) +
+    ggplot2::ggtitle(paste0(condition, " - UMAP (motor primitives)")) +
+    ggplot2::theme(legend.title=ggplot2::element_blank())
+  
+  suppressWarnings(gridExtra::grid.arrange(grobs=list(ggumap_M, ggumap_P), nrow=2, ncol=1))
+  
+  dev.off() # Close Cairo export
+}
+message("\n...done!")
+
+# Export synergy plots
+# Progress bar
+pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
+                                 total=length(conditions), clear=F, width=50)
+
+message("\nExporting muscle synergy graphs...\n")
 
 for (condition in conditions) {
   
