@@ -1851,8 +1851,9 @@ message("\n##################################",
         "\n STEP 4/4 - Plot muscle synergies",
         "\n##################################")
 
-if (all(!grepl("^SYNS_classified$", objects()))) {
+if (all(!grepl("^SYNS_classified$", objects())) || all(!grepl("^FILT_EMG$", objects()))) {
   load(paste0(data_path, "SYNS_classified.RData"))
+  load(paste0(data_path, "FILT_EMG.RData"))
 }
 
 # Create "Graphs/NMF" folder if it does not exist
@@ -1862,58 +1863,57 @@ dir.create(path_for_graphs, showWarnings=F)
 # Get classification method
 class_method <- unique(unlist(lapply(SYNS_classified, function(x) x$classification)))
 
-# Get concatenated primitives
-SYNS_P <- lapply(SYNS_classified, function(x) x$P)
+# Get motor modules and concatenated motor primitives
 SYNS_M <- lapply(SYNS_classified, function(x) x$M)
+SYNS_P <- lapply(SYNS_classified, function(x) x$P)
 
-# Calculate mean motor primitives and remove combined
-SYNS_P_all <- lapply(SYNS_P, function(x) {
-  points <- max(x$time)
-  x$time <- NULL
-  x[, grep("combined", colnames(x))] <- NULL
-  
-  if (ncol(x)>0) {
-    temp   <- matrix(0, nrow=points, ncol=ncol(x))
-    
-    colnames(temp) <- colnames(x)
-    
-    for (cc in seq(1, (1+nrow(x)-points), points)) {
-      temp <- temp+x[c(cc:(cc+points-1)), ]
-    }
-    
-    # Divide by the number of cycles to get mean value
-    temp <- temp/(nrow(x)/points)
-    
-    # Minimum subtraction
-    x <- apply(temp, 2, function(y) y-min(y))
-    # Amplitude normalisation
-    x <- apply(temp, 2, function(y) y/max(y))
-  }
-  
-  return(data.frame(x))
-})
-
-# Remove combined motor modules
-SYNS_M_all <- lapply(SYNS_M, function(x) {
+# Find maximum number of synergies, combined excluded
+max_syns   <- max(unlist(lapply(SYNS_M, function(x) {
   x <- data.frame(x)
   x[, grep("combined", colnames(x))] <- NULL
-  return(data.frame(x))
-})
-
-max_syns   <- max(unlist(lapply(SYNS_M_all, function(x) ncol(x))))
-conditions <- gsub("^SYNS_ID[0-9]+_", "", names(SYNS_M_all))
+  return(ncol(x))
+})))
+conditions <- gsub("^SYNS_ID[0-9]+_", "", names(SYNS_M))
 conditions <- unique(gsub("_[0-9]+$", "", conditions))
 
-# Export UMAP plots
+# Export UMAP and synergy plots
 # Progress bar
 pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
                                  total=length(conditions), clear=F, width=50)
 
-message("\nExporting UMAP plots...\n")
+message("\nExporting UMAP and synergy plots...\n")
 
 for (condition in conditions) {
   
   pb$tick()
+  
+  FILT_EMG_temp <- FILT_EMG[grep(paste0("_", condition), names(FILT_EMG))]
+  
+  # Calculate mean EMG
+  FILT_EMG_temp <- lapply(FILT_EMG_temp, function(x) {
+    points <- max(x$time)
+    x$time <- NULL
+    
+    if (ncol(x)>0) {
+      temp   <- matrix(0, nrow=points, ncol=ncol(x))
+      
+      colnames(temp) <- colnames(x)
+      
+      for (cc in seq(1, (1+nrow(x)-points), points)) {
+        temp <- temp+x[c(cc:(cc+points-1)), ]
+      }
+      
+      # Divide by the number of cycles to get mean value
+      temp <- temp/(nrow(x)/points)
+      
+      # Minimum subtraction
+      x <- apply(temp, 2, function(y) y-min(y))
+      # Amplitude normalisation
+      x <- apply(temp, 2, function(y) y/max(y))
+    }
+    
+    return(data.frame(x))
+  })
   
   SYNS_P_temp <- SYNS_P[grep(paste0("_", condition), names(SYNS_P))]
   SYNS_M_temp <- SYNS_M[grep(paste0("_", condition), names(SYNS_M))]
@@ -1944,18 +1944,49 @@ for (condition in conditions) {
     return(data.frame(x))
   })
   
-  data_P <- lapply(SYNS_P_temp, function(x) data.frame(trial=colnames(x), t(x)))
-  data_M <- lapply(SYNS_M_temp, function(x) t(x))
-  data_P <- plyr::ldply(data_P, data.frame, .id="trial")
-  data_M <- plyr::ldply(data_M, data.frame, .id="trial")
+  points  <- unique(unlist(lapply(SYNS_P_temp, function(x) nrow(x))))
+  muscles <- unique(unlist(lapply(SYNS_M_temp, function(x) rownames(x))))
   
-  data_syns <- data_P$trial
+  # UMAP of average filtered and normalised EMG
+  data_EMG <- lapply(FILT_EMG_temp, function(x) data.frame(muscle=colnames(x), t(x)))
+  data_EMG <- plyr::ldply(data_EMG, data.frame, .id="muscle")
+  
+  data_muscle <- data_EMG$muscle
+  
+  data_EMG$muscle <- NULL
+  
+  umap_EMG <- data.frame(data_muscle, umap::umap(data_EMG)$layout)
+  
+  colnames(umap_EMG) <- c("muscle", "UMAP1", "UMAP2")
+  
+  Cairo::Cairo(file=paste0(paste0(graph_path, "EMG", .Platform$file.sep), "UMAP_FILT_EMG_", condition, "_",
+                           class_method, "_classification.", ty),
+               type=ty, width=0.9*wi, height=0.72*wi, pointsize=mte, dpi=re)
+  
+  ggumap_EMG <- ggplot2::ggplot(data=umap_EMG,
+                              ggplot2::aes(x=UMAP1, y=UMAP2,
+                                           colour=factor(muscle, levels=muscles))) +
+    ggplot2::geom_point(size=4, alpha=0.5) +
+    ggplot2::ggtitle(paste0(condition, " - UMAP (filtered EMG)")) +
+    ggplot2::theme(legend.title=ggplot2::element_blank())
+  
+  print(ggumap_EMG)
+  
+  dev.off() # Close Cairo export
+  
+  # UMAP of synergies
+  data_P <- lapply(SYNS_P_temp, function(x) data.frame(synergy=colnames(x), t(x)))
+  data_M <- lapply(SYNS_M_temp, function(x) t(x))
+  data_P <- plyr::ldply(data_P, data.frame, .id="synergy")
+  data_M <- plyr::ldply(data_M, data.frame, .id="synergy")
+  
+  data_syns <- data_P$synergy
   if (any(grepl("Syncombined\\.", data_syns))) {
     data_syns <- gsub("Syncombined.+", "Syncombined", data_syns)
   }
   
-  data_P$trial <- NULL
-  data_M$trial <- NULL
+  data_P$synergy <- NULL
+  data_M$synergy <- NULL
   
   umap_P <- data.frame(data_syns, umap::umap(data_P)$layout)
   umap_M <- data.frame(data_syns, umap::umap(data_M)$layout)
@@ -1984,29 +2015,11 @@ for (condition in conditions) {
   suppressWarnings(gridExtra::grid.arrange(grobs=list(ggumap_M, ggumap_P), nrow=2, ncol=1))
   
   dev.off() # Close Cairo export
-}
-message("\n...done!")
-
-# Export synergy plots
-# Progress bar
-pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                 total=length(conditions), clear=F, width=50)
-
-message("\nExporting muscle synergy graphs...\n")
-
-for (condition in conditions) {
   
-  pb$tick()
-  
+  # Muscle synergies
   Cairo::Cairo(file=paste0(path_for_graphs, "SYNS_", condition, "_",
                            class_method, "_classification.", ty),
                type=ty, width=wi, height=he, pointsize=mte, dpi=re)
-  
-  SYNS_P_temp <- SYNS_P_all[grep(paste0("_", condition), names(SYNS_P_all))]
-  SYNS_M_temp <- SYNS_M_all[grep(paste0("_", condition), names(SYNS_M_all))]
-  
-  points  <- unique(unlist(lapply(SYNS_P_temp, function(x) nrow(x))))
-  muscles <- unique(unlist(lapply(SYNS_M_temp, function(x) rownames(x))))
   
   varlist <- list()
   
