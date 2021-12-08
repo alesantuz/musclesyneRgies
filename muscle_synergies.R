@@ -1,43 +1,40 @@
 # The minimum requirements for successfully running this script are:
-# 1. Raw EMG data prepared in RData format, one list where each named element is a trial
-#    formatted as data frame with columns named "time" and muscle abbreviations,
-#    file saved as "RAW_EMG.RData"
-# 2. Gait cycle times prepared in RData format, one list where each named element is a trial
-#    formatted as data frame with columns named "touchdown" and "stance", times in [s],
-#    file saved as "CYCLE_TIMES.RData"
-# 3. Trials are named as "CYCLE_TIMES_IDxxxx_AA.*_yy" or "RAW_EMG_IDxxxx_AA.*_yy", where:
-#    - IDxxxx is the participant's code (e.g., ID0002 or ID0456)
-#    - AA is the condition (e.g., TW or OR for treadmill or overground walking, but can
-#      as well be longer such as TR_YOUNG_FEMALE, etc.)
-#    - yy is the trial number (e.g., 01 or 155, etc.)
-# Using regex: CYCLE_TIMES_ID[0-9]*_.*_[0-9]*, RAW_EMG_ID[0-9]*_.*_[0-9]*
+# 1. Raw data prepared in RData format, one list where each named element is a trial containing
+#     i.  Raw EMG (RAW_DATA[[ii]]$emg) formatted as data frame or matrix with one column named
+#         "time" (case insensitive) and other columns named as muscles
+#     ii. Cycle times (RAW_DATA[[ii]]$cycles) formatted as data frame or matrix without specific
+#         column names and as many columns as the number of phases each cycle should be divided
+#         into after time-normalisation (e.g., for locomotion two columns, one with the timings
+#         of all touchdowns and one with the timings of all the lift-offs, etc.)
+# 2. R version 4+.
 
-# Preparation ----
-# Install (if needed) required packages
-pkgs_list <- c("tcltk",
-               "parallel",
-               "progress",
-               "signal",
-               "gtools",
-               "umap",
-               "Cairo",
-               "ggplot2",
-               "gridExtra",
-               "benchmarkme",
-               "plyr",
-               "reshape2")
-
-pkgs_new <- pkgs_list[!(pkgs_list %in% installed.packages()[, "Package"])]
-if (length(pkgs_new)) install.packages(pkgs_new)
-
-# Load required packages
-lapply(pkgs_list, library, character.only=T)
-# ATTENTION! The following line removes all objects from the global environment
-# except for the ones listed ("cl" in this case)
-rm(list=setdiff(ls(), c("cl")))
+# # Preparation ----
+# # Install (if needed) required packages
+# pkgs_list <- c("pbapply",
+#                # "tcltk",
+#                # "parallel",
+#                # "progress",
+#                "signal",
+#                "gtools",
+#                "umap",
+#                "Cairo",
+#                "ggplot2",
+#                "gridExtra",
+#                "benchmarkme",
+#                "plyr",
+#                "reshape2")
+#
+# pkgs_new <- pkgs_list[!(pkgs_list %in% installed.packages()[, "Package"])]
+# if (length(pkgs_new)) install.packages(pkgs_new)
+#
+# # Load required packages
+# lapply(pkgs_list, library, character.only=T)
+# # ATTENTION! The following line removes all objects from the global environment
+# # except for the ones listed ("cl" in this case)
+# rm(list=setdiff(ls(), c("cl")))
 
 # Where are your files located if not in the same folder as the project's?
-if (all(file.exists("CYCLE_TIMES.RData", "RAW_EMG.RData"))) {
+if (file.exists("RAW_DATA.RData")) {
   data_path <- getwd()
 } else {
   if (.Platform$OS.type=="windows") {
@@ -53,31 +50,16 @@ data_path  <- paste0(data_path, .Platform$file.sep)
 graph_path <- paste0(data_path, "Graphs", .Platform$file.sep)
 dir.create(graph_path, showWarnings=F)
 
-# Define graphs export parameters and aesthetics
-ty       <- "png"   # File type
-wi       <- 2000    # Width in pixels
-he       <- 2500    # Height in pixels
-mte      <- 20      # Main title text size
-s_line   <- 0.9     # Line size
-s_min    <- 0.05
-c_back   <- "white" # Background colour
-c_bord   <- "gray"  # Background border colour
-c_min    <- "gray"  # Minor gridlines colour
-c_bars   <- "black"
-c_signal <- "black"
-c_thin   <- "grey70"
-
-# Resolution of graphs in dpi
-if (ty=="png") re <- 280 else if (ty=="svg") re <- 150
-
-# Create cluster for parallel computing if not already done
-clusters <- objects()
-
-if (sum(grepl("^cl$", clusters))==0) {
-  # Decide how many processor threads have to be excluded from the cluster
-  # It is a good idea to leave at least one free, so that the machine can be used during computation
-  cl <- parallel::makeCluster(max(1, parallel::detectCores()-1))
+# If data are not prepared in RData format, please use the following code to read your ASCII files
+# (place raw EMG and cycle timings in two different folders and then run the function "rawdata")
+qq <- 1
+while (!is.na(qq)) {
+  message("\nDo you want to read data from ASCII files (type 'y' for 'yes', 'n' for 'no')?")
+  qq <- readline()
+  # Break if user decides
+  if (qq=="y" || qq=="yes" || qq=="n" || qq=="no") break
 }
+if (qq=="y" || qq=="yes") musclesyneRgies::rawdata(header=TRUE)
 
 # STEP 1 - Raw data processing ----
 message("\n################################",
@@ -100,20 +82,12 @@ if (test==1) {
 
 if (qq=="n") {
   # Load raw EMG data and gait cycle times if not already done
-  if (all(!grepl("^CYCLE_TIMES$", objects())) && all(!grepl("^RAW_EMG$", objects()))) {
+  if (all(!grepl("^RAW_DATA$", objects()))) {
     message("\nLoading raw data...")
-    load(paste0(data_path, "CYCLE_TIMES.RData"))
-    load(paste0(data_path, "RAW_EMG.RData"))
+    load(paste0(data_path, "RAW_DATA.RData"))
     message("...done!")
   }
-  
-  # Check for correct naming of trials
-  if (any(!grepl("^RAW_EMG_ID[0-9]+_.+_[0-9]+$", names(RAW_EMG))) ||
-      any(!grepl("^CYCLE_TIMES_ID[0-9]+_.+_[0-9]+$", names(CYCLE_TIMES)))) {
-    message("")
-    stop("\nATTENTION: your trials are not named after the guidelines!\nPlease double-check names.")
-  }
-  
+
   # Create "Graphs/EMG" folder if it does not exist
   path_for_graphs <- paste0(graph_path, "EMG", .Platform$file.sep)
   dir.create(path_for_graphs, showWarnings=F)
@@ -123,265 +97,58 @@ if (qq=="n") {
   # Create "Graphs/EMG/filtered" folder if it does not exist
   subfolder <- paste0(path_for_graphs, "filtered", .Platform$file.sep)
   dir.create(subfolder, showWarnings=F)
-  
-  # Global filter and normalisation parameters, change as needed
-  HPo    <- 4             # High-pass filter order
-  HPf    <- 50            # High-pass filter frequency [Hz]
-  LPo    <- HPo           # Low-pass filter order
-  LPf    <- 20            # Low-pass filter frequency [Hz]
-  points <- 200           # Gait cycle length (interpolated points)
-  cy_max <- 30            # Max number of cycles to be analysed
-  raw_pl <- 3             # Time window in [s] from end of trial to plot raw EMG
-  
-  # Preallocate to write results
-  FILT_EMG   <- vector("list", length(RAW_EMG))
-  list_names <- character(length=length(RAW_EMG))
-  
-  # Progress bar
-  pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                   total=length(RAW_EMG), clear=F, width=50)
-  
-  message("\nApply filters")
-  
-  for (ii in seq_along(RAW_EMG)) {
-    
-    pb$tick()
-    
-    if (nrow(RAW_EMG[[ii]])<1) {
-      stop("\n\nTrial ", ii, " (", trial, ") is empty! Please check your raw data.")
-    }
-    
-    trial   <- gsub("RAW_EMG_", "", names(RAW_EMG[ii]))
-    
-    # Set "time" column name to small letters and muscles to capital
-    names(RAW_EMG[[ii]]) <- toupper(names(RAW_EMG[[ii]]))
-    names(RAW_EMG[[ii]])[grep("TIME", names(RAW_EMG[[ii]]))] <- "time"
-    
-    # Muscle list, including time
-    muscles <- names(RAW_EMG[[ii]])
-    
-    # Trim to the first cy_max+2 cycles
-    # (+2 because first and last will be trimmed after filtering)
-    c_time <- CYCLE_TIMES[[grep(trial, names(CYCLE_TIMES))]]
-    trim   <- c_time$touchdown[cy_max+2]
-    
-    # Check if there are more than cy_max+2 cycles and do not trim if false
-    label <- which(RAW_EMG[[ii]]$time>trim)[1]
-    
-    if (is.na(label)) {
-      emg_data <- RAW_EMG[[ii]]
-    } else {
-      emg_data <- RAW_EMG[[ii]][1:(label-1), ]
-    }
-    
-    # EMG system acquisition frequency [Hz]
-    freq <- round(1/(mean(diff(emg_data[, "time"]), na.rm=T)), 0)
-    
-    # Demean EMG (subtract mean value from the signal to eliminate offset shifts)
-    time     <- emg_data$time
-    emg_data <- apply(emg_data, 2, function(x) x-mean(x, na.rm=T))
-    emg_data[, "time"] <- time
-    
-    # Plot last "raw_pl" seconds of trial's raw EMG
-    start <- nrow(emg_data)-freq*raw_pl+1
-    stop  <- nrow(emg_data)
-    if(start<=0) start <- 1
-    
-    Cairo::Cairo(file=paste0(path_for_graphs, "raw", .Platform$file.sep, "temp.", ty),
-                 width=wi, height=he/5*(length(muscles)-1), pointsize=12, dpi=re)
-    varlist <- list()
-    
-    for (mm in 2:length(muscles)) {
-      data <- data.frame(emg_data[start:stop, "time"],
-                         emg_data[start:stop, grep(paste0("^", muscles[mm], "$"), colnames(emg_data))])
-      colnames(data) <- c("time", "signal")
-      
-      data$signal <- data$signal/max(data$signal, na.rm=T)
-      data$signal <- data$signal/min(data$signal, na.rm=T)
-      
-      varname <- paste("pp", mm, sep = "")
-      
-      temp <- ggplot2::ggplot() +
-        ggplot2::ggtitle(muscles[mm]) +
-        ggplot2::ylim(-1, 1) +
-        ggplot2::geom_line(data=data,
-                           ggplot2::aes(x=time,  y=signal),
-                           colour="black", size=0.3) +
-        ggplot2::theme(axis.title=ggplot2::element_blank(),
-                       panel.background=ggplot2::element_rect(fill="white", colour="gray"),
-                       panel.grid.major=ggplot2::element_line(colour="gray", size=0.05),
-                       panel.grid.minor=ggplot2::element_blank(),
-                       legend.position = "none")
-      
-      varlist[[mm-1]] <- assign(varname, temp)
-    }
-    
-    gridExtra::grid.arrange(grobs=varlist,
-                            nrow=length(varlist),
-                            ncol=1,
-                            top=(paste0(trial, sep="")))
-    
-    dev.off() # Close Cairo export
-    
-    file.rename(paste0(path_for_graphs, "raw", .Platform$file.sep, "temp.png"),
-                paste0(path_for_graphs, "raw", .Platform$file.sep, "EMG_raw_last_", raw_pl, "_s_", trial, ".", ty))
-    
-    # Filtering
-    emg_data_filt <- emg_data
-    emg_data_filt <- emg_data_filt[, colnames(emg_data_filt)!="time"]
-    
-    # High-pass IIR (Infinite Impulse Response) Butterworth zero-phase filter design
-    # Critical frequencies must be between 0 and 1, where 1 is the Nyquist frequency
-    # "filtfilt" is for zero-phase filtering
-    HPfn <- HPf/(freq/2)                            # Normalise by the Nyquist frequency (f/2)
-    HP   <- signal::butter(HPo, HPfn, type="high")
-    emg_data_filt <- apply(emg_data_filt, 2, function(x) signal::filtfilt(HP, x))
-    
-    # Full-wave rectification
-    emg_data_filt <- abs(emg_data_filt)
-    
-    # Low-pass IIR (Infinite Impulse Response) Butterworth zero-phase filter design
-    # Critical frequencies must be between 0 and 1, where 1 is the Nyquist frequency
-    # "filtfilt" is for zero-phase filtering
-    LPfn <- LPf/(freq/2)                            # Normalise by the Nyquist frequency (f/2)
-    LP   <- signal::butter(LPo, LPfn, type="low")
-    emg_data_filt <- apply(emg_data_filt, 2, function(x) signal::filtfilt(LP, x))
-    
-    emg_data_filt[emg_data_filt<0] <- 0             # Set negative values to zero
-    temp <- emg_data_filt
-    temp[temp==0] <- Inf
-    emg_data_filt[emg_data_filt==0] <- min(temp)    # Set the zeros to the smallest non-zero entry
-    
-    # Subtract the minimum
-    emg_data_filt <- apply(emg_data_filt, 2, function(x) x-min(x))
-    # Amplitude normalisation to the maximum of the trial
-    emg_data_filt <- apply(emg_data_filt, 2, function(x) x/max(x))
-    
-    emg_time <- seq(emg_data[, "time"][1], emg_data[, "time"][nrow(emg_data_filt)], 1/freq)
-    
-    # Trim first and last cycle to remove filtering effects
-    c_time <- c_time[2:(nrow(c_time)-1), ]
-    cycs   <- nrow(c_time)-1
-    # Remove excess cycles, if present
-    if (cycs>cy_max) cycs <- cy_max
-    
-    # Isolate cycles and normalise time to "points" points
-    # (first half stance, second half swing)
-    for (jj in 1:cycs) {
-      # Stance
-      temp <- data.frame()
-      t1   <- c_time$touchdown[jj]
-      t2   <- c_time$touchdown[jj]+c_time$stance[jj]
-      
-      if (t1>max(emg_time, na.rm=T) || t2>max(emg_time, na.rm=T)) {
-        cycs <- jj-1
-        break
-      } else {
-        t1   <- which(emg_time>=t1)[1]
-        t2   <- which(emg_time>=t2)[1]
-        temp <- emg_data_filt[t1:t2, ]
-      }
-      
-      # Check if there is data
-      if (sum(temp, na.rm=T)==0) next
-      
-      # Interpolate each channel to (points/2) points
-      temp1 <- data.frame(time=c(1:(points/2)),
-                          apply(temp, 2, function(x) approx(x,
-                                                            method="linear",
-                                                            n=points/2)$y))
-      
-      # Swing
-      temp <- data.frame()
-      t1   <- c_time$touchdown[jj]+c_time$stance[jj]
-      t2   <- c_time$touchdown[jj+1]
-      
-      if (t1>max(emg_time, na.rm=T) || t2>max(emg_time, na.rm=T)) {
-        cycs <- jj-1
-        break
-      } else {
-        t1   <- which(emg_time>=t1)[1]
-        t2   <- which(emg_time>=t2)[1]
-        temp <- emg_data_filt[t1:t2, ]
-      }
-      
-      # Check if there is data
-      if (sum(temp, na.rm=T)==0) next
-      
-      # Interpolate each channel to (points/2) points
-      temp2 <- data.frame(time=c(1:(points/2)),
-                          apply(temp, 2, function(x) approx(x,
-                                                            method="linear",
-                                                            n=points/2)$y))
-      
-      temp <- rbind(temp1, temp2)
-      
-      # Set every value >1 to 1
-      temp[temp>1] <- 1
-      temp$time    <- c(1:points)
-      
-      # For the concatenated data
-      if (jj==1) {
-        emg_data_co <- temp
-        
-        # For the averaged data
-        emg_data_av <- matrix(0, nrow=points, ncol=ncol(emg_data_co))
-      } else {
-        emg_data_co <- rbind(emg_data_co, temp)
-        
-        # For the averaged data
-        emg_data_av <- emg_data_av+temp
-      }
-    }
-    
-    FILT_EMG[[ii]] <- emg_data_co
-    list_names[ii] <- paste0("FILT_EMG_", trial)
-    
-    # Export average cycles for checking
-    # Normalise the averaged data
-    emg_data_av <- data.frame(apply(emg_data_av, 2, function(x) x/max(x)))
-    emg_data_av[, "time"] <- c(1:points)
-    
-    # Make graphs
-    Cairo::Cairo(file=paste0(path_for_graphs, "filtered", .Platform$file.sep, "temp.", ty),
-                 width=wi, height=he*0.75, pointsize=12, dpi=re/2)
-    varlist <- list()
-    
-    for (mm in 2:length(muscles)) {
-      data <- data.frame(emg_data_av$time,
-                         emg_data_av[, grep(paste0("^", muscles[mm], "$"), colnames(emg_data_av))])
-      colnames(data) <- c("time", "signal")
-      
-      varname <- paste("pp", mm, sep = "")
-      
-      temp <- ggplot2::ggplot() +
-        ggplot2::ggtitle(muscles[mm]) +
-        ggplot2::ylim(0, 1) +
-        ggplot2::geom_line(data=data,
-                           ggplot2::aes(x=time,  y=signal),
-                           colour="black", size=0.9) +
-        ggplot2::theme(axis.title=ggplot2::element_blank(),
-                       panel.background=ggplot2::element_rect(fill="white", colour="gray"),
-                       panel.grid.major=ggplot2::element_line(colour="gray", size=0.05),
-                       panel.grid.minor=ggplot2::element_blank(),
-                       legend.position = "none")
-      
-      varlist[[mm-1]] <- assign(varname, temp)
-    }
-    
-    gridExtra::grid.arrange(grobs=varlist,
-                            nrow=ceiling(sqrt(length(varlist))),
-                            ncol=ceiling(sqrt(length(varlist))),
-                            top=(paste0(trial, sep="")))
-    
-    dev.off() # Close Cairo export
-    
-    file.rename(paste0(path_for_graphs, "filtered", .Platform$file.sep, "temp.png"),
-                paste0(path_for_graphs, "filtered", .Platform$file.sep, "EMG_average_", trial, ".", ty))
+
+  # Subset raw EMG
+  message("\nSubsetting raw EMG...")
+  RAW_DATA <- pbapply::pblapply(RAW_DATA, function(x) musclesyneRgies::subsetEMG(x,
+                                                                cy_max=30,
+                                                                cy_start=1))
+  message("...done!")
+
+  # Filter raw EMG
+  message("\nFiltering raw EMG...")
+  FILT_EMG <- pbapply::pblapply(RAW_DATA, function(x) musclesyneRgies::filtEMG(x,
+                                                              HPf=50,
+                                                              HPo=4,
+                                                              LPf=20,
+                                                              LPo=4))
+  message("...done!")
+
+  # Time-normalise filtered EMG
+  message("\nTime-normalisng filtered EMG...")
+  FILT_EMG <- pbapply::pblapply(FILT_EMG, function(x) musclesyneRgies::normEMG(x,
+                                                              trim=TRUE,
+                                                              cy_max=30,
+                                                              cycle_div=c(100, 100)))
+  message("...done!")
+
+  # Plot "plot_time" seconds of raw EMG, starting from second "start"
+  message("\nPlotting raw EMG...")
+  pb <- pbapply::startpb(0, length(RAW_DATA))
+  for (tt in seq_along(RAW_DATA)) {
+    musclesyneRgies::plot_rawEMG(RAW_DATA[[tt]],
+                trial=names(RAW_DATA)[tt],
+                plot_time=3, start=1,
+                path_for_graphs=paste0(path_for_graphs, "raw", .Platform$file.sep),
+                filetype="png", width=2000, height=2500, resolution=280)
+    pbapply::setpb(pb, tt)
   }
-  
-  names(FILT_EMG) <- list_names
-  
+  pbapply::closepb(pb)
+  message("...done!")
+
+  # Plot mean cycles
+  message("\nPlotting mean filtered and time-normalised EMG...")
+  pb <- pbapply::startpb(0, length(FILT_EMG))
+  for (tt in seq_along(FILT_EMG)) {
+    musclesyneRgies::plot_meanEMG(FILT_EMG[[tt]],
+                 trial=names(FILT_EMG)[tt],
+                 path_for_graphs=paste0(path_for_graphs, "filtered", .Platform$file.sep),
+                 filetype="png", width=2000, height=1875, resolution=140)
+    pbapply::setpb(pb, tt)
+  }
+  pbapply::closepb(pb)
+  message("...done!")
+
   message("\nSaving filtered EMG...")
   save(FILT_EMG, file=paste0(data_path, "FILT_EMG.RData"))
   message("...done!")
@@ -414,158 +181,29 @@ if (qq=="n" || qq=="no") {
     message("...done!")
   }
   ll <- length(FILT_EMG)
-  
-  # Check for correct naming of trials
-  if (any(!grepl("^FILT_EMG_ID[0-9]+_.+_[0-9]+$", names(FILT_EMG)))) {
-    message("")
-    stop("\nATTENTION: your trials are not named after the guidelines!\nPlease double-check names.")
-  }
-  
-  # Define non-negative matrix factorisation function
-  synsNMFn <- function(V)
-  {
-    R2_target <- 0.01               # Convergence criterion (percent of the R2 value)
-    R2_cross  <- numeric()          # R2 values for cross validation and syn number assessment
-    M_list    <- list()             # To save factorisation M matrices (synergies)
-    P_list    <- list()             # To save factorisation P matrices (primitives)
-    Vr_list   <- list()             # To save factorisation Vr matrices (reconstructed signals)
-    iters     <- numeric()          # To save the iterations number
-    
-    # Original matrix
-    time   <- V$time
-    V$time <- NULL
-    V      <- as.matrix(t(V))       # Needs to be transposed for NMF
-    V[V<0] <- 0                     # Set negative values to zero
-    temp   <- V
-    temp[temp==0] <- Inf
-    V[V==0] <- min(temp, na.rm=T)   # Set the zeros to the smallest non-zero entry in V
-    
-    m <- nrow(V)                    # Number of muscles
-    n <- ncol(V)                    # Number of time points
-    
-    max_syns <- m-round(m/4, 0)     # Max number of syns
-    
-    for (r in 1:max_syns) {         # Run NMF with different initial conditions
-      R2_choice <- numeric()      # Collect the R2 values for each syn and choose the max
-      
-      # Preallocate to then choose those with highest R2
-      M_temp  <- list()
-      P_temp  <- list()
-      Vr_temp <- list()
-      
-      for (j in 1:5) {            # Run NMF 5 times for each syn and choose best run
-        # To save error values
-        R2  <- numeric()        # 1st cost function (R squared)
-        SST <- numeric()        # Total sum of squares
-        RSS <- numeric()        # Residual sum of squares or min reconstruction error
-        
-        # Initialise iterations and define max number of iterations
-        iter     <- 1
-        max_iter <- 1000
-        # Initialise the two factorisation matrices with random values (uniform distribution)
-        P <- matrix(runif(r*n, min=min(V), max=max(V)), nrow=r, ncol=n)
-        M <- matrix(runif(m*r, min=min(V), max=max(V)), nrow=m, ncol=r)
-        
-        # Iteration zero
-        P   <- P*crossprod(M, V)/crossprod((crossprod(M, M)), P)
-        M   <- M*tcrossprod(V, P)/tcrossprod(M, tcrossprod(P, P))
-        Vr  <- M%*%P          # Reconstructed matrix
-        RSS <- sum((V-Vr)^2)
-        SST <- sum((V-mean(V))^2)
-        R2[iter] <- 1-(RSS/SST)
-        
-        # l2-norm normalisation which eliminates trivial scale indeterminacies
-        # The cost function doesn't change. Impose ||M||2 = 1 and normalise P accordingly.
-        # ||M||2, also called L2,1 norm or l2-norm, is a sum of Euclidean norm of columns.
-        for (kk in 1:r) {
-          norm    <- sqrt(sum(M[, kk]^2))
-          M[, kk] <- M[, kk]/norm
-          P[kk, ] <- P[kk, ]*norm
-        }
-        
-        # Start iterations for NMF convergence
-        for (iter in iter:max_iter)  {
-          P   <- P*crossprod(M, V)/crossprod((crossprod(M, M)), P)
-          M   <- M*tcrossprod(V, P)/tcrossprod(M, tcrossprod(P, P))
-          Vr  <- M%*%P
-          RSS <- sum((V-Vr)^2)
-          SST <- sum((V-mean(V))^2)
-          R2[iter] <- 1-(RSS/SST)
-          
-          # l2-norm normalisation
-          for (kk in 1:r) {
-            norm    <- sqrt(sum(M[, kk]^2))
-            M[, kk] <- M[, kk]/norm
-            P[kk, ] <- P[kk, ]*norm
-          }
-          
-          # Check if the increase of R2 in the last 20 iterations is less than the target
-          if (iter>20) {
-            R2_diff <- R2[iter]-R2[iter-20]
-            if (R2_diff<R2[iter]*R2_target/100) {
-              break
-            }
-          }
-        }
-        R2_choice[j] <- R2[iter]
-        
-        M_temp[[j]]  <- M
-        P_temp[[j]]  <- P
-        Vr_temp[[j]] <- Vr
-      }
-      
-      choice <- which.max(R2_choice)
-      
-      R2_cross[r]  <- R2_choice[choice]
-      M_list[[r]]  <- M_temp[[choice]]
-      P_list[[r]]  <- P_temp[[choice]]
-      Vr_list[[r]] <- Vr_temp[[choice]]
-      iters[r]     <- iter
-    }
-    
-    # Choose the minimum number of synergies using the R2 criterion
-    MSE  <- 100                     # Initialise the Mean Squared Error (MSE)
-    iter <- 0                       # Initialise iterations
-    while (MSE>1e-04) {
-      iter <- iter+1
-      if (iter==r-1) {
-        break
-      }
-      R2_interp <- data.frame(synergies=c(1:(r-iter+1)),
-                              R2_values=R2_cross[iter:r])
-      
-      lin <- lm(R2_values~synergies, R2_interp)$fitted.values
-      MSE <- sum((lin-R2_interp$R2_values)^2)/nrow(R2_interp)
-    }
-    syns_R2 <- iter
-    
-    P_choice <- data.frame(time, t(P_list[[syns_R2]]))
-    colnames(P_choice) <- c("time", paste0("Syn", 1:(ncol(P_choice)-1)))
-    rownames(P_choice) <- NULL
-    
-    return(list(synsR2=as.numeric(syns_R2),
-                M=M_list[[syns_R2]],
-                P=P_choice,
-                Vr=Vr_list[[syns_R2]],
-                iterations=as.numeric(iters[syns_R2]),
-                R2=as.numeric(R2_cross[syns_R2])))
-  }
-  
+
   # Get date and time for display before starting computation
   date <- gsub(" [0-9][0-9]:[0-9][0-9]:[0-9][0-9]$", "", Sys.time())
   time <- gsub("^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] ", "", Sys.time())
-  
+
   message("\nExtract synergies\nStarted on ", date, " at ", time)
-  
+
   tictoc <- system.time({
-    # "synsNMFn" is the core function for extracting synergies
+    # Create cluster for parallel computing if not already done
+    clusters <- objects()
+
+    if (sum(grepl("^cl$", clusters))==0) {
+      # Decide how many processor threads have to be excluded from the cluster
+      # It is a good idea to leave at least one free, so that the machine can be used during computation
+      cl <- parallel::makeCluster(max(1, parallel::detectCores()-1))
+    }
+    # "synsNMF" is the core function for extracting synergies
     # and here it is applied in parallel to speed up computation
-    # At the moment there is no progress bar for parLapply
-    SYNS <- parallel::parLapply(cl, FILT_EMG, synsNMFn)
+    SYNS <- pbapply::pblapply(FILT_EMG, musclesyneRgies::synsNMF, cl=cl)
+
+    parallel::stopCluster(cl)
   })
-  
-  names(SYNS) <- gsub("FILT_EMG", "SYNS", names(SYNS))
-  
+
   message("- - - - - - - - - - - - - - - - - - - - - - -\n",
           benchmarkme::get_sys_details()$data,
           "\n",
@@ -584,141 +222,33 @@ if (qq=="n" || qq=="no") {
           "\n        Computation time: ", round(tictoc[[3]], 0), " s",
           "\nAverage trial comp. time: ", round(tictoc[[3]]/ll, 2), " s\n",
           "\n- - - - - - - - - - - - - - - - - - - - - - -")
-  
+
   message("\nSaving synergies...")
   save(SYNS, file=paste0(data_path, "SYNS.RData"))
   message("...done!")
-  
+
   # Create "Graphs/NMF" folder if it does not exist
   path_for_graphs <- paste0(graph_path, "NMF", .Platform$file.sep)
   dir.create(path_for_graphs, showWarnings=F)
   # Create "Graphs/NMF/trials" folder if it does not exist
   path_for_graphs <- paste0(path_for_graphs, "trials", .Platform$file.sep)
   dir.create(path_for_graphs, showWarnings=F)
-  
-  # Define graphs export parameters and aesthetics
-  ty       <- "png"   # File type
-  wi       <- 1800    # Width in pixels
-  he       <- 2500    # Height in pixels
-  mte      <- 20      # Main title text size
-  s_line   <- 0.9     # Line size
-  s_min    <- 0.05
-  c_back   <- "white" # Background colour
-  c_bord   <- "gray"  # Background border colour
-  c_min    <- "gray"  # Minor gridlines colour
-  c_bars   <- "black"
-  c_signal <- "black"
-  c_thin   <- "grey70"
-  
-  # Resolution in dpi
-  if (ty=="png") re <- 280 else if (ty=="svg") re <- 150
-  
-  # Get concatenated primitives
-  SYNS_P <- lapply(SYNS, function(x) x$P)
-  SYNS_M <- lapply(SYNS, function(x) x$M)
-  
-  max_syns   <- max(unlist(lapply(SYNS_M, function(x) ncol(x))))
-  
-  # Progress bar
-  pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                   total=length(SYNS_M), clear=F, width=50)
-  
-  message("\nExporting graphs...\n")
-  
-  for (trial in names(SYNS_M)) {
-    
-    pb$tick()
-    
-    SYNS_P_temp <- SYNS_P[[grep(paste0("^", trial, "$"), names(SYNS_P))]]
-    SYNS_M_temp <- SYNS_M[[grep(paste0("^", trial, "$"), names(SYNS_M))]]
-    
-    time <- SYNS_P_temp$time
-    SYNS_P_temp$time <- NULL
-    points <- max(time)
-    
-    Cairo::Cairo(file=paste0(path_for_graphs, trial, ".", ty),
-                 type=ty, width=wi, height=he, pointsize=mte, dpi=re)
-    
-    varlist <- list()
-    
-    for (syn in 1:max_syns) {
-      
-      if (syn<=ncol(SYNS_M_temp)) {
-        
-        # Select relevant synergies
-        data_P <- data.frame(time,
-                             value=SYNS_P_temp[, syn])
-        data_M <- data.frame(muscle=rownames(SYNS_M_temp),
-                             value=SYNS_M_temp[, syn])
-        
-        # Normalise primitive
-        data_P$value <- data_P$value/max(data_P$value)
-        
-        # Organise primitives one cycle per row
-        data_P_temp <- matrix(0, nrow=nrow(data_P)/points, ncol=points)
-        for (cycle in 1:nrow(data_P_temp)) {
-          start <- (cycle-1)*points+1
-          stop <- start+points-1
-          P_temp <- data_P$value[start:stop]
-          data_P_temp[cycle, ] <- P_temp
-        }
-        
-        # Calculate mean and standard deviation of each cycle's primitive
-        data_P_av <- data.frame(time,
-                                value=colMeans(data_P_temp))
-        data_P_sd <- data.frame(time,
-                                ymin=data_P_av$value-apply(data_P_temp, 2, sd),
-                                ymax=data_P_av$value+apply(data_P_temp, 2, sd))
-        
-        temp_P <- ggplot2::ggplot() +
-          ggplot2::ggtitle(paste0("Motor primitive ", syn)) +
-          ggplot2::ylim(-0.2, 1.2) +
-          ggplot2::geom_ribbon(data=data_P_sd,
-                               ggplot2::aes(x=time, ymin=ymin, ymax=ymax),
-                               fill="grey80") +
-          ggplot2::geom_line(data=data_P_av,
-                             ggplot2::aes(x=time, y=value),
-                             colour=c_signal, size=s_line) +
-          ggplot2::theme(axis.title=ggplot2::element_blank(),
-                         panel.background=ggplot2::element_rect(fill=c_back, colour=c_bord),
-                         panel.grid.major=ggplot2::element_line(colour=c_min, size=s_min),
-                         panel.grid.minor=ggplot2::element_blank(),
-                         legend.position="none")
-        
-        temp_M <- ggplot2::ggplot() +
-          ggplot2::ggtitle(paste0("Motor module ", syn)) +
-          ggplot2::ylim(0, 1) +
-          ggplot2::geom_hline(yintercept=c(0.25, 0.5, 0.75, 1), size=s_min, color=c_thin) +
-          ggplot2::geom_bar(data=data_M,
-                            ggplot2::aes(x=muscle, y=value),
-                            fill=c_bars, alpha=0.3,
-                            stat="identity") +
-          ggplot2::scale_x_discrete(limits=data_M$muscle) +
-          ggplot2::theme(axis.title=ggplot2::element_blank(),
-                         axis.text.y=ggplot2::element_blank(),
-                         panel.background=ggplot2::element_rect(fill=c_back, colour=c_bord),
-                         panel.grid.major=ggplot2::element_blank(),
-                         panel.grid.minor=ggplot2::element_blank(),
-                         axis.ticks=ggplot2::element_blank(),
-                         legend.position="none")
-      } else {
-        temp_P <- NULL
-        temp_M <- NULL
-      }
-      
-      varname_P <- paste0("r", 2*syn)
-      varname_M <- paste0("r", 2*syn-1)
-      varlist[[2*syn]]   <- assign(varname_P, temp_P)
-      varlist[[2*syn-1]] <- assign(varname_M, temp_M)
-    }
-    
-    suppressWarnings(gridExtra::grid.arrange(grobs=varlist, nrow=max_syns, ncol=2,
-                                             top=(paste0("Synergies - ", trial))))
-    
-    dev.off() # Close Cairo export
+
+  # Plot muscle synergies (individual trials)
+  max_syns <- max(unlist(lapply(lapply(SYNS, function(x) x$M), function(x) ncol(x))))
+  message("\nPlotting muscle synergies (individual trials)...")
+  pb <- pbapply::startpb(0, length(SYNS))
+  for (tt in seq_along(SYNS)) {
+    musclesyneRgies::plot_syn_trials(SYNS[[tt]],
+                   max_syns=max_syns,
+                   trial=names(SYNS)[tt],
+                   path_for_graphs=path_for_graphs,
+                   filetype="png", width=1800, height=2500, resolution=280)
+    pbapply::setpb(pb, tt)
   }
+  pbapply::closepb(pb)
+  message("...done!")
 }
-message("\n...done!")
 
 # STEP 3 - Classification of muscle synergies ----
 message("\n###############################################",
@@ -767,1080 +297,34 @@ if (qq=="n" || qq=="no") {
   if (all(!grepl("^SYNS$", objects()))) {
     load(paste0(data_path, "SYNS.RData"))
   }
-  
+
   # Create "Graphs/NMF" folder if it does not exist
   path_for_graphs <- paste0(graph_path, "NMF", .Platform$file.sep)
   dir.create(path_for_graphs, showWarnings=F)
-  
-  # Check for correct naming of trials
-  if (any(!grepl("^SYNS_ID[0-9]+_.+_[0-9]+$", names(SYNS)))) {
-    message("")
-    stop("\nATTENTION: your trials are not named after the guidelines!\nPlease double-check names.")
-  }
-  
-  # To save the classification method in the SYNS_classified list
-  if (ww=="k") {
-    class_method <- "k-means"
-  } else if (ww=="n") {
-    class_method <- "NMF"
-  }
-  
-  # Get concatenated primitives
-  SYNS_P <- lapply(SYNS, function(x) x$P)
-  # Get motor modules
-  SYNS_M <- lapply(SYNS, function(x) x$M)
-  
-  # Make sure that all motor primitives are normalised to the same amount of points
-  points <- unlist(lapply(SYNS_P, function(x) max(x$time)))
-  
-  if (sd(points)!=0) {
-    message("\nNot all motor primitives are normalised to the same amount of points!",
-            "\nPlease re-check your data\n")
-  } else points <- unique(points)
-  
-  # Find number of muscles
-  muscle_num <- unique(unlist(lapply(SYNS_M, function(x) nrow(x))))
-  if (length(muscle_num)!=1) {
-    message("Not all trials have the same number of muscles!!!")
-    break
-  }
-  
-  message("\nCalculating mean gait cycles...")
-  
-  # Progress bar
-  pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                   total=length(SYNS_P), clear=F, width=50)
-  
-  SYNS_P <- lapply(SYNS_P, function(x) {
-    
-    pb$tick()
-    
-    x$time <- NULL
-    temp   <- matrix(0, nrow=points, ncol=ncol(x))
-    
-    for (cc in seq(1, (1+nrow(x)-points), points)) {
-      temp <- temp+x[c(cc:(cc+points-1)), ]
-    }
-    
-    # Divide by the number of cycles to get mean value
-    temp <- temp/(nrow(x)/points)
-    
-    # Amplitude normalisation
-    x <- apply(temp, 2, function(y) y/(max(y)))
-    
-    # Transpose to facilitate visualisation
-    return(t(x))
-  })
-  message("...done!")
-  
-  message("\nPutting primitives into a single data frame...")
-  # Progress bar
-  pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                   total=length(SYNS_P), clear=F, width=50)
-  
-  data_P <- plyr::ldply(SYNS_P, function(x) {
-    pb$tick()
-    data.frame(x)
-  })
-  message("...done!")
-  
-  message("\nPutting modules into a single data frame...")
-  # Progress bar
-  pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                   total=length(SYNS_M), clear=F, width=50)
-  
-  data_M <- plyr::ldply(SYNS_M, function(x) {
-    pb$tick()
-    t(data.frame(x))
-    
-  })
-  message("...done!")
-  
-  # Check if names are the same for primitives and modules
-  if (identical(data_P$.id, data_M$.id)) {
-    trials <- data_M$.id
-  } else {
-    message("The names of primitives and modules are not the same!!!")
-    break
-  }
-  
-  # Give names to trials (start from synergy zero because
-  # the function "make.unique" works like that)
-  # Find non-duplicated names and assign "Syn0" to them
-  syn0   <- which(!duplicated(trials))
-  trials <- make.unique(trials)
-  trials[syn0] <- paste0(trials[syn0], "_Syn0")
-  # Assign incremental Syn number to other names
-  trials <- gsub("\\.", "_Syn", trials)
-  # Start from Syn1 instead that from Syn0
-  temp1  <- gsub("[0-9]$", "", trials)
-  temp2  <- as.numeric(gsub(".*_Syn", "", trials))+1
-  trials <- paste0(temp1, temp2)
-  # Assign new names to row names and remove id column
-  rownames(data_P) <- trials
-  rownames(data_M) <- trials
-  data_P$.id <- NULL
-  data_M$.id <- NULL
-  
-  # Filter primitives to improve classification
-  data_P <- t(apply(data_P, 1, function(x) {
-    
-    # Build filter
-    LP <- signal::butter(4, 10/(points/2), type="low")
-    # Apply filter
-    x  <- signal::filtfilt(LP, t(x))
-    
-    # Remove negative entries
-    x[x<0] <- 0
-    # Subtract the minimum
-    x <- x-min(x)
-    # Set zeroes to smallest non-negative entry
-    temp <- x
-    temp[temp==0] <- Inf
-    x[x==0] <- min(temp, na.rm=T)
-    # Normalise to maximum
-    x <- x/max(x)
-    
-    return(x)
-  }))
-  
-  # Define centre of activity (CoA)
-  CoA <- function(x) {
-    points <- length(x)
-    
-    AA <- numeric()
-    BB <- numeric()
-    
-    for (pp in 1:points) {
-      alpha  <- 360*(pp-1)/(points-1)*pi/180
-      vec    <- x[pp]
-      AA[pp] <- vec*cos(alpha)
-      BB[pp] <- vec*sin(alpha)
-    }
-    AA <- sum(AA)
-    BB <- sum(BB)
-    
-    CoAt <- atan(BB/AA)*180/pi
-    
-    # To keep the sign
-    if (AA>0 && BB>0) CoAt <- CoAt
-    if (AA<0 && BB>0) CoAt <- CoAt+180
-    if (AA<0 && BB<0) CoAt <- CoAt+180
-    if (AA>0 && BB<0) CoAt <- CoAt+360
-    
-    CoAt*points/360
-  }
-  
-  # Define NMF function
-  NMFn <- function(V)
-  {
-    R2_target <- 0.01               # Convergence criterion (percent of the R2 value)
-    R2_cross  <- numeric()          # R2 values for cross validation and syn number assessment
-    M_list    <- list()             # To save factorisation M matrices (synergies)
-    P_list    <- list()             # To save factorisation P matrices (primitives)
-    
-    # Original matrix
-    V      <- as.matrix(V)
-    V[V<0] <- 0                     # Set negative values to zero
-    temp   <- V
-    temp[temp==0] <- Inf
-    V[V==0] <- min(temp, na.rm=T)   # Set the zeros to the smallest non-zero entry in V
-    
-    m <- nrow(V)                    # Number of primitives in the data-set
-    n <- ncol(V)                    # Number of time points
-    
-    # Determine the maximum number of synergies by searching for the maximum rank
-    temp <- as.numeric(gsub(".*\\_Syn", "", rownames(V)))
-    # Add one because interpolation must happen with at least two points
-    max_syns <- max(temp)+1
-    
-    for (r in 1:max_syns) {         # Run NMF with different initial conditions
-      R2_choice <- numeric()      # Collect the R2 values for each syn and choose the max
-      
-      # Preallocate to then choose those with highest R2
-      M_temp <- list()
-      P_temp <- list()
-      
-      for (j in 1:5) {            # Run NMF 5 times for each syn and choose best run
-        # To save error values
-        R2  <- numeric()        # 1st cost function (R squared)
-        SST <- numeric()        # Total sum of squares
-        RSS <- numeric()        # Residual sum of squares or min reconstruction error
-        
-        # Initialise iterations and define max number of iterations
-        iter     <- 1
-        max_iter <- 1000
-        # Initialise the two factorisation matrices with random values
-        # (uniform distribution)
-        P <- matrix(runif(r*n, min=min(V), max=max(V)), nrow=r, ncol=n)
-        M <- matrix(runif(m*r, min=min(V), max=max(V)), nrow=m, ncol=r)
-        
-        # Iteration zero
-        P   <- P*crossprod(M, V)/crossprod((crossprod(M, M)), P)
-        M   <- M*tcrossprod(V, P)/tcrossprod(M, tcrossprod(P, P))
-        Vr  <- M%*%P          # Reconstructed matrix
-        RSS <- sum((V-Vr)^2)
-        SST <- sum((V-mean(V))^2)
-        R2[iter] <- 1-(RSS/SST)
-        
-        # l2-norm normalisation which eliminates trivial scale indeterminacies
-        for (kk in 1:r) {
-          norm    <- sqrt(sum(M[, kk]^2))
-          M[, kk] <- M[, kk]/norm
-          P[kk, ] <- P[kk, ]*norm
-        }
-        
-        # Start iterations for NMF convergence
-        for (iter in iter:max_iter)  {
-          P   <- P*crossprod(M, V)/crossprod((crossprod(M, M)), P)
-          M   <- M*tcrossprod(V, P)/tcrossprod(M, tcrossprod(P, P))
-          Vr  <- M%*%P
-          RSS <- sum((V-Vr)^2)
-          SST <- sum((V-mean(V))^2)
-          R2[iter] <- 1-(RSS/SST)
-          
-          # l2-norm normalisation
-          for (kk in 1:r) {
-            norm    <- sqrt(sum(M[, kk]^2))
-            M[, kk] <- M[, kk]/norm
-            P[kk, ] <- P[kk, ]*norm
-          }
-          
-          # Check if the increase of R2 in the last 20 iterations is less than the target
-          if (iter>20) {
-            R2_diff <- R2[iter]-R2[iter-20]
-            if (R2_diff<R2[iter]*R2_target/100) {
-              break
-            }
-          }
-        }
-        R2_choice[j] <- R2[iter]
-        
-        M_temp[[j]]  <- M
-        P_temp[[j]]  <- P
-      }
-      
-      choice <- which.max(R2_choice)
-      
-      R2_cross[r] <- R2_choice[choice]
-      M_list[[r]] <- M_temp[[choice]]
-      P_list[[r]] <- P_temp[[choice]]
-    }
-    
-    # Choose the minimum number of principal shapes using the R2 criterion
-    MSE  <- 100                     # Initialise the Mean Squared Error (MSE)
-    iter <- 0                       # Initialise iterations
-    while (MSE>1e-04) {
-      iter <- iter+1
-      if (iter==r-1) {
-        break
-      }
-      R2_interp <- data.frame(synergies=c(1:(r-iter+1)),
-                              R2_values=R2_cross[iter:r])
-      
-      lin <- lm(R2_values~synergies, R2_interp)$fitted.values
-      MSE <- sum((lin-R2_interp$R2_values)^2)/nrow(R2_interp)
-    }
-    syns_R2 <- iter
-    
-    return(list(M=M_list[[syns_R2]],
-                P=P_list[[syns_R2]]))
-  }
-  
-  # Find different conditions
-  # (trials must be named as stated in the beginning of this script)
-  # "*": 0 or more
-  # "+": 1 or more
-  conditions <- gsub("SYNS_ID[0-9]+_", "", rownames(data_M))
-  conditions <- unique(gsub("_Syn.*", "", conditions))
-  conditions <- unique(gsub("_[0-9]+$", "", conditions))
-  
-  # Build list with the trials of the different conditions
-  all_P <- vector("list", length(conditions))
-  names(all_P) <- conditions
-  all_M <- all_P
-  for (condition in conditions) {
-    all_P[[condition]] <- data_P[grep(paste0("_", condition, "_"), rownames(data_P)), ]
-    all_M[[condition]] <- as.matrix(data_M[grep(paste0("_", condition, "_"), rownames(data_M)), ])
-  }
 }
 
 if ((qq=="n" || qq=="no") && ww=="k") {
   # Unsupervised learning method to classify synergies based on k-means
-  message("\nClustering motor primitives with k-means...")
-  # Progress bar
-  pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                   total=length(all_P), clear=F, width=50)
-  
-  # Apply k-means to motor primitives
-  clust_P <- lapply(all_P, function(x) {
-    
-    pb$tick()
-    
-    # Determine number of clusters by computing the within-group sum of squares
-    # for an increasing number of clusters and then searching for an elbow in the
-    # clusters vs. withinss curve
-    # nstart is set >1 due to instabilities found (of course this slows down computation)
-    kmeans_all <- list()
-    for (clust in 1:muscle_num) {
-      kmeans_all[[clust]] <- kmeans(x,
-                                    centers=clust,
-                                    nstart=20,
-                                    algorithm="Hartigan-Wong")
-    }
-    
-    withinss <- unlist(lapply(kmeans_all, function(y) sum(y$withinss)))
-    withinss <- withinss-min(withinss)
-    withinss <- withinss/max(withinss)
-    
-    # Find the elbow in the clusters vs. withinss curve
-    MSE  <- 100                             # Initialise the Mean Squared Error (MSE)
-    iter <- 0                               # Initialise iterations
-    while (MSE>1e-03) {
-      iter <- iter+1
-      if (iter==muscle_num-1) {
-        break
-      }
-      withinss_interp <- data.frame(xx=c(1:(muscle_num-iter+1)),
-                                    yy=withinss[iter:(muscle_num)])
-      
-      linear <- lm(yy~xx, withinss_interp)$fitted.values
-      MSE    <- sum((linear-withinss_interp$yy)^2)/nrow(withinss_interp)
-    }
-    clust <- iter
-    
-    kmeans_all[[clust]]
-  })
-  message("...done!")
-  
-  # Write number of clusters per condition in a simple way
-  clust_num_P <- unlist(lapply(clust_P, function(x) max(x$cluster)))
-  
-  # Apply k-means to motor modules
-  message("\nClustering motor modules with k-means...")
-  # Progress bar
-  pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                   total=length(all_M), clear=F, width=50)
-  
-  clust_M <- clust_P
-  
-  for (cond in conditions) {
-    pb$tick()
-    
-    # Use previously-determined number of clusters
-    clust_M[[cond]] <- kmeans(all_M[[cond]],
-                              centers=clust_num_P[cond],
-                              nstart=20,
-                              algorithm="Hartigan-Wong")
-  }
-  message("...done!")
-  
-  order_list <- list()
-  
-  # Order synergies based on k-means clustering
-  for (cond in conditions) {
-    
-    orders <- data.frame(clusters_P=clust_P[[cond]]$cluster,
-                         clusters_M=clust_M[[cond]]$cluster,
-                         FWHM=apply(all_P[[cond]], 1, function(x) length(which(x>=0.5))),
-                         CoA=apply(all_P[[cond]], 1, function(x) CoA(x)))
-    
-    clust_num <- clust_num_P[cond]
-    
-    # Arrange primitive- and module-based clusters in the same order
-    temp_P <- subset(orders, select=-c(clusters_M))
-    temp_M <- subset(orders, select=-c(clusters_P))
-    # Take average FWHM and CoA based on cluster
-    geoms_P <- data.frame(aggregate(FWHM~clusters_P, temp_P, mean),
-                          CoA=aggregate(CoA~clusters_P, temp_P, mean)$CoA)
-    geoms_M <- data.frame(aggregate(FWHM~clusters_M, temp_M, mean),
-                          CoA=aggregate(CoA~clusters_M, temp_M, mean)$CoA)
-    # Define score as sum of FWHM and CoA and normalise to number of points
-    geoms_P <- data.frame(clust_P=geoms_P$clusters_P,
-                          score=geoms_P$FWHM*geoms_P$CoA)
-    geoms_M <- data.frame(clust_M=geoms_M$clusters_M,
-                          score=geoms_M$FWHM*geoms_M$CoA)
-    
-    # Calculate mutual score squared residuals and find minimum
-    perms  <- gtools::permutations(nrow(geoms_P), r=2, repeats.allowed=T)
-    resids <- numeric()
-    for (perm in 1:nrow(perms)) {
-      resids[perm] <- (geoms_P$score[perms[perm, 1]]-geoms_M$score[perms[perm, 2]])^2
-    }
-    perms <- perms[sort(resids, decreasing=F, index.return=T)$ix, ]
-    perms <- data.frame(perms[-which(duplicated(perms[, 1])), ])
-    colnames(perms) <- c("old", "new")
-    
-    if (all(!duplicated(perms$old)) && all(!duplicated(perms$new))) {
-      
-      if (!identical(perms$old, perms$new)) {
-        temp_M <- orders$clusters_M
-        orders$clusters_M <- c(perms$old, temp_M)[match(temp_M, c(perms$new, temp_M))]
-      }
-      
-      # Find discordant classifications and label as "combined"
-      discordant <- which(orders$clusters_P!=orders$clusters_M)
-      # But first check if all clusters are there
-      clust_test <- orders$clusters_P
-      clust_test <- unique(clust_test[-discordant])
-      
-      if (length(clust_test)<clust_num) {
-        message("\nATTENTION: primitive- and module-based classification don't match!",
-                "\nModule-based classification will be discarded for ", cond, "!")
-        
-        orders$clusters_M <- orders$clusters_P
-      } else {
-        orders$clusters_P[discordant] <- "combined"
-        orders$clusters_M[discordant] <- "combined"
-      }
-    } else if (all(!duplicated(perms$old)) && any(!duplicated(perms$new))) {
-      
-      message("\nATTENTION: primitive- and module-based classification don't match!",
-              "\nModule-based classification will be discarded for ", cond, "!")
-      
-      orders$clusters_M <- orders$clusters_P
-    }
-    
-    # Calculate mean primitives and then order using CoA
-    mean_P <- matrix(0, nrow=clust_num, ncol=points)
-    mean_M <- matrix(0, nrow=clust_num, ncol=muscle_num)
-    temp_P <- all_P[[cond]]
-    temp_M <- all_M[[cond]]
-    
-    # Remove old row names and replace with new orders
-    rownames(temp_P) <- gsub("[0-9]*$", "", rownames(temp_P))
-    rownames(temp_M) <- gsub("[0-9]*$", "", rownames(temp_M))
-    rownames(temp_P) <- paste0(rownames(temp_P), orders$clusters_P)
-    rownames(temp_M) <- paste0(rownames(temp_M), orders$clusters_M)
-    
-    # Remove combined, if present
-    if (any(grepl("combined", rownames(temp_P)))) {
-      temp_P <- temp_P[-grep("combined", rownames(temp_P)), ]
-      temp_M <- temp_M[-grep("combined", rownames(temp_M)), ]
-    }
-    
-    # Calculate means
-    for (clust in 1:clust_num) {
-      temp_clust_P <- temp_P[grep(paste0("Syn", clust, "$"), rownames(temp_P)), ]
-      temp_clust_M <- temp_M[grep(paste0("Syn", clust, "$"), rownames(temp_M)), ]
-      
-      if (all(class(temp_clust_P)!="numeric")) {
-        mean_P[clust, ] <- colSums(temp_clust_P)
-      } else {
-        mean_P[clust, ] <- temp_clust_P
-      }
-      
-      if (all(class(temp_clust_M)!="numeric")) {
-        mean_M[clust, ] <- colSums(temp_clust_M)
-      } else {
-        mean_M[clust, ] <- temp_clust_M
-      }
-      
-      mean_P[clust, ] <- mean_P[clust, ]-min(mean_P[clust, ])
-      mean_M[clust, ] <- mean_M[clust, ]-min(mean_M[clust, ])
-      mean_P[clust, ] <- mean_P[clust, ]/max(mean_P[clust, ])
-      mean_M[clust, ] <- mean_M[clust, ]/max(mean_M[clust, ])
-    }
-    # Create ordering rule
-    order_rule <- data.frame(old=c(1:clust_num),
-                             new=order(apply(mean_P, 1, CoA)))
-    
-    # Apply new order to mean curves
-    mean_P <- mean_P[order_rule$new, ]
-    mean_M <- mean_M[order_rule$new, ]
-    rownames(mean_P) <- paste0("Syn", 1:nrow(mean_P))
-    rownames(mean_M) <- paste0("Syn", 1:nrow(mean_M))
-    colnames(mean_M) <- colnames(temp_M)
-    
-    # Apply new order to all
-    temp_P <- orders$clusters_P
-    temp_M <- orders$clusters_M
-    orders$clusters_P <- c(order_rule$old, temp_P)[match(temp_P, c(order_rule$new, temp_P))]
-    orders$clusters_M <- c(order_rule$old, temp_M)[match(temp_M, c(order_rule$new, temp_M))]
-    
-    # Plot classified syns
-    # Find plot size
-    dev_size <- dev.size(units="in")
-    # Margins are specified in inches following the order:
-    # bottom, left, top, right
-    # Reduction factor of margins to account for screens at different resolutions
-    red_factor <- 25
-    par(mfrow=c(clust_num, 2),
-        mai=c(dev_size[2]/red_factor,
-              dev_size[1]/red_factor,
-              dev_size[2]/red_factor,
-              dev_size[1]/red_factor))
-    
-    for (syn in 1:clust_num) {
-      # Plot motor modules
-      barplot(mean_M[syn, ])
-      # Plot motor primitives
-      plot(x=c(1:ncol(mean_P)), y=mean_P[syn, ],
-           ty="l", main=paste0("Synergy ", syn, ", ", cond),
-           xlab="", ylab="",
-           xaxt="n", yaxt="n", lwd=2)
-    }
-    
-    qq <- 1
-    while (!is.na(qq)) {
-      message("\nDo you want to change order of classified synergies (type 'y' for 'yes' or 'n' for 'no')?")
-      qq <- readline()
-      # Break if user decides
-      if (qq=="y" || qq=="yes" || qq=="n" || qq=="no") break
-    }
-    
-    if (qq=="y" || qq=="yes") {
-      
-      rep <- "n"
-      while (rep=="n" || rep=="no") {
-        
-        # Prompt for decision
-        message("Press Esc to stop (classification will be interrupted)")
-        orders_new <- numeric()
-        for (cc in 1:clust_num) {
-          pp <- 0.2
-          while (pp<1) {
-            pp <- readline(paste0("Syn num to be associated with the curve ", cc, ": "))
-            
-            if (grepl("^$", pp)) {
-              pp <- -1
-            } else if (grepl("\\D", pp) && !grepl("^s$", pp)) {
-              pp <- -1
-            } else if (grepl("^s$", pp)) {
-              pp <- 1000
-            } else if  (as.numeric(pp)>clust_num){
-              pp <- -1
-            }
-          }
-          orders_new[cc] <- pp
-        }
-        orders_new <- as.numeric(orders_new)
-        orders_new <- sort.int(orders_new, index.return=T)$ix
-        
-        # Re-create ordering rule
-        order_rule <- data.frame(old=c(1:clust_num),
-                                 new=orders_new)
-        
-        # Make new plots for checking
-        mean_P_temp <- mean_P[order_rule$new, ]
-        mean_M_temp <- mean_M[order_rule$new, ]
-        rownames(mean_P_temp) <- paste0("Syn", 1:nrow(mean_P_temp))
-        rownames(mean_M_temp) <- paste0("Syn", 1:nrow(mean_M_temp))
-        
-        # Re-plot classified synergies
-        par(mfrow=c(clust_num, 2),
-            mai=c(dev_size[2]/red_factor,
-                  dev_size[1]/red_factor,
-                  dev_size[2]/red_factor,
-                  dev_size[1]/red_factor))
-        
-        for (syn in 1:clust_num) {
-          # Plot motor modules
-          barplot(mean_M_temp[syn, ])
-          # Plot motor primitives
-          plot(x=c(1:ncol(mean_P_temp)), y=mean_P_temp[syn, ],
-               ty="l", main=paste0("Synergy ", syn, ", ", cond),
-               xlab="", ylab="",
-               xaxt="n", yaxt="n", lwd=2)
-        }
-        Sys.sleep(2)
-        
-        message("\nAre you sure (see new plot, type 'y' for 'yes' or 'n' for 'no')?")
-        rep <- readline()
-        
-        if (rep=="n" || rep=="no") {
-          for (syn in 1:clust_num) {
-            # Plot motor modules
-            barplot(mean_M[syn, ])
-            # Plot motor primitives
-            plot(x=c(1:ncol(mean_P)), y=mean_P[syn, ],
-                 ty="l", main=paste0("Synergy ", syn, ", ", cond),
-                 xlab="", ylab="",
-                 xaxt="n", yaxt="n", lwd=2)
-          }
-        }
-      }
-      # Apply new order to mean curves
-      mean_P <- mean_P[order_rule$new, ]
-      mean_M <- mean_M[order_rule$new, ]
-      rownames(mean_P) <- paste0("Syn", 1:nrow(mean_P))
-      rownames(mean_M) <- paste0("Syn", 1:nrow(mean_M))
-      
-      # Apply new order to all
-      temp_P <- orders$clusters_P
-      temp_M <- orders$clusters_M
-      orders$clusters_P <- c(order_rule$old, temp_P)[match(temp_P, c(order_rule$new, temp_P))]
-      orders$clusters_M <- c(order_rule$old, temp_M)[match(temp_M, c(order_rule$new, temp_M))]
-    }
-    
-    # Remove double classifications, if present
-    participants <- gsub("SYNS_", "", rownames(orders))
-    participants <- unique(gsub("_.*", "", participants))
-    
-    for (participant in participants) {
-      
-      trial <- orders[grep(paste0(participant, "_"), rownames(orders)), ]
-      trial$clusters_M <- NULL
-      
-      # Find duplicates
-      dupl <- which(duplicated(trial$clusters_P))
-      
-      if (length(dupl)>0) {
-        
-        for (syn in c(1:clust_num)) {
-          
-          dupl <- grep(paste0("^", syn, "$"), trial$clusters_P)
-          
-          if (length(dupl)<=1) {
-            next
-          } else {
-            R2 <- numeric()
-            P2 <- as.numeric(mean_P[syn, ])
-            for (dd in c(1:length(dupl))) {
-              trial_syn <- rownames(trial)[dupl[dd]]
-              # Calculate R2 between each duplicated primitive and the mean
-              P1  <- as.numeric(data_P[grep(trial_syn, rownames(data_P)), ])
-              RSS <- sum((P1-P2)^2)
-              SST <- sum((P1-mean(P1))^2)
-              R2[dd] <- 1-(RSS/SST)
-            }
-            dupl <- dupl[-which.max(R2)]
-            trial$clusters_P[dupl] <- "combined"
-          }
-        }
-      }
-      
-      if (participant==participants[1]) {
-        orders_new <- trial
-      } else orders_new <- rbind(orders_new, trial)
-      
-    }
-    
-    # Save plots of clustered synergies' scores
-    Cairo::Cairo(file=paste0(path_for_graphs, "SYNS_", cond, "_",
-                             class_method, "_classification_clusters.", ty),
-                 type=ty, width=0.9*wi, height=0.72*wi, pointsize=mte, dpi=re)
-    
-    ggfinal <- ggplot2::ggplot(data=orders_new,
-                               ggplot2::aes(x=FWHM, y=CoA,
-                                            colour=factor(paste0("Syn ", clusters_P)))) +
-      ggplot2::geom_point(size=4, alpha=0.5) +
-      ggplot2::xlim(0, points) +
-      ggplot2::ylim(0, points) +
-      ggplot2::ggtitle(paste0(cond, " (final clustering)")) +
-      ggplot2::theme(legend.title=ggplot2::element_blank())
-    
-    print(ggfinal)
-    
-    dev.off()
-    
-    trial <- gsub("_Syn[0-9]*$", "", rownames(orders_new))
-    new   <- paste0(trial, "_Syn", orders_new$clusters_P)
-    
-    orders_new <- data.frame(old=rownames(orders_new),
-                             new,
-                             syn_classified=gsub(".*_Syn", "", new),
-                             trial)
-    
-    order_list[[cond]] <- orders_new
-    
-    combined <- length(grep("Syncombined", orders_new$new))
-    total    <- nrow(orders_new)
-    
-    message("\n  Locomotion type: ", cond,
-            "\n  Total synergies: ", total,
-            "\n       Recognised: ", total-combined,
-            "\n         Combined: ", combined, " (~", round(combined/total*100, 0), "%)",
-            "\n         Clusters: ", clust_num, "\n")
-    
-    syn_perc <- numeric()
-    for (ss in 1:clust_num) {
-      syn_perc[ss] <- round(length(grep(paste0("^", ss, "$"),
-                                        orders_new$syn_classified))/length(participants)*100, 0)
-      message("             Syn", ss, ": ", syn_perc[ss], "%")
-    }
-  }
-  
-  orders <- plyr::ldply(order_list, data.frame)
-  
-  # Rename synergies in the correct order and save
-  SYNS_classified <- SYNS
-  
-  # Find unique trial names
-  trials <- which(!duplicated(orders$trial))
-  for (uu in seq_along(trials)) {
-    
-    # Read the classification
-    if (uu<length(trials)) {
-      classification <- orders$syn_classified[trials[uu]:(trials[uu+1]-1)]
-    } else {
-      classification <- orders$syn_classified[trials[uu]:nrow(orders)]
-    }
-    
-    trial <- orders$trial[trials[uu]]
-    
-    colnames(SYNS_classified[[trial]]$P) <- c("time", paste0("Syn", classification))
-    colnames(SYNS_classified[[trial]]$M) <- paste0("Syn", classification)
-    SYNS_classified[[trial]]$classification <- class_method
-  }
-  
+  SYNS_classified_TW <- musclesyneRgies::classify_kmeans(SYNS[grep("TW", names(SYNS))],
+                                        path_for_graphs=path_for_graphs)
+  SYNS_classified_TR <- musclesyneRgies::classify_kmeans(SYNS[grep("TR", names(SYNS))],
+                                        path_for_graphs=path_for_graphs)
+
+  SYNS_classified <- c(SYNS_classified_TW, SYNS_classified_TR)
+
   message("\nSaving classified synergies...")
   save(SYNS_classified, file=paste0(data_path, "SYNS_classified.RData"))
   message("...done!")
-  
+
 } else if ((qq=="n" || qq=="no") && ww=="n") {
   # Unsupervised learning method to classify synergies based on NMF
-  # Apply NMF
-  sys_date <- gsub(" [0-9][0-9]:[0-9][0-9]:[0-9][0-9]$", "", Sys.time())
-  sys_time <- gsub("^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] ", "", Sys.time())
-  
-  message("\nClassify motor primitives using NMF\nStarted on ", sys_date, " at ", sys_time)
-  
-  tictoc <- system.time({
-    data_NMF <- parallel::parLapply(cl, all_P, NMFn)
-  })
-  
-  ll <- sum(unlist(lapply(data_NMF, function(x) nrow(x$M))))
-  
-  message("\n- - - - - - - - - - - - - - - - - - - - - - -\n",
-          benchmarkme::get_sys_details()$data,
-          "\n",
-          benchmarkme::get_sys_details()$sys_info$sysname, " ",
-          benchmarkme::get_sys_details()$sys_info$release, " ",
-          benchmarkme::get_sys_details()$sys_info$version,
-          "\n",
-          benchmarkme::get_sys_details()$cpu$model_name, " ",
-          "\n",
-          R.version$version.string,
-          "\n",
-          parallel::detectCores(logical=F), " cores, ",
-          parallel::detectCores(), " logical, ",
-          length(cl), " used",
-          "\n\n        Number of trials: ", ll,
-          "\n        Computation time: ", round(tictoc[[3]], 0), " s",
-          "\nAverage trial comp. time: ", round(tictoc[[3]]/ll, 2), " s\n",
-          "\n- - - - - - - - - - - - - - - - - - - - - - -")
-  
-  data_all   <- data_P
-  order_list <- list()
-  
-  for (ll in seq_along(data_NMF)) {
-    temp <- data_NMF[[ll]]
-    cond <- names(data_NMF[ll])
-    
-    data_NMF_P <- temp$P
-    data_NMF_M <- temp$M
-    syns_num_n <- ncol(data_NMF_M)
-    
-    # Order using CoA
-    orders <- order(apply(data_NMF_P, 1, CoA))
-    
-    # # Another option would be to order using the global maximum
-    # (just uncomment the next line if you want to try)
-    # orders <- order(apply(data_NMF_P, 1, function(x) which.max(x)[1]))
-    
-    data_NMF_P <- data_NMF_P[orders, ]
-    data_NMF_M <- data_NMF_M[, orders]
-    
-    # Normalise to 1
-    data_NMF_P <- data.frame(t(apply(data_NMF_P, 1, function(x) x/max(x))))
-    data_NMF_M <- data.frame(apply(data_NMF_M, 2, function(x) x/max(x)))
-    
-    rownames(data_NMF_P) <- paste0("Syn", 1:nrow(data_NMF_P))
-    colnames(data_NMF_M) <- paste0("Syn", 1:ncol(data_NMF_M))
-    
-    # Plot classified syns
-    # Find plot size
-    dev_size <- dev.size(units="in")
-    # Margins are specified in inches following the order:
-    # bottom, left, top, right
-    # Reduction factor of margins to account for screens at different resolutions
-    red_factor <- 35
-    par(mfrow=c(syns_num_n, 2),
-        mai=c(dev_size[2]/red_factor,
-              dev_size[1]/red_factor,
-              dev_size[2]/red_factor,
-              dev_size[1]/red_factor))
-    
-    for (syn in 1:syns_num_n) {
-      plot(x=c(1:ncol(data_NMF_P)), y=data_NMF_P[syn, ],
-           ty="l", main=paste0("Synergy ", syn, ", ", cond),
-           xlab="", ylab="",
-           xaxt="n", yaxt="n", lwd=2)
-      barplot(sort(data_NMF_M[, syn], decreasing=T))
-      abline(h=seq(0.2, 0.8, 0.1), col=2)
-      tot <- length(data_NMF_M[, syn])
-      abline(v=tot*seq(0, 1, 0.25), col=2)
-    }
-    
-    qq <- 1
-    while (!is.na(qq)) {
-      message("\nDo you want to change order of classified synergies (type 'y' for 'yes' or 'n' for 'no')?")
-      qq <- readline()
-      # Break if user decides
-      if (qq=="y" || qq=="yes" || qq=="n" || qq=="no") break
-    }
-    
-    if (qq=="y" || qq=="yes") {
-      
-      rep <- "n"
-      while (rep=="n" || rep=="no") {
-        
-        # Prompt for decision
-        message("Press Esc to stop (order will not be changed)")
-        orders_new <- numeric()
-        for (cc in 1:nrow(data_NMF_P)) {
-          pp <- 0.2
-          while (pp<1) {
-            pp <- readline(paste0("Syn num to be associated with the curve ", cc, ": "))
-            
-            if (grepl("^$", pp)) {
-              pp <- -1
-            } else if (grepl("\\D", pp) && !grepl("^s$", pp)) {
-              pp <- -1
-            } else if (grepl("^s$", pp)) {
-              pp <- 1000
-            } else if  (as.numeric(pp)>syns_num_n){
-              pp <- -1
-            }
-          }
-          orders_new[cc] <- pp
-        }
-        
-        orders_new <- as.numeric(orders_new)
-        
-        orders <- sort.int(orders_new, index.return=T)$ix
-        
-        # Make new plots for checking
-        data_NMF_P_temp <- data_NMF_P[orders, ]
-        data_NMF_M_temp <- data_NMF_M[, orders]
-        
-        # Normalise to 1
-        data_NMF_P_temp <- data.frame(t(apply(data_NMF_P_temp, 1, function(x) x/max(x))))
-        data_NMF_M_temp <- data.frame(apply(data_NMF_M_temp, 2, function(x) x/max(x)))
-        
-        rownames(data_NMF_P_temp) <- paste0("Syn", 1:nrow(data_NMF_P_temp))
-        colnames(data_NMF_M_temp) <- paste0("Syn", 1:ncol(data_NMF_M_temp))
-        
-        # Re-plot classified syns
-        par(mfrow=c(syns_num_n, 2),
-            mai=c(dev_size[2]/red_factor,
-                  dev_size[1]/red_factor,
-                  dev_size[2]/red_factor,
-                  dev_size[1]/red_factor))
-        
-        for (syn in 1:syns_num_n) {
-          plot(x=c(1:ncol(data_NMF_P_temp)), y=data_NMF_P_temp[syn, ],
-               ty="l", main=paste0("Synergy ", syn, ", ", cond),
-               xlab="", ylab="",
-               xaxt="n", yaxt="n", lwd=2)
-          barplot(sort(data_NMF_M_temp[, syn], decreasing=T))
-          abline(h=seq(0.2, 0.8, 0.1), col=2)
-          tot <- length(data_NMF_M_temp[, syn])
-          abline(v=tot*seq(0, 1, 0.25), col=2)
-        }
-        
-        Sys.sleep(2)
-        
-        message("\nAre you sure (see new plot, type 'y' for 'yes' or 'n' for 'no')?")
-        rep <- readline()
-        
-        if (rep=="n" || rep=="no") {
-          for (syn in 1:syns_num_n) {
-            plot(x=c(1:ncol(data_NMF_P)), y=data_NMF_P[syn, ],
-                 ty="l", main=paste0("Synergy ", syn, ", ", cond),
-                 xlab="", ylab="",
-                 xaxt="n", yaxt="n", lwd=2)
-            barplot(sort(data_NMF_M[, syn], decreasing=T))
-            abline(h=seq(0.2, 0.8, 0.1), col=2)
-            tot <- length(data_NMF_M[, syn])
-            abline(v=tot*seq(0, 1, 0.25), col=2)
-          }
-        }
-      }
-      # Apply new orders
-      data_NMF_P <- data_NMF_P[orders, ]
-      data_NMF_M <- data_NMF_M[, orders]
-      
-      # Normalise to 1
-      data_NMF_P <- data.frame(t(apply(data_NMF_P, 1, function(x) x/max(x))))
-      data_NMF_M <- data.frame(apply(data_NMF_M, 2, function(x) x/max(x)))
-      
-      rownames(data_NMF_P) <- paste0("Syn", 1:nrow(data_NMF_P))
-      colnames(data_NMF_M) <- paste0("Syn", 1:ncol(data_NMF_M))
-    }
-    
-    # Now search for syns having module bigger than "M_threshold"
-    # If a syn has more than one module, choose the one with the highest value
-    # Then compare the primitive to the relevant one and assess similarity
-    # If similarity is lower than "R2_threshold", classify as combined, otherwise keep
-    temp <- data_NMF_M
-    
-    # Determine the threshold for M and R2
-    # Calculate the M threshold
-    M_threshold <- mean(colMeans(temp, na.rm=T), na.rm=T)
-    
-    temp[temp<M_threshold] <- NA
-    
-    quality <- numeric()
-    
-    for (tt in 1:nrow(temp)) {
-      if (sum(temp[tt, ], na.rm=T)==0) {
-        quality[tt] <- NA
-        next
-      } else if (sum(is.na(temp[tt, ]))>=1 || sum(temp[tt, ], na.rm=T)!=0) {
-        # Find position of maximum
-        choice <- which(temp[tt, ]==max(temp[tt, ], na.rm=T))
-        # Discard the others
-        temp[tt, -choice] <- NA
-        # Calculate R2 between curve and primitive
-        P1  <- as.numeric(data_NMF_P[choice, ])
-        P2  <- as.numeric(data_P[tt, ])
-        RSS <- sum((P1-P2)^2)
-        SST <- sum((P1-mean(P1))^2)
-        R2  <- 1-(RSS/SST)
-        
-        quality[tt] <- R2
-      }
-    }
-    
-    # Calculate the R2 threshold
-    R2_threshold <- mean(quality, na.rm=T)
-    if (sign(R2_threshold)==1) {
-      R2_threshold <- R2_threshold/4
-    } else if (sign(R2_threshold)==-1) {
-      R2_threshold <- R2_threshold*4
-    }
-    
-    quality[quality<=R2_threshold] <- NA
-    
-    classification <- numeric()
-    weight <- numeric()
-    
-    for (tt in 1:nrow(temp)) {
-      if (sum(temp[tt, ], na.rm=T)==0) {
-        classification[tt] <- NA
-        weight[tt] <- NA
-        next
-      } else if (sum(is.na(temp[tt, ]))>=1 || sum(temp[tt, ], na.rm=T)!=0) {
-        # Find position of maximum
-        choice <- which(temp[tt, ]==max(temp[tt, ], na.rm=T))
-        # Discard the others
-        temp[tt, -choice] <- NA
-        # Discard if R2 between curve and primitive is lower than R2_threshold
-        R2 <- quality[tt]
-        
-        if (is.na(R2)) {
-          classification[tt] <- NA
-          weight[tt] <- NA
-        } else {
-          classification[tt] <- choice
-          weight[tt] <- temp[tt, choice]
-        }
-      }
-    }
-    
-    trial <- gsub("_Syn.*", "", rownames(temp))
-    syn   <- as.numeric(gsub(".*_Syn", "", rownames(temp)))
-    
-    ordered <- data.frame(trial, syn, classification, weight, quality)
-    colnames(ordered) <- c("trial", "syn_original", "syn_classified", "weight", "quality")
-    
-    syns_num <- max(ordered$syn_classified, na.rm=T)
-    
-    ordered$syn_classified[which(is.na(ordered$syn_classified))] <- "combined"
-    
-    # Remove double classifications, if present
-    # Find unique trial names
-    trials <- which(!duplicated(ordered$trial))
-    for (uu in seq_along(trials)) {
-      
-      # Read the classification
-      if (uu<length(trials)) {
-        temp1 <- ordered[trials[uu]:(trials[uu+1]-1), ]
-      } else {
-        temp1 <- ordered[trials[uu]:nrow(ordered), ]
-      }
-      
-      # Find duplicates
-      temp2 <- which(duplicated(temp1$syn_classified))
-      
-      if (length(temp2)==0) {
-        next
-      } else {
-        for (syn in c((1:syns_num), "combined")) {
-          
-          temp2 <- grep(paste0("^", syn, "$"), temp1$syn_classified)
-          
-          if (length(temp2)<=1) {
-            next
-          } else {
-            # Remove lower quality trials
-            temp3 <- as.numeric(temp1$quality[temp2])
-            temp2 <- temp2[-which(temp3==max(temp3))]
-            temp1$syn_classified[temp2] <- NA
-          }
-        }
-      }
-      # Save the new data
-      if (uu<length(trials)) {
-        ordered[trials[uu]:(trials[uu+1]-1), ] <- temp1
-      } else {
-        ordered[trials[uu]:nrow(ordered), ] <- temp1
-      }
-    }
-    
-    ordered$syn_classified[which(is.na(ordered$syn_classified))] <- "combined"
-    
-    ordered <- data.frame(old=paste0(ordered$trial, "_Syn", ordered$syn_original),
-                          new=paste0(ordered$trial, "_Syn", ordered$syn_classified),
-                          ordered)
-    
-    ordered[] <- lapply(ordered, as.character)
-    
-    combined <- length(grep("combined", ordered$syn_classified))
-    total    <- nrow(ordered)
-    
-    message("\n  Locomotion type: ", cond,
-            "\n  Total synergies: ", total,
-            "\n       Recognised: ", total-combined,
-            "\n         Combined: ", combined, " (~", round(combined/total*100, 0), "%)",
-            "\n     R2 threshold: ", round(R2_threshold, 2),
-            "\n Module threshold: ", round(M_threshold, 2), "\n")
-    
-    syn_perc <- numeric()
-    for (ss in 1:syns_num) {
-      syn_perc[ss] <- round(length(grep(paste0("^", ss, "$"),
-                                        ordered$syn_classified))/length(trials)*100, 0)
-      message("             Syn", ss, ": ", syn_perc[ss], "%")
-    }
-    
-    order_list[[ll]] <- ordered
-  }
-  
-  orders <- plyr::ldply(order_list, data.frame)
-  
-  # Rename synergies in the correct order and save
-  SYNS_classified <- SYNS
-  
-  # Find unique trial names
-  trials <- which(!duplicated(orders$trial))
-  for (uu in seq_along(trials)) {
-    
-    # Read the classification
-    if (uu<length(trials)) {
-      classification <- orders$syn_classified[trials[uu]:(trials[uu+1]-1)]
-    } else {
-      classification <- orders$syn_classified[trials[uu]:nrow(orders)]
-    }
-    
-    trial <- orders$trial[trials[uu]]
-    
-    colnames(SYNS_classified[[trial]]$P) <- c("time", paste0("Syn", classification))
-    colnames(SYNS_classified[[trial]]$M) <- paste0("Syn", classification)
-    SYNS_classified[[trial]]$classification <- class_method
-  }
-  
+  SYNS_classified_TW <- musclesyneRgies::classify_NMF(SYNS[grep("TW", names(SYNS))],
+                                     path_for_graphs=path_for_graphs)
+  SYNS_classified_TR <- musclesyneRgies::classify_NMF(SYNS[grep("TR", names(SYNS))],
+                                                      path_for_graphs=path_for_graphs)
+
+  SYNS_classified <- c(SYNS_classified_TW, SYNS_classified_TR)
+
   message("\nSaving classified synergies...")
   save(SYNS_classified, file=paste0(data_path, "SYNS_classified.RData"))
   message("...done!")
@@ -1860,282 +344,29 @@ if (all(!grepl("^SYNS_classified$", objects())) || all(!grepl("^FILT_EMG$", obje
 path_for_graphs <- paste0(graph_path, "NMF", .Platform$file.sep)
 dir.create(path_for_graphs, showWarnings=F)
 
-# Get classification method
-class_method <- unique(unlist(lapply(SYNS_classified, function(x) x$classification)))
+# Plot 2D UMAP of average filtered and normalised EMG
+musclesyneRgies::plot_EMG_UMAP(FILT_EMG[grep("TW", names(FILT_EMG))],
+              path_for_graphs=paste0(graph_path, "EMG", .Platform$file.sep),
+              condition="TW")
 
-# Get motor modules and concatenated motor primitives
-SYNS_M <- lapply(SYNS_classified, function(x) x$M)
-SYNS_P <- lapply(SYNS_classified, function(x) x$P)
+musclesyneRgies::plot_EMG_UMAP(FILT_EMG[grep("TR", names(FILT_EMG))],
+              path_for_graphs=paste0(graph_path, "EMG", .Platform$file.sep),
+              condition="TR")
 
-# Find maximum number of synergies, combined excluded
-max_syns   <- max(unlist(lapply(SYNS_M, function(x) {
-  x <- data.frame(x)
-  x[, grep("combined", colnames(x))] <- NULL
-  return(ncol(x))
-})))
-conditions <- gsub("^SYNS_ID[0-9]+_", "", names(SYNS_M))
-conditions <- unique(gsub("_[0-9]+$", "", conditions))
+# Plot 2D UMAP of synergies
+musclesyneRgies::plot_syns_UMAP(SYNS_classified[grep("TW", names(SYNS_classified))],
+              path_for_graphs=path_for_graphs,
+              condition="TW")
 
-# Export UMAP and synergy plots
-# Progress bar
-pb <- progress::progress_bar$new(format="[:bar]:percent ETA: :eta",
-                                 total=length(conditions), clear=F, width=50)
+musclesyneRgies::plot_syns_UMAP(SYNS_classified[grep("TR", names(SYNS_classified))],
+               path_for_graphs=path_for_graphs,
+               condition="TR")
 
-message("\nExporting UMAP and synergy plots...\n")
+# Plot muscle synergies
+musclesyneRgies::plot_syns_all(SYNS_classified[grep("TW", names(SYNS_classified))],
+               path_for_graphs=path_for_graphs,
+               condition="TW")
 
-for (condition in conditions) {
-  
-  pb$tick()
-  
-  FILT_EMG_temp <- FILT_EMG[grep(paste0("_", condition), names(FILT_EMG))]
-  
-  # Calculate mean EMG
-  FILT_EMG_temp <- lapply(FILT_EMG_temp, function(x) {
-    points <- max(x$time)
-    x$time <- NULL
-    
-    if (ncol(x)>0) {
-      temp   <- matrix(0, nrow=points, ncol=ncol(x))
-      
-      colnames(temp) <- colnames(x)
-      
-      for (cc in seq(1, (1+nrow(x)-points), points)) {
-        temp <- temp+x[c(cc:(cc+points-1)), ]
-      }
-      
-      # Divide by the number of cycles to get mean value
-      temp <- temp/(nrow(x)/points)
-      
-      # Minimum subtraction
-      x <- apply(temp, 2, function(y) y-min(y))
-      # Amplitude normalisation
-      x <- apply(temp, 2, function(y) y/max(y))
-    }
-    
-    return(data.frame(x))
-  })
-  
-  SYNS_P_temp <- SYNS_P[grep(paste0("_", condition), names(SYNS_P))]
-  SYNS_M_temp <- SYNS_M[grep(paste0("_", condition), names(SYNS_M))]
-  
-  # Calculate mean motor primitives
-  SYNS_P_temp <- lapply(SYNS_P_temp, function(x) {
-    points <- max(x$time)
-    x$time <- NULL
-    
-    if (ncol(x)>0) {
-      temp   <- matrix(0, nrow=points, ncol=ncol(x))
-      
-      colnames(temp) <- colnames(x)
-      
-      for (cc in seq(1, (1+nrow(x)-points), points)) {
-        temp <- temp+x[c(cc:(cc+points-1)), ]
-      }
-      
-      # Divide by the number of cycles to get mean value
-      temp <- temp/(nrow(x)/points)
-      
-      # Minimum subtraction
-      x <- apply(temp, 2, function(y) y-min(y))
-      # Amplitude normalisation
-      x <- apply(temp, 2, function(y) y/max(y))
-    }
-    
-    return(data.frame(x))
-  })
-  
-  points  <- unique(unlist(lapply(SYNS_P_temp, function(x) nrow(x))))
-  muscles <- unique(unlist(lapply(SYNS_M_temp, function(x) rownames(x))))
-  
-  # UMAP of average filtered and normalised EMG
-  data_EMG <- lapply(FILT_EMG_temp, function(x) data.frame(muscle=colnames(x), t(x)))
-  data_EMG <- plyr::ldply(data_EMG, data.frame, .id="muscle")
-  
-  data_muscle <- data_EMG$muscle
-  
-  data_EMG$muscle <- NULL
-  
-  umap_EMG <- data.frame(data_muscle, umap::umap(data_EMG)$layout)
-  
-  colnames(umap_EMG) <- c("muscle", "UMAP1", "UMAP2")
-  
-  Cairo::Cairo(file=paste0(paste0(graph_path, "EMG", .Platform$file.sep), "UMAP_FILT_EMG_", condition, ".", ty),
-               type=ty, width=0.9*wi, height=0.72*wi, pointsize=mte, dpi=re)
-  
-  ggumap_EMG <- ggplot2::ggplot(data=umap_EMG,
-                              ggplot2::aes(x=UMAP1, y=UMAP2,
-                                           colour=factor(muscle, levels=muscles))) +
-    ggplot2::geom_point(size=4, alpha=0.5) +
-    ggplot2::ggtitle(paste0(condition, " - UMAP (filtered EMG)")) +
-    ggplot2::theme(legend.title=ggplot2::element_blank())
-  
-  print(ggumap_EMG)
-  
-  dev.off() # Close Cairo export
-  
-  # UMAP of synergies
-  data_P <- lapply(SYNS_P_temp, function(x) data.frame(synergy=colnames(x), t(x)))
-  data_M <- lapply(SYNS_M_temp, function(x) t(x))
-  data_P <- plyr::ldply(data_P, data.frame, .id="synergy")
-  data_M <- plyr::ldply(data_M, data.frame, .id="synergy")
-  
-  data_syns <- data_P$synergy
-  if (any(grepl("Syncombined\\.", data_syns))) {
-    data_syns <- gsub("Syncombined.+", "Syncombined", data_syns)
-  }
-  
-  data_P$synergy <- NULL
-  data_M$synergy <- NULL
-  
-  umap_P <- data.frame(data_syns, umap::umap(data_P)$layout)
-  umap_M <- data.frame(data_syns, umap::umap(data_M)$layout)
-  
-  colnames(umap_P) <- c("syn", "UMAP1", "UMAP2")
-  colnames(umap_M) <- colnames(umap_P)
-  
-  Cairo::Cairo(file=paste0(path_for_graphs, "UMAP_SYNS_", condition, "_",
-                           class_method, "_classification.", ty),
-               type=ty, width=0.9*wi, height=1.42*wi, pointsize=mte, dpi=re)
-  
-  ggumap_M <- ggplot2::ggplot(data=umap_M,
-                              ggplot2::aes(x=UMAP1, y=UMAP2,
-                                           colour=factor(syn))) +
-    ggplot2::geom_point(size=4, alpha=0.5) +
-    ggplot2::ggtitle(paste0(condition, " - UMAP (motor modules)")) +
-    ggplot2::theme(legend.title=ggplot2::element_blank())
-  
-  ggumap_P <- ggplot2::ggplot(data=umap_P,
-                              ggplot2::aes(x=UMAP1, y=UMAP2,
-                                           colour=factor(syn))) +
-    ggplot2::geom_point(size=4, alpha=0.5) +
-    ggplot2::ggtitle(paste0(condition, " - UMAP (motor primitives)")) +
-    ggplot2::theme(legend.title=ggplot2::element_blank())
-  
-  suppressWarnings(gridExtra::grid.arrange(grobs=list(ggumap_M, ggumap_P), nrow=2, ncol=1))
-  
-  dev.off() # Close Cairo export
-  
-  # Muscle synergies
-  Cairo::Cairo(file=paste0(path_for_graphs, "SYNS_", condition, "_",
-                           class_method, "_classification.", ty),
-               type=ty, width=wi, height=he, pointsize=mte, dpi=re)
-  
-  varlist <- list()
-  
-  for (syn in 1:max_syns) {
-    
-    # Select relevant synergies
-    data_P <- lapply(SYNS_P_temp, function(x) t(x[, grep(paste0("^Syn", syn), colnames(x))]))
-    data_M <- lapply(SYNS_M_temp, function(x) {
-      muscles <- rownames(x)
-      x <- x[, grep(paste0("^Syn", syn), colnames(x))]
-      if (length(x)>0) names(x) <- muscles
-      t(x)
-    })
-    
-    # Remove empty trials, if present
-    data_P <- data_P[lapply(data_P, length)>0]
-    data_M <- data_M[lapply(data_M, length)>0]
-    
-    if (length(data_P)>0) {
-      # Put primitives in a single data frame
-      data_P <- plyr::ldply(data_P, data.frame, .id="trial")
-      # Put modules in a single data frame
-      data_M <- plyr::ldply(data_M, data.frame, .id="trial")
-      
-      data_P_av <- data.frame(time=c(1:(ncol(data_P)-1)),
-                              value=colMeans(data_P[, -1]))
-      data_P_sd <- data.frame(time=c(1:(ncol(data_P)-1)),
-                              ymin=data_P_av$value-apply(data_P[, -1], 2, sd),
-                              ymax=data_P_av$value+apply(data_P[, -1], 2, sd))
-      
-      data_M_av <- data.frame(value=colMeans(data_M[, -1]))
-      data_M_av <- data.frame(muscle=rownames(data_M_av),
-                              data_M_av)
-      
-      data_P <- reshape2::melt(data_P, id="trial")
-      data_M <- reshape2::melt(data_M, id="trial")
-      
-      temp_P <- ggplot2::ggplot() +
-        ggplot2::ggtitle(paste0("Motor primitive ", syn)) +
-        ggplot2::ylim(-0.2, 1.2) +
-        ggplot2::geom_ribbon(data=data_P_sd,
-                             ggplot2::aes(x=time, ymin=ymin, ymax=ymax),
-                             fill="grey80") +
-        ggplot2::geom_line(data=data_P_av,
-                           ggplot2::aes(x=time, y=value),
-                           colour=c_signal, size=s_line) +
-        ggplot2::theme(axis.title=ggplot2::element_blank(),
-                       panel.background=ggplot2::element_rect(fill=c_back, colour=c_bord),
-                       panel.grid.major=ggplot2::element_line(colour=c_min, size=s_min),
-                       panel.grid.minor=ggplot2::element_blank(),
-                       legend.position="none")
-      
-      temp_M <- ggplot2::ggplot() +
-        ggplot2::ggtitle(paste0("Motor module ", syn)) +
-        ggplot2::ylim(0, 1) +
-        ggplot2::geom_hline(yintercept=c(0.25, 0.5, 0.75, 1), size=s_min, color=c_thin) +
-        ggplot2::geom_bar(data=data_M_av,
-                          ggplot2::aes(x=muscle, y=value),
-                          fill=c_bars, alpha=0.3,
-                          stat="identity") +
-        ggplot2::scale_x_discrete(limits=data_M_av$muscle) +
-        ggplot2::geom_jitter(data=data_M,
-                             ggplot2::aes(x=variable, y=value),
-                             fill=c_bars, width=0.1, size=0.1) +
-        ggplot2::theme(axis.title=ggplot2::element_blank(),
-                       axis.text.y=ggplot2::element_blank(),
-                       panel.background=ggplot2::element_rect(fill=c_back, colour=c_bord),
-                       panel.grid.major=ggplot2::element_blank(),
-                       panel.grid.minor=ggplot2::element_blank(),
-                       axis.ticks=ggplot2::element_blank(),
-                       legend.position="none")
-    } else {
-      data_P_av <- data.frame(time=c(1:points),
-                              value=-0.2)
-      data_M_av <- data.frame(muscle=muscles,
-                              value=0)
-      
-      temp_P <- ggplot2::ggplot() +
-        ggplot2::ggtitle(paste0("Motor primitive ", syn)) +
-        ggplot2::ylim(-0.2, 1.2) +
-        ggplot2::geom_line(data=data_P_av,
-                           ggplot2::aes(x=time, y=value),
-                           colour="transparent") +
-        ggplot2::theme(axis.title=ggplot2::element_blank(),
-                       panel.background=ggplot2::element_rect(fill=c_back, colour=c_bord),
-                       panel.grid.major=ggplot2::element_line(colour=c_min, size=s_min),
-                       panel.grid.minor=ggplot2::element_blank(),
-                       legend.position="none")
-      
-      temp_M <- ggplot2::ggplot() +
-        ggplot2::ggtitle(paste0("Motor module ", syn)) +
-        ggplot2::ylim(0, 1) +
-        ggplot2::geom_hline(yintercept=c(0.25, 0.5, 0.75, 1), size=s_min, color=c_thin) +
-        ggplot2::geom_bar(data=data_M_av,
-                          ggplot2::aes(x=muscle, y=value),
-                          fill="transparent", alpha=0.3,
-                          stat="identity") +
-        ggplot2::scale_x_discrete(limits=data_M_av$muscle) +
-        ggplot2::theme(axis.title=ggplot2::element_blank(),
-                       axis.text.y=ggplot2::element_blank(),
-                       panel.background=ggplot2::element_rect(fill=c_back, colour=c_bord),
-                       panel.grid.major=ggplot2::element_blank(),
-                       panel.grid.minor=ggplot2::element_blank(),
-                       axis.ticks=ggplot2::element_blank(),
-                       legend.position="none")
-    }
-    
-    varname_P <- paste0("r", 2*syn)
-    varname_M <- paste0("r", 2*syn-1)
-    varlist[[2*syn]]   <- assign(varname_P, temp_P)
-    varlist[[2*syn-1]] <- assign(varname_M, temp_M)
-    
-  }
-  
-  suppressWarnings(gridExtra::grid.arrange(grobs=varlist, nrow=max_syns, ncol=2,
-                                           top=(paste0("Synergies - ", condition))))
-  
-  dev.off() # Close Cairo export
-}
-message("\n...done!")
+musclesyneRgies::plot_syns_all(SYNS_classified[grep("TR", names(SYNS_classified))],
+               path_for_graphs=path_for_graphs,
+               condition="TR")

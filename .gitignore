@@ -7,9 +7,14 @@
 
 # User-specific files
 .Ruserdata
-FILT_EMG.RData
-SYNS.RData
-SYNS_classified.RData
+playground.R
+test.R
+muscle_synergies.R
+exported_data.R
+README.Rmd
+
+# Directories
+README_files/
 
 # Example code in package build process
 *-Ex.R
@@ -40,3 +45,6 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+.Rproj.user
+.Rdata
+.DS_Store

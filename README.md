@@ -1,29 +1,228 @@
+---
+title: "README"
+output:
+  html_document:
+    keep_md: yes
+---
+
+
+
 # musclesyneRgies
 
-The file "muscle_synergies.R" contains a script that allows to extract muscle synergies from electromyographic (EMG) data through linear decomposition based on unsupervised machine learning. Specifically, here we adopted the non-negative matrix factorization (NMF) framework, due to the non-negative nature of EMG biosignals. However, this method can be applied to any other kind of data sets, from time series to images.
+The package `musclesyneRgies` allows to extract muscle synergies from electromyographic (EMG) data through linear decomposition based on unsupervised machine learning. Specifically, here we adopted the non-negative matrix factorization (NMF) framework, due to the non-negative nature of EMG biosignals. However, this method can be applied to any other kind of data sets, from time series to images.
 
-# Quick instructions to run the script
+## Installation
 - [Download R](https://cran.r-project.org/mirrors.html) and install
 - [Download RStudio](https://rstudio.com/products/rstudio/download/) and install
-- [Download Git](https://git-scm.com/downloads) and install
-- Branch this project or, if you are new to GitHub, you can have a look at [this tutorial page](https://r-bio.github.io/intro-git-rstudio/) or manually download the repository
-- Open the project file "musclesyneRgies.Rproj" with RStudio
-- From within the project, open the script "muscle_synergies.R" and run it with "Source" or "Ctrl+Shift+S" (Windows and Linux users) or "Cmd+Shift+S" (Mac users).
+- Open RStudio and install the package `devtools` with `install.packages("devtools")`
+- Load `devtools` with `library(devtools)`
+- Install the package `musclesyneRgies` with `install_github("alesantuz/musclesyneRgies")`.
 
-The code produces some diagnostic messages that will guide you through the process of:
-- Raw EMG filtering and normalization (STEP 1/4)
-- Muscle synergies extraction via NMF (STEP 2/4)
-- Muscle synergies classification via NMF (STEP 3/4)
-- Plotting the classified synergies (STEP 4/4).
+Done! Now the package is installed on your computer.
 
-There will be plots within RStudio in the 4th step, so make sure that the plot pane in RStudio is selected.
+## What this package does:
+- Filter and normalise raw EMG
+- Extract muscle synergies
+- Classify the extracted muscle synergies
+- Analyse muscle synergies with linear and nonlinear metrics
+- Plot any data set involved in the process
+- All the above tweakable, but with sensible defaults.
 
-# References
-1. Mileti, I. et al. [Muscle activation patterns are more constrained and regular in treadmill than in overground human locomotion](https://www.frontiersin.org/articles/10.3389/fbioe.2020.581619/full). Front. Bioeng. Biotechnol. (2020).
-2. Santuz, A. et al. [Lower complexity of motor primitives ensures robust control of high-speed human locomotion](https://www.biorxiv.org/content/10.1101/2020.04.24.055277v1). bioRxiv (2020).
-3. Santuz, A. et al. [Neuromotor Dynamics of Human Locomotion in Challenging Settings](https://www.cell.com/iscience/fulltext/S2589-0042(19)30542-5). iScience 23, 100796 (2020).
-4. Santuz, A. et al. [Modular organization of murine locomotor pattern in the presence and absence of sensory feedback from muscle spindles](https://physoc.onlinelibrary.wiley.com/doi/abs/10.1113/JP277515). J. Physiol. 597, 3147–3165 (2019).
-5. Santuz, A. et al. [Modular Control of Human Movement During Running: An Open Access Data Set](https://www.frontiersin.org/articles/10.3389/fphys.2018.01509/full). Front. Physiol. 9, 1509 (2018).
-6. Santuz, A., Ekizos, A., Eckardt, N., Kibele, A. & Arampatzis, A. [Challenging human locomotion: stability and modular organisation in unsteady conditions](https://www.nature.com/articles/s41598-018-21018-4). Sci. Rep. 8, 2740 (2018).
-7. Santuz, A., Ekizos, A., Janshen, L., Baltzopoulos, V. & Arampatzis, A. [The Influence of Footwear on the Modular Organization of Running](https://www.frontiersin.org/articles/10.3389/fphys.2017.00958/full). Front. Physiol. 8, 958 (2017).
-8. Santuz, A., Ekizos, A., Janshen, L., Baltzopoulos, V. & Arampatzis, A. [On the Methodological Implications of Extracting Muscle Synergies from Human Locomotion](https://www.worldscientific.com/doi/abs/10.1142/S0129065717500071). Int. J. Neural Syst. 27, 1750007 (2017).
+## What this package does not do:
+- Run the statistics for you
+- All that is not specified in the list above.
+
+## Workflow example
+All the code in this section will work as in the example if you copy and paste it in R or RStudio.
+
+```r
+# Load the package
+library(musclesyneRgies)
+
+# Load the built-in example data set
+data("RAW_DATA")
+
+# Say you recorded more cycles than those you want to consider for the analysis
+# You can subset the raw data (here to the first 3 cycles, starting from the first)
+RAW_DATA_subset <- pbapply::pblapply(RAW_DATA,
+                                     function(x) subsetEMG(x,
+                                                           cy_max=3,
+                                                           cy_start=1))
+
+# Raw EMG can be plotted with the following (the first three seconds are plot by default)
+plot_rawEMG(RAW_DATA[[1]],
+            trial=names(RAW_DATA)[1])
+```
+
+![](README_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+
+```r
+# The raw EMG data set then needs to be filtered
+# If you don't want to subset the data set, just filter it as it is
+# Here we filter the whole data set with the default parameters for locomotion:
+# - Demean EMG
+# - High-pass IIR Butterworth 4th order filter (cut-off frequency 50 Hz)
+# - Full-wave rectification (default)
+# - Low-pass IIR Butterworth 4th order filter (cut-off frequency 20 Hz)
+# - Minimum subtraction
+# - Amplitude normalisation
+filtered_EMG <- pbapply::pblapply(RAW_DATA, function(x) filtEMG(x))
+
+# If you decide to change filtering parameters, just give them as arguments:
+another_filtered_EMG <- pbapply::pblapply(RAW_DATA,
+                                          function(x) filtEMG(x,
+                                                              demean=FALSE,
+                                                              rectif="halfwave",
+                                                              HPf=30,
+                                                              HPo=2,
+                                                              LPf=10,
+                                                              LPo=2,
+                                                              min_sub=FALSE,
+                                                              ampl_norm=FALSE))
+
+# Now the filtered EMG needs some time normalisation so that cycles will be comparable
+# Here we time-normalise the filtered EMG, including only three cycles and trimming first and last to remove unwanted filtering effects
+# Each cycle is divided into two parts, each normalised to a length of 100 points
+norm_EMG <- pbapply::pblapply(filtered_EMG,
+                              function(x) normEMG(x,
+                                                  trim=TRUE,
+                                                  cy_max=3,
+                                                  cycle_div=c(100, 100)))
+
+# If this cycle division does not work for you, it can be changed
+# But please remember to have the same amount of columns in the cycle times as the number of phases you want your cycles to be divided into
+# Here we divide each cycle with a ratio of 60%-40% and keep only two cycles (first and last are still trimmed, so to have two cycles you must start with at least four available)
+another_norm_EMG <- pbapply::pblapply(filtered_EMG,
+                                      function(x) normEMG(x,
+                                                          trim=TRUE,
+                                                          cy_max=2,
+                                                          cycle_div=c(120, 80)))
+
+# The filtered and time-normalised EMG can be plotted with the following
+plot_meanEMG(norm_EMG[[1]],
+             trial=names(norm_EMG)[1])
+```
+
+![](README_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+```r
+# At this stage, synergies can be extracted
+# This is the core function to extract synergies via NMF
+SYNS <- pbapply::pblapply(norm_EMG, synsNMF)
+
+# The extracted synergies can be plotted with the following
+plot_syn_trials(SYNS[[1]],
+                max_syns=max(unlist(lapply(SYNS, function(x) x$syns))),
+                trial=names(SYNS)[1])
+```
+
+![](README_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+```r
+# Now synergies don't have a functional order and need classification
+# Let's load the built-in data set to have some more trial to classify
+# (clustering cannot be done on only one trial and having just a few, say less than 10, won't help)
+data("SYNS")
+
+# Classify with k-means# and producing a plot that shows how the clustering went with:
+# - Full width at half maximum on the x-axis
+# - Centre of activity on the y-axis
+# (both referred to the motor primitives of the classified muscle synergies)
+SYNS_classified <- classify_kmeans(SYNS,
+                                   path_for_graphs=NA,
+                                   interactive=FALSE)
+```
+
+![](README_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+```r
+# Classified synergies can be finally plotted with
+plot_classified_syns(SYNS_classified,
+                     condition="TW") # "TW" = Treadmill Walking, change with your own if needed
+```
+
+![](README_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
+```r
+# A 2D UMAP plot of the classified synergies can be obtained with
+plot_classified_syns_UMAP(SYNS_classified,
+                          condition="TW")
+```
+
+![](README_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
+```r
+# From now on, it's all about the analysis
+# For example, one can measure the full width at half maximum (FWHM) of the motor primitives
+# or their centre of activity (CoA)
+# Load a typical motor primitive of 30 cycles (from locomotion)
+data("primitive")
+
+# Reduce primitive to the first cycle
+prim_sub <- primitive$signal[1:which(primitive$time==max(primitive$time))[1]]
+
+# Calculate FWHM of the first cycle
+prim_sub_FWHM <- FWHM(prim_sub)
+# Calculate CoA of the first cycle
+prim_sub_CoA  <- CoA(prim_sub)
+
+# Half maximum (for the plots)
+hm <- min(prim_sub)+(max(prim_sub)-min(prim_sub))/2
+hm_plot <- prim_sub
+hm_plot[which(hm_plot>hm)] <- hm
+hm_plot[which(hm_plot<hm)] <- NA
+
+# Plots
+plot(prim_sub, ty="l", xlab="Time", ylab="Amplitude")
+lines(hm_plot, lwd=3, col=2) # FWHM (horizontal, in red)
+graphics::abline(v=prim_sub_CoA, lwd=3, col=4) # Coa (vertical, in blue)
+```
+
+![](README_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
+```r
+# Or perhaps one might want to investigate the nonlinear behaviour of a long primitive
+prim <- primitive$signal
+
+# Calculate the local complexity or Higuchi's fractal dimension (HFD)
+nonlin_HFD <- HFD(prim)$Higuchi
+# Calculate the local complexity or Hurst exponent (H)
+nonlin_H   <- Hurst(prim, min_win = max(primitive$time))$Hurst
+
+message("Higuchi's fractal dimension: ", round(nonlin_HFD, 3))
+```
+
+```
+## Higuchi's fractal dimension: 1.047
+```
+
+```r
+message("Hurst exponent: ", round(nonlin_H, 3))
+```
+
+```
+## Hurst exponent: 0.338
+```
+
+## Pro tips
+
+```r
+# Note that for bigger data sets one might want to run synergy extraction in parallel
+# This can be done with the following code, requiring the package "parallel"
+
+# Load the built-in example data set
+data("FILT_EMG")
+
+# Create cluster for parallel computing if not already done
+clusters <- objects()
+
+if (sum(grepl("^cl$", clusters))==0) {
+  # Decide how many processor threads have to be excluded from the cluster
+  # It is a good idea to leave at least one free, so that the machine can be used during computation
+  cl <- parallel::makeCluster(max(1, parallel::detectCores()-1))
+}
+# Extract synergies in parallel (will speed up computation only for larger data sets)
+SYNS <- pbapply::pblapply(FILT_EMG, musclesyneRgies::synsNMF, cl=cl)
+
+parallel::stopCluster(cl)
+```
