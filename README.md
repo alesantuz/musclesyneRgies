@@ -5,6 +5,7 @@ The package `musclesyneRgies` allows to extract muscle synergies from electromyo
 ## Installation
 - [Download R](https://cran.r-project.org/mirrors.html) and install (please have R >= 3.5.0)
 - [Download RStudio](https://rstudio.com/products/rstudio/download/) and install
+- Depending on your OS, you will need to install [Rtools](https://cran.r-project.org/bin/windows/Rtools/) (Windows), [Xcode](https://developer.apple.com/xcode/) (macOS) or a specific compiler for Linux (e.g., for Ubuntu-based you can install the `r-base-dev` package).
 - Open RStudio and install the package `devtools` with `install.packages("devtools")`
 - Load `devtools` with `library(devtools)`
 - Install the package `musclesyneRgies` with `install_github("alesantuz/musclesyneRgies")`.
