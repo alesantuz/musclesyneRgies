@@ -35,7 +35,7 @@ library(musclesyneRgies)
 data("RAW_DATA")
 
 # Say you recorded more cycles than those you want to consider for the analysis
-# You can subset the raw data (here to the first 3 cycles, starting from the first)
+# You can subset the raw data (here we keep only 3 cycles, starting from the first)
 RAW_DATA_subset <- pbapply::pblapply(RAW_DATA,
                                      function(x) subsetEMG(x,
                                                            cy_max=3,
