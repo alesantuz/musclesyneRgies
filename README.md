@@ -12,7 +12,7 @@ output:
 The package `musclesyneRgies` allows to extract muscle synergies from electromyographic (EMG) data through linear decomposition based on unsupervised machine learning. Specifically, here we adopted the non-negative matrix factorization (NMF) framework, due to the non-negative nature of EMG biosignals. However, this method can be applied to any other kind of data sets, from time series to images.
 
 ## Installation
-- [Download R](https://cran.r-project.org/mirrors.html) and install
+- [Download R](https://cran.r-project.org/mirrors.html) and install (please have R >= 3.5.0)
 - [Download RStudio](https://rstudio.com/products/rstudio/download/) and install
 - Open RStudio and install the package `devtools` with `install.packages("devtools")`
 - Load `devtools` with `library(devtools)`

@@ -8,7 +8,7 @@ plot_syn_trials(
   x,
   max_syns,
   trial,
-  path_for_graphs,
+  path_for_graphs = NA,
   filetype = "png",
   width = 2000,
   height = 500 * max_syns,
@@ -37,6 +37,9 @@ Plots of the unclassified synergies, trial by trial.
 }
 \description{
 Plot muscle synergies (individual trials)
+}
+\details{
+If \code{path_for_graphs} is not specified, plots will appear in the plot pane and will not be saved.
 }
 \examples{
 ## Create "Graphs" folder if it does not exist

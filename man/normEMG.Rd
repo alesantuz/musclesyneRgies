@@ -31,7 +31,7 @@ The first column of each \code{emg} element must be time in the same units as th
 used for \code{cycles} (e.g., [s] or [ms]).
 }
 \examples{
-## Filter raw EMG including a maximum of three cycles, starting from the first
+## Filter raw EMG
 data("RAW_DATA")
 filtered_EMG <- pbapply::pblapply(RAW_DATA,
                                   function(x) filtEMG(x,

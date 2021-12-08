@@ -9,7 +9,7 @@ plot_rawEMG(
   trial,
   plot_time = 3,
   start = 1,
-  path_for_graphs,
+  path_for_graphs = NA,
   filetype = "png",
   width = 2000,
   height = 500,
@@ -41,6 +41,9 @@ Exports raw EMG plots of the specified length.
 \description{
 Plot raw EMG
 }
+\details{
+If \code{path_for_graphs} is not specified, plots will appear in the plot pane and will not be saved.
+}
 \examples{
 ## Create "Graphs" folder if it does not exist
 data_path  <- getwd()
@@ -50,12 +53,6 @@ path_for_graphs <- paste0(data_path, "Graphs", .Platform$file.sep)
 
 data(RAW_DATA)
 
-for (ii in seq_along(RAW_DATA)) {
-  ## Plot the first three seconds of each trial
-  plot_rawEMG(RAW_DATA[[ii]],
-              trial=names(RAW_DATA)[ii],
-              path_for_graphs=path_for_graphs)
-}
 
 ## Check plots in the new folder before running the following (will delete!)
 

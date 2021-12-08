@@ -6,7 +6,7 @@
 \usage{
 plot_classified_syns(
   x,
-  path_for_graphs,
+  path_for_graphs = NA,
   condition,
   filetype = "png",
   width = 1800,
@@ -35,6 +35,9 @@ Global plot containing the average classified muscle synergies and individual tr
 }
 \description{
 Plot muscle synergies
+}
+\details{
+If \code{path_for_graphs} is not specified, plots will appear in the plot pane and will not be saved.
 }
 \examples{
 ## Create "Graphs" folder if it does not exist

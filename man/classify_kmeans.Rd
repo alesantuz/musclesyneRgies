@@ -7,7 +7,7 @@
 classify_kmeans(
   x,
   MSE_lim = 0.001,
-  path_for_graphs,
+  path_for_graphs = NA,
   filetype = "png",
   width = 1620,
   height = 1300,
@@ -47,6 +47,9 @@ List of \code{musclesyneRgies} objects, each with elements:\cr
 }
 \description{
 Muscle synergy classification with k-means
+}
+\details{
+If \code{path_for_graphs} is not specified, plots will appear in the plot pane and will not be saved.
 }
 \examples{
 ## Create "Graphs" folder if it does not exist

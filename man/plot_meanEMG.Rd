@@ -7,7 +7,7 @@
 plot_meanEMG(
   x,
   trial,
-  path_for_graphs,
+  path_for_graphs = NA,
   filetype = "png",
   width = 2000,
   height = 1875,
@@ -34,6 +34,9 @@ Exports average filtered and normalised EMG.
 }
 \description{
 Plot EMG averaged across all cycles
+}
+\details{
+If \code{path_for_graphs} is not specified, plots will appear in the plot pane and will not be saved.
 }
 \examples{
 ## Create "Graphs" folder if it does not exist
