@@ -1,0 +1,30 @@
+Package: musclesyneRgies
+Title: Extract Muscle Synergies from EMG
+Version: 0.9.1
+Authors@R: 
+    person("Alessandro", "Santuz", , "alessandro.santuz@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-6577-5101"))
+Description: This package extracts muscle synergies from EMG and gives some analysis tools, all with sensible defaults.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Imports:
+    pbapply,
+    stats,
+    signal,
+    graphics,
+    grDevices,
+    umap,
+    plyr,
+    gtools,
+    Cairo,
+    ggplot2,
+    gridExtra,
+    benchmarkme,
+    reshape2
+URL: https://github.com/alesantuz/musclesyneRgies
+BugReports: https://github.com/alesantuz/musclesyneRgies/issues
+Depends: 
+    R (>= 2.10)
+LazyData: true
