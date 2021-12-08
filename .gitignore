@@ -14,7 +14,6 @@ exported_data.R
 README.Rmd
 
 # Directories
-README_files/
 
 # Example code in package build process
 *-Ex.R
