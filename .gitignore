@@ -3,7 +3,11 @@
 .Rapp.history
 
 # Session Data files
-.RData
+.Rproj.user
+.Rhistory
+.Rdata
+.httr-oauth
+.DS_Store
 
 # User-specific files
 .Ruserdata
