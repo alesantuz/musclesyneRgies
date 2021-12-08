@@ -1,3 +1,14 @@
+---
+title: "README"
+output:
+  html_document:
+    keep_md: yes
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
 # musclesyneRgies
 
 The package `musclesyneRgies` allows to extract muscle synergies from electromyographic (EMG) data through linear decomposition based on unsupervised machine learning. Specifically, here we adopted the non-negative matrix factorization (NMF) framework, due to the non-negative nature of EMG biosignals. However, this method can be applied to any other kind of data sets, from time series to images.
@@ -26,8 +37,7 @@ Done! Now the package is installed on your computer.
 
 ## Workflow example
 All the code in this section will work as in the example if you copy and paste it in R or RStudio.
-
-```r
+```{r, message = FALSE, results = "hide", fig.width = 3, fig.asp = 5}
 # Load the package
 library(musclesyneRgies)
 
@@ -45,10 +55,7 @@ RAW_DATA_subset <- pbapply::pblapply(RAW_DATA,
 plot_rawEMG(RAW_DATA[[1]],
             trial=names(RAW_DATA)[1])
 ```
-
-![](README_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
-
-```r
+```{r, message = FALSE, results = "hide", fig.width = 6, fig.asp = 0.94}
 # The raw EMG data set then needs to be filtered
 # If you don't want to subset the data set, just filter it as it is
 # Here we filter the whole data set with the default parameters for locomotion:
@@ -97,10 +104,7 @@ another_norm_EMG <- pbapply::pblapply(filtered_EMG,
 plot_meanEMG(norm_EMG[[1]],
              trial=names(norm_EMG)[1])
 ```
-
-![](README_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
-
-```r
+```{r, message = FALSE, results = "hide", fig.width = 6, fig.asp = 1}
 # At this stage, synergies can be extracted
 # This is the core function to extract synergies via NMF
 SYNS <- pbapply::pblapply(norm_EMG, synsNMF)
@@ -110,10 +114,7 @@ plot_syn_trials(SYNS[[1]],
                 max_syns=max(unlist(lapply(SYNS, function(x) x$syns))),
                 trial=names(SYNS)[1])
 ```
-
-![](README_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
-
-```r
+```{r, message = FALSE, results = "hide", fig.width = 5, fig.asp = 0.7}
 # Now synergies don't have a functional order and need classification
 # Let's load the built-in data set to have some more trial to classify
 # (clustering cannot be done on only one trial and having just a few,
@@ -127,27 +128,20 @@ data("SYNS")
 SYNS_classified <- classify_kmeans(SYNS,
                                    path_for_graphs=NA,
                                    interactive=FALSE)
+
+
 ```
-
-![](README_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
-
-```r
+```{r, message = FALSE, results = "hide", fig.width = 6, fig.asp = 1}
 # Classified synergies can be finally plotted with
 plot_classified_syns(SYNS_classified,
                      condition="TW") # "TW" = Treadmill Walking, change with your own
 ```
-
-![](README_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
-
-```r
+```{r, message = FALSE, results = "hide", fig.width = 5, fig.asp = 1.4}
 # A 2D UMAP plot of the classified synergies can be obtained with
 plot_classified_syns_UMAP(SYNS_classified,
                           condition="TW")
 ```
-
-![](README_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
-
-```r
+```{r, results = "hide", fig.width = 4, fig.asp = 1}
 # From now on, it's all about the analysis
 # For example, one can measure the full width at half maximum (FWHM)
 # of the motor primitives or their centre of activity (CoA)
@@ -172,11 +166,7 @@ hm_plot[which(hm_plot<hm)] <- NA
 plot(prim_sub, ty="l", xlab="Time", ylab="Amplitude")
 lines(hm_plot, lwd=3, col=2) # FWHM (horizontal, in red)
 graphics::abline(v=prim_sub_CoA, lwd=3, col=4) # Coa (vertical, in blue)
-```
 
-![](README_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
-
-```r
 # Or perhaps one might want to investigate the nonlinear behaviour of a long primitive
 prim <- primitive$signal
 
@@ -186,23 +176,11 @@ nonlin_HFD <- HFD(prim)$Higuchi
 nonlin_H   <- Hurst(prim, min_win = max(primitive$time))$Hurst
 
 message("Higuchi's fractal dimension: ", round(nonlin_HFD, 3))
-```
-
-```
-## Higuchi's fractal dimension: 1.047
-```
-
-```r
 message("Hurst exponent: ", round(nonlin_H, 3))
 ```
 
-```
-## Hurst exponent: 0.338
-```
-
 ## Pro tips
-
-```r
+```{r, eval = FALSE}
 # Note that for bigger data sets one might want to run synergy extraction in parallel
 # This can be done with the following code, requiring the package "parallel"
 
