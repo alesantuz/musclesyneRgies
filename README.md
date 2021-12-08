@@ -73,7 +73,8 @@ another_filtered_EMG <- pbapply::pblapply(RAW_DATA,
                                                               ampl_norm=FALSE))
 
 # Now the filtered EMG needs some time normalisation so that cycles will be comparable
-# Here we time-normalise the filtered EMG, including only three cycles and trimming first and last to remove unwanted filtering effects
+# Here we time-normalise the filtered EMG, including only three cycles and trimming first
+# and last to remove unwanted filtering effects
 # Each cycle is divided into two parts, each normalised to a length of 100 points
 norm_EMG <- pbapply::pblapply(filtered_EMG,
                               function(x) normEMG(x,
@@ -82,8 +83,10 @@ norm_EMG <- pbapply::pblapply(filtered_EMG,
                                                   cycle_div=c(100, 100)))
 
 # If this cycle division does not work for you, it can be changed
-# But please remember to have the same amount of columns in the cycle times as the number of phases you want your cycles to be divided into
-# Here we divide each cycle with a ratio of 60%-40% and keep only two cycles (first and last are still trimmed, so to have two cycles you must start with at least four available)
+# But please remember to have the same amount of columns in the cycle times as the number
+# of phases you want your cycles to be divided into
+# Here we divide each cycle with a ratio of 60%-40% and keep only two cycles (first and last
+# are still trimmed, so to have two cycles you must start with at least four available)
 another_norm_EMG <- pbapply::pblapply(filtered_EMG,
                                       function(x) normEMG(x,
                                                           trim=TRUE,
@@ -113,7 +116,8 @@ plot_syn_trials(SYNS[[1]],
 ```r
 # Now synergies don't have a functional order and need classification
 # Let's load the built-in data set to have some more trial to classify
-# (clustering cannot be done on only one trial and having just a few, say less than 10, won't help)
+# (clustering cannot be done on only one trial and having just a few,
+# say less than 10, won't help)
 data("SYNS")
 
 # Classify with k-means# and producing a plot that shows how the clustering went with:
@@ -130,7 +134,7 @@ SYNS_classified <- classify_kmeans(SYNS,
 ```r
 # Classified synergies can be finally plotted with
 plot_classified_syns(SYNS_classified,
-                     condition="TW") # "TW" = Treadmill Walking, change with your own if needed
+                     condition="TW") # "TW" = Treadmill Walking, change with your own
 ```
 
 ![](README_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
@@ -210,7 +214,8 @@ clusters <- objects()
 
 if (sum(grepl("^cl$", clusters))==0) {
   # Decide how many processor threads have to be excluded from the cluster
-  # It is a good idea to leave at least one free, so that the machine can be used during computation
+  # It is a good idea to leave at least one free, so that the machine can be used during
+  # computation
   cl <- parallel::makeCluster(max(1, parallel::detectCores()-1))
 }
 # Extract synergies in parallel (will speed up computation only for larger data sets)
