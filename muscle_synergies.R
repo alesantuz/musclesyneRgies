@@ -1959,7 +1959,8 @@ for (condition in conditions) {
   
   colnames(umap_EMG) <- c("muscle", "UMAP1", "UMAP2")
   
-  Cairo::Cairo(file=paste0(paste0(graph_path, "EMG", .Platform$file.sep), "UMAP_FILT_EMG_", condition, ".", ty),
+  Cairo::Cairo(file=paste0(paste0(graph_path, "EMG", .Platform$file.sep), "UMAP_FILT_EMG_", condition, "_",
+                           class_method, "_classification.", ty),
                type=ty, width=0.9*wi, height=0.72*wi, pointsize=mte, dpi=re)
   
   ggumap_EMG <- ggplot2::ggplot(data=umap_EMG,
