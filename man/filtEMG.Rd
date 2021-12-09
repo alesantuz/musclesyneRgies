@@ -38,8 +38,8 @@ filtEMG(
 \value{
 Object of class \code{EMG} with elements:\cr
 \itemize{
-\item \code{cycles} containing cycle timings, with as many columns as many cycle subdivisions are wanted\cr
-\item \code{emg} containing filtered EMG data in columns, first column is time
+\item \code{cycles} data frame containing cycle timings, with as many columns as many cycle subdivisions are wanted\cr
+\item \code{emg} data frame containing filtered EMG data in columns, first column is time
 }
 }
 \description{

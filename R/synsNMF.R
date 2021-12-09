@@ -6,6 +6,7 @@
 #' @param max_iter Maximum number of iterations allowed for each rank
 #' @param last_iter How many of the last iterations should be checked before stopping?
 #' @param MSE_min Threshold on the mean squared error to choose the factorisation rank or minimum number of synergies
+#' @param fixed_syns To impose the factorisation rank or number of synergies
 #'
 #' @details
 #' The first column of `V` must contain time information.
@@ -19,6 +20,7 @@
 #' - `Vr` reconstructed data\cr
 #' - `iterations` number of iterations to convergence\cr
 #' - `R2` quality of reconstruction (coefficient of determination)
+#' - `rank_type` was the rank `fixed` or `variable`?\cr
 #' - `classification` classification type (e.g., `none`, `k-means`, `NMF`, etc.)
 #'
 #' @export
@@ -42,7 +44,8 @@ synsNMF <- function(V,
                     runs=5,
                     max_iter=1000,
                     last_iter=20,
-                    MSE_min=1e-04) {
+                    MSE_min=1e-04,
+                    fixed_syns=NA) {
 
   if (!inherits(V, "data.frame")) {
     stop("Object is not a data frame")
@@ -56,19 +59,23 @@ synsNMF <- function(V,
 
   # Original matrix
   time   <- V[, 1]
-  V      <- V[, -1]
-  V      <- as.matrix(t(V))       # Needs to be transposed for NMF
+  V      <- as.matrix(t(V[, -1])) # Needs to be transposed for NMF
   V[V<0] <- 0                     # Set negative values to zero
-  temp   <- V
-  temp[temp==0] <- Inf
-  V[V==0] <- min(temp, na.rm=T)   # Set the zeros to the smallest non-zero entry in V
+  V[V==0] <- min(V[V>0], na.rm=T) # Replace the zeros with the smallest non-zero entry
 
   m <- nrow(V)                    # Number of muscles
   n <- ncol(V)                    # Number of time points
 
-  max_syns <- m-round(m/4, 0)     # Max number of syns
+  if (is.na(fixed_syns)) {
+    min_syns  <- 1
+    max_syns  <- m-round(m/4, 0)   # Max number of syns
+    rank_type <- "variable"
+  } else if (is.numeric(fixed_syns)) {
+    min_syns <- max_syns <- fixed_syns
+    rank_type <- "fixed"
+  }
 
-  for (r in 1:max_syns) {         # Run NMF with different initial conditions
+  for (r in min_syns:max_syns) {  # Run NMF with different initial conditions
     R2_choice <- numeric()        # Collect the R2 values for each syn and choose the max
 
     # Preallocate to then choose those with highest R2
@@ -91,7 +98,7 @@ synsNMF <- function(V,
       # Iteration zero
       P   <- P*crossprod(M, V)/crossprod((crossprod(M, M)), P)
       M   <- M*tcrossprod(V, P)/tcrossprod(M, tcrossprod(P, P))
-      Vr  <- M%*%P          # Reconstructed matrix
+      Vr  <- M%*%P                # Reconstructed matrix
       RSS <- sum((V-Vr)^2)
       SST <- sum((V-mean(V))^2)
       R2[iter] <- 1-(RSS/SST)
@@ -121,7 +128,8 @@ synsNMF <- function(V,
           P[kk, ] <- P[kk, ]*norm
         }
 
-        # Check if the increase of R2 in the last 20 iterations is less than the target
+        # Check if the increase of R2 in the last "last_iter" iterations
+        # is less than the target
         if (iter>last_iter) {
           R2_diff <- R2[iter]-R2[iter-last_iter]
           if (R2_diff<R2[iter]*R2_target/100) {
@@ -145,21 +153,25 @@ synsNMF <- function(V,
     iters[r]     <- iter
   }
 
-  # Choose the minimum number of synergies using the R2 criterion
-  MSE  <- 100                     # Initialise the Mean Squared Error (MSE)
-  iter <- 0                       # Initialise iterations
-  while (MSE>MSE_min) {
-    iter <- iter+1
-    if (iter==r-1) {
-      break
-    }
-    R2_interp <- data.frame(synergies=c(1:(r-iter+1)),
-                            R2_values=R2_cross[iter:r])
+  if (is.na(fixed_syns)) {
+    # Choose the minimum number of synergies using the R2 criterion
+    MSE  <- 100                     # Initialise the Mean Squared Error (MSE)
+    iter <- 0                       # Initialise iterations
+    while (MSE>MSE_min) {
+      iter <- iter+1
+      if (iter==r-1) {
+        break
+      }
+      R2_interp <- data.frame(synergies=c(1:(r-iter+1)),
+                              R2_values=R2_cross[iter:r])
 
-    lin <- stats::lm(R2_values~synergies, R2_interp)$fitted.values
-    MSE <- sum((lin-R2_interp$R2_values)^2)/nrow(R2_interp)
+      lin <- stats::lm(R2_values~synergies, R2_interp)$fitted.values
+      MSE <- sum((lin-R2_interp$R2_values)^2)/nrow(R2_interp)
+    }
+    syns_R2 <- iter
+  } else if (is.numeric(fixed_syns)) {
+    syns_R2 <- fixed_syns
   }
-  syns_R2 <- iter
 
   P_choice <- data.frame(time, t(P_list[[syns_R2]]))
   colnames(P_choice) <- c("time", paste0("Syn", 1:(ncol(P_choice)-1)))
@@ -172,7 +184,8 @@ synsNMF <- function(V,
                Vr=Vr_list[[syns_R2]],
                iterations=as.numeric(iters[syns_R2]),
                R2=as.numeric(R2_cross[syns_R2]),
-               classification="none")
+               classification="none",
+               rank_type=rank_type)
 
   class(SYNS) <- "musclesyneRgies"
 

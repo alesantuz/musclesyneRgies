@@ -12,7 +12,8 @@
 #' - `Vr` reconstructed data\cr
 #' - `iterations` number of iterations to convergence\cr
 #' - `R2` quality of reconstruction (coefficient of determination)
-#' - `classification` classification type (e.g., `none`, `k-means`, `NMF`, etc.)
+#' - `rank_type` was the rank `fixed` or `variable`?\cr
+#' - `classification` classification type (`NMF`)
 #'
 #' @export
 #'

@@ -18,8 +18,8 @@ rawdata(path_cycles = NA, path_emg = NA, header_cycles, header_emg = TRUE)
 \value{
 List of objects of class \code{EMG}, each with elements:\cr
 \itemize{
-\item \code{cycles} containing cycle timings, with as many columns as many cycle subdivisions are wanted\cr
-\item \code{emg} containing raw EMG data in columns, first column must be time in the same units as in the cycle timings
+\item \code{cycles} data frame containing cycle timings, with as many columns as many cycle subdivisions are wanted\cr
+\item \code{emg} data frame containing raw EMG data in columns, first column must be time in the same units as in the cycle timings
 }
 }
 \description{
@@ -31,12 +31,19 @@ The first column of each raw emg file must be time in the same units as those us
 cycle timings (e.g., [s] or [ms]).
 }
 \examples{
-## Export ASCII data from built-in data set to new subfolders of current working directory
+# Load built-in data set
+data("RAW_DATA")
+
+## Get current working directory
 data_path <- getwd()
-data_path  <- paste0(data_path, .Platform$file.sep)
+data_path <- paste0(data_path, .Platform$file.sep)
+
+## Create two conveniently-named subfolders if they don't already exist
+## (if they exist, please make sure they're empty!)
 dir.create("cycles", showWarnings=FALSE)
 dir.create("emg", showWarnings=FALSE)
-data("RAW_DATA")
+
+## Export ASCII data from built-in data set to the new subfolders
 write.table(RAW_DATA[[1]]$cycles,
             file=paste0(data_path, "cycles", .Platform$file.sep, names(RAW_DATA)[1], ".txt"),
             sep="\t", row.names=FALSE)
@@ -44,12 +51,12 @@ write.table(RAW_DATA[[1]]$emg,
             file=paste0(data_path, "emg", .Platform$file.sep, names(RAW_DATA)[1], ".txt"),
             sep="\t", row.names=FALSE)
 
-## Check data in the new folders if needed before running the following (will delete!)
-
 ## Run the function to parse ASCII files into objects of class `EMG`
 raw_data_from_files <- rawdata(path_cycles=paste0(data_path, "/cycles/"),
                                path_emg=paste0(data_path, "/emg/"),
                                header_cycles=FALSE)
+
+## Check data in the new folders if needed before running the following (will delete!)
 
 ## Delete folders
 unlink("cycles", recursive=TRUE)

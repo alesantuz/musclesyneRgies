@@ -10,7 +10,8 @@ synsNMF(
   runs = 5,
   max_iter = 1000,
   last_iter = 20,
-  MSE_min = 1e-04
+  MSE_min = 1e-04,
+  fixed_syns = NA
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ synsNMF(
 \item{last_iter}{How many of the last iterations should be checked before stopping?}
 
 \item{MSE_min}{Threshold on the mean squared error to choose the factorisation rank or minimum number of synergies}
+
+\item{fixed_syns}{To impose the factorisation rank or number of synergies}
 }
 \value{
 Object of class \code{musclesyneRgies} with elements:\cr
@@ -36,6 +39,7 @@ Object of class \code{musclesyneRgies} with elements:\cr
 \item \code{Vr} reconstructed data\cr
 \item \code{iterations} number of iterations to convergence\cr
 \item \code{R2} quality of reconstruction (coefficient of determination)
+\item \code{rank_type} was the rank \code{fixed} or \code{variable}?\cr
 \item \code{classification} classification type (e.g., \code{none}, \code{k-means}, \code{NMF}, etc.)
 }
 }
