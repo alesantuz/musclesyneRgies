@@ -12,8 +12,8 @@
 #'
 #' @return
 #' Object of class `EMG` with elements:\cr
-#' - `cycles` containing cycle timings, with as many columns as many cycle subdivisions are wanted\cr
-#' - `emg` containing filtered and time-normalised EMG data in columns, first column is time
+#' - `cycles` data frame containing cycle timings, with as many columns as many cycle subdivisions are wanted\cr
+#' - `emg` data frame containing filtered and time-normalised EMG data in columns, first column is time
 #'
 #' @export
 #'
