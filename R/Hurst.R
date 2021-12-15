@@ -4,6 +4,7 @@
 #' @param min_win Minimum window length in points
 #'
 #' @details
+#' `Hurst` calculates the Hurst exponent based on the R/S approach as in Hurst (1951).
 #' For motor primitives, the minimum window length should be bigger than the period
 #' (i.e., the length of each cycle), as reported in Santuz, Akay (2020).
 #'
@@ -24,11 +25,16 @@
 #' J. Neurophysiol. 124, 1083-1091 (2020).
 #'
 #' @examples
-#' #' ## Measurements of the annual flow of the river Nile at Aswan
+#' ## Measurements of the annual flow of the river Nile at Aswan
 #' flow <- datasets::Nile
 #'
 #' ## Calculate Hurst exponent
 #' H <- Hurst(flow)$Hurst
+#' message("Hurst exponent: ", round(H, 3))
+#'
+#' ## Thirty-cycle locomotor primitive from Santuz & Akay (2020)
+#' data(primitive)
+#' H <- Hurst(primitive$signal, min_win = max(primitive$time))$Hurst
 #' message("Hurst exponent: ", round(H, 3))
 
 Hurst <- function (P,

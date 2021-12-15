@@ -42,7 +42,7 @@ subsetEMG <- function(x,
     x      <- x$emg
   }
 
-  sub <- cycles[cy_start+cy_max+1, 1]
+  sub <- as.numeric(cycles[cy_start+cy_max+1, 1])
 
   # Check if there are more than cy_max+2 cycles and do not trim if false
   label <- which(x[, 1]>sub)[1]

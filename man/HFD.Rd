@@ -24,8 +24,6 @@ Higuchi's fractal dimension
 \details{
 For motor primitives, only the most linear part of the log-log plot should be used,
 as reported in Santuz, Akay (2020).
-
-
 }
 \examples{
 ## Measurements of the annual flow of the river Nile at Aswan
@@ -33,6 +31,11 @@ flow <- datasets::Nile
 
 ## Calculate HFD
 fractal_dimension <- HFD(flow)$Higuchi
+message("Higuchi's fractal dimension: ", round(fractal_dimension, 3))
+
+## Thirty-cycle locomotor primitive from Santuz & Akay (2020)
+data(primitive)
+fractal_dimension <- HFD(primitive$signal)$Higuchi
 message("Higuchi's fractal dimension: ", round(fractal_dimension, 3))
 }
 \references{

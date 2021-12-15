@@ -7,8 +7,6 @@
 #' For motor primitives, only the most linear part of the log-log plot should be used,
 #' as reported in Santuz, Akay (2020).
 #'
-#' @details
-#'
 #' @return
 #' A list with elements:\cr
 #' - `loglog` containing the log-log plot from which the HFD is calculated\cr
@@ -31,6 +29,11 @@
 #'
 #' ## Calculate HFD
 #' fractal_dimension <- HFD(flow)$Higuchi
+#' message("Higuchi's fractal dimension: ", round(fractal_dimension, 3))
+#'
+#' ## Thirty-cycle locomotor primitive from Santuz & Akay (2020)
+#' data(primitive)
+#' fractal_dimension <- HFD(primitive$signal)$Higuchi
 #' message("Higuchi's fractal dimension: ", round(fractal_dimension, 3))
 
 HFD <- function(P,

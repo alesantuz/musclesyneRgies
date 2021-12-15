@@ -22,7 +22,9 @@ Imports:
     ggplot2,
     gridExtra,
     benchmarkme,
-    reshape2
+    reshape2,
+    entropy,
+    infotheo
 URL: https://github.com/alesantuz/musclesyneRgies
 BugReports: https://github.com/alesantuz/musclesyneRgies/issues
 Depends: 

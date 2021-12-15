@@ -291,11 +291,11 @@ message("Hurst exponent: ", round(nonlin_H, 3))
 ```
 
 ## Pro tips
+### Parallel computation
+For data sets bigger than the built-in ones, it might be worth it to run the synergy extraction in parallel (i.e., using more than one processor core or thread at once). This can be done with the following code, requiring the package "parallel".
+
 
 ```r
-# Note that for bigger data sets one might want to run synergy extraction in parallel
-# This can be done with the following code, requiring the package "parallel"
-
 # Load the built-in example data set
 data("FILT_EMG")
 
@@ -312,4 +312,30 @@ if (sum(grepl("^cl$", clusters))==0) {
 SYNS <- pbapply::pblapply(FILT_EMG, musclesyneRgies::synsNMF, cl=cl)
 
 parallel::stopCluster(cl)
+```
+### Fractal analysis
+When conducting fractal analysis of motor primitives for cyclic activities, the Higuchi's fractal dimension (HFD) and the Hurst exponent (H) need to be calculated with care, as reported in [Santuz & Akay (2020)](https://journals.physiology.org/doi/full/10.1152/jn.00360.2020). In particular, HFD should be calculated by using only the most linear part of the log-log plot, while H should be calculated by using a minimum window length >= than the period. In the built-in example, the motor primitive has 30 cycles of 200 points each and a proper fractal analysis could be as follows.
+
+```r
+# Thirty-cycle locomotor primitive from Santuz & Akay (2020)
+data(primitive)
+
+# HFD with k_max = 10 to consider only the most linear part of the log-log plot
+# (it's the default value for this function anyway)
+Higuchi_fd <- HFD(primitive$signal, k_max = 10)$Higuchi
+message("Higuchi's fractal dimension: ", round(Higuchi_fd, 3))
+```
+
+```
+## Higuchi's fractal dimension: 1.047
+```
+
+```r
+# H with min_win = 200 points, which is the length of each cycle
+Hurst_exp <- Hurst(primitive$signal, min_win = max(primitive$time))$Hurst
+message("Hurst exponent: ", round(Hurst_exp, 3))
+```
+
+```
+## Hurst exponent: 0.338
 ```
