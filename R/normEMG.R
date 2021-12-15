@@ -76,13 +76,13 @@ normEMG <- function(x,
 
       # Define start of segment
       if (segment==1) {
-        t1 <- cycles[jj, segment]
+        t1 <- as.numeric(cycles[jj, segment])
       } else t1 <- t2+1
       # Define stop of segment
       if (segment<length(cycle_div)) {
-        t2 <- cycles[jj, segment+1]
+        t2 <- as.numeric(cycles[jj, segment+1])
       } else if (segment==length(cycle_div)) {
-        t2 <- cycles[jj+1, 1]
+        t2 <- as.numeric(cycles[jj+1, 1])
       }
 
       if (segment==1) {
