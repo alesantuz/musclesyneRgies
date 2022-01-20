@@ -1,5 +1,5 @@
 # musclesyneRgies
-![logo](./images/musclesyneRgies_logo.png)\
+![](./images/musclesyneRgies_logo.png)
 
 The package `musclesyneRgies` allows to extract muscle synergies from electromyographic (EMG) data through linear decomposition based on unsupervised machine learning. Specifically, here we adopted the non-negative matrix factorization (NMF) framework, due to the non-negative nature of EMG biosignals. However, this method can be applied to any other kind of data sets, from time series to images.
 
@@ -91,27 +91,27 @@ data_path <- paste0(data_path, .Platform$file.sep)
 
 # Create two conveniently-named subfolders if they don't already exist
 # (if they exist, please make sure they're empty!)
-dir.create("cycles", showWarnings=FALSE)
-dir.create("emg", showWarnings=FALSE)
+dir.create("cycles", showWarnings = FALSE)
+dir.create("emg", showWarnings = FALSE)
 
 # Export ASCII data from built-in data set to the new subfolders
 write.table(RAW_DATA[[1]]$cycles,
-            file=paste0(data_path, "cycles", .Platform$file.sep, names(RAW_DATA)[1], ".txt"),
-            sep="\t", row.names=FALSE)
+            file = paste0(data_path, "cycles", .Platform$file.sep, names(RAW_DATA)[1], ".txt"),
+            sep = "\t", row.names = FALSE)
 write.table(RAW_DATA[[1]]$emg,
-            file=paste0(data_path, "emg", .Platform$file.sep, names(RAW_DATA)[1], ".txt"),
-            sep="\t", row.names=FALSE)
+            file = paste0(data_path, "emg", .Platform$file.sep, names(RAW_DATA)[1], ".txt"),
+            sep = "\t", row.names = FALSE)
 
 # Run the function to parse ASCII files into objects of class `EMG`
-raw_data_from_files <- rawdata(path_cycles=paste0(data_path, "/cycles/"),
-                               path_emg=paste0(data_path, "/emg/"),
-                               header_cycles=FALSE)
+raw_data_from_files <- rawdata(path_cycles = paste0(data_path, "/cycles/"),
+                               path_emg = paste0(data_path, "/emg/"),
+                               header_cycles = FALSE)
 
 # Check data in the new folders if needed before running the following (will delete!)
 
 # Delete folders
-unlink("cycles", recursive=TRUE)
-unlink("emg", recursive=TRUE)
+unlink("cycles", recursive = TRUE)
+unlink("emg", recursive = TRUE)
 ```
 
 ## Workflow example
@@ -128,12 +128,12 @@ data("RAW_DATA")
 # You can subset the raw data (here we keep only 3 cycles, starting from the first)
 RAW_DATA_subset <- pbapply::pblapply(RAW_DATA,
                                      function(x) subsetEMG(x,
-                                                           cy_max=3,
-                                                           cy_start=1))
+                                                           cy_max = 3,
+                                                           cy_start = 1))
 
 # Raw EMG can be plotted with the following (the first three seconds are plot by default)
 plot_rawEMG(RAW_DATA[[1]],
-            trial=names(RAW_DATA)[1])
+            trial = names(RAW_DATA)[1])
 ```
 
 ![](README_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
@@ -153,14 +153,14 @@ filtered_EMG <- pbapply::pblapply(RAW_DATA, function(x) filtEMG(x))
 # If you decide to change filtering parameters, just give them as arguments:
 another_filtered_EMG <- pbapply::pblapply(RAW_DATA,
                                           function(x) filtEMG(x,
-                                                              demean=FALSE,
-                                                              rectif="halfwave",
-                                                              HPf=30,
-                                                              HPo=2,
-                                                              LPf=10,
-                                                              LPo=2,
-                                                              min_sub=FALSE,
-                                                              ampl_norm=FALSE))
+                                                              demean = FALSE,
+                                                              rectif = "halfwave",
+                                                              HPf = 30,
+                                                              HPo = 2,
+                                                              LPf = 10,
+                                                              LPo = 2,
+                                                              min_sub = FALSE,
+                                                              ampl_norm = FALSE))
 
 # Now the filtered EMG needs some time normalisation so that cycles will be comparable
 # Here we time-normalise the filtered EMG, including only three cycles and trimming first
@@ -168,9 +168,9 @@ another_filtered_EMG <- pbapply::pblapply(RAW_DATA,
 # Each cycle is divided into two parts, each normalised to a length of 100 points
 norm_EMG <- pbapply::pblapply(filtered_EMG,
                               function(x) normEMG(x,
-                                                  trim=TRUE,
-                                                  cy_max=3,
-                                                  cycle_div=c(100, 100)))
+                                                  trim = TRUE,
+                                                  cy_max = 3,
+                                                  cycle_div = c(100, 100)))
 
 # If this cycle division does not work for you, it can be changed
 # But please remember to have the same amount of columns in the cycle times as the number
@@ -179,13 +179,13 @@ norm_EMG <- pbapply::pblapply(filtered_EMG,
 # are still trimmed, so to have two cycles you must start with at least four available)
 another_norm_EMG <- pbapply::pblapply(filtered_EMG,
                                       function(x) normEMG(x,
-                                                          trim=TRUE,
-                                                          cy_max=2,
-                                                          cycle_div=c(120, 80)))
+                                                          trim = TRUE,
+                                                          cy_max = 2,
+                                                          cycle_div = c(120, 80)))
 
 # The filtered and time-normalised EMG can be plotted with the following
 plot_meanEMG(norm_EMG[[1]],
-             trial=names(norm_EMG)[1])
+             trial = names(norm_EMG)[1])
 ```
 
 ![](README_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
@@ -197,8 +197,8 @@ SYNS <- pbapply::pblapply(norm_EMG, synsNMF)
 
 # The extracted synergies can be plotted with the following
 plot_syn_trials(SYNS[[1]],
-                max_syns=max(unlist(lapply(SYNS, function(x) x$syns))),
-                trial=names(SYNS)[1])
+                max_syns = max(unlist(lapply(SYNS, function(x) x$syns))),
+                trial = names(SYNS)[1])
 ```
 
 ![](README_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
@@ -215,8 +215,8 @@ data("SYNS")
 # - Centre of activity on the y-axis
 # (both referred to the motor primitives of the classified muscle synergies)
 SYNS_classified <- classify_kmeans(SYNS,
-                                   path_for_graphs=NA,
-                                   interactive=FALSE)
+                                   path_for_graphs = NA,
+                                   interactive = FALSE)
 ```
 
 ![](README_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
@@ -224,7 +224,7 @@ SYNS_classified <- classify_kmeans(SYNS,
 ```r
 # Classified synergies can be finally plotted with
 plot_classified_syns(SYNS_classified,
-                     condition="TW") # "TW" = Treadmill Walking, change with your own
+                     condition = "TW") # "TW" = Treadmill Walking, change with your own
 ```
 
 ![](README_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
@@ -232,7 +232,7 @@ plot_classified_syns(SYNS_classified,
 ```r
 # A 2D UMAP plot of the classified synergies can be obtained with
 plot_classified_syns_UMAP(SYNS_classified,
-                          condition="TW")
+                          condition = "TW")
 ```
 
 ![](README_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
@@ -259,9 +259,9 @@ hm_plot[which(hm_plot>hm)] <- hm
 hm_plot[which(hm_plot<hm)] <- NA
 
 # Plots
-plot(prim_sub, ty="l", xlab="Time", ylab="Amplitude")
-lines(hm_plot, lwd=3, col=2) # FWHM (horizontal, in red)
-graphics::abline(v=prim_sub_CoA, lwd=3, col=4) # Coa (vertical, in blue)
+plot(prim_sub, ty = "l", xlab = "Time", ylab = "Amplitude")
+lines(hm_plot, lwd = 3, col = 2) # FWHM (horizontal, in red)
+graphics::abline(v = prim_sub_CoA, lwd = 3, col = 4) # Coa (vertical, in blue)
 ```
 
 ![](README_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
@@ -309,7 +309,7 @@ if (sum(grepl("^cl$", clusters))==0) {
   cl <- parallel::makeCluster(max(1, parallel::detectCores()-1))
 }
 # Extract synergies in parallel (will speed up computation only for larger data sets)
-SYNS <- pbapply::pblapply(FILT_EMG, musclesyneRgies::synsNMF, cl=cl)
+SYNS <- pbapply::pblapply(FILT_EMG, musclesyneRgies::synsNMF, cl = cl)
 
 parallel::stopCluster(cl)
 ```

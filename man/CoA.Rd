@@ -24,8 +24,8 @@ ts <- datasets::WWWusage[1:80]
 ts_CoA <- CoA(ts)
 
 ## Plot
-plot(ts, ty="l", xlab="Time", ylab="Number of users")
-graphics::abline(v=ts_CoA, lwd=2, lty=2)
+plot(ts, ty = "l", xlab = "Time", ylab = "Number of users")
+graphics::abline(v = ts_CoA, lwd = 2, lty = 2)
 }
 \references{
 Martino, G. et al.

@@ -20,32 +20,30 @@
 #' ts_CoA <- CoA(ts)
 #'
 #' ## Plot
-#' plot(ts, ty="l", xlab="Time", ylab="Number of users")
-#' graphics::abline(v=ts_CoA, lwd=2, lty=2)
-
+#' plot(ts, ty = "l", xlab = "Time", ylab = "Number of users")
+#' graphics::abline(v = ts_CoA, lwd = 2, lty = 2)
 CoA <- function(x) {
-
   points <- length(x)
 
   AA <- numeric()
   BB <- numeric()
 
   for (pp in 1:points) {
-    alpha  <- 360*(pp-1)/(points-1)*pi/180
-    vec    <- x[pp]
-    AA[pp] <- vec*cos(alpha)
-    BB[pp] <- vec*sin(alpha)
+    alpha <- 360 * (pp - 1) / (points - 1) * pi / 180
+    vec <- x[pp]
+    AA[pp] <- vec * cos(alpha)
+    BB[pp] <- vec * sin(alpha)
   }
   AA <- sum(AA)
   BB <- sum(BB)
 
-  CoAt <- atan(BB/AA)*180/pi
+  CoAt <- atan(BB / AA) * 180 / pi
 
   # To keep the sign
-  if (AA>0 && BB>0) CoAt <- CoAt
-  if (AA<0 && BB>0) CoAt <- CoAt+180
-  if (AA<0 && BB<0) CoAt <- CoAt+180
-  if (AA>0 && BB<0) CoAt <- CoAt+360
+  if (AA > 0 && BB > 0) CoAt <- CoAt
+  if (AA < 0 && BB > 0) CoAt <- CoAt + 180
+  if (AA < 0 && BB < 0) CoAt <- CoAt + 180
+  if (AA > 0 && BB < 0) CoAt <- CoAt + 360
 
-  return(CoAt*points/360)
+  return(CoAt * points / 360)
 }

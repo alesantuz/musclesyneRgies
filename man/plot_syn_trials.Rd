@@ -43,9 +43,9 @@ If \code{path_for_graphs} is not specified, plots will appear in the plot pane a
 }
 \examples{
 ## Create "Graphs" folder if it does not exist
-data_path  <- getwd()
-data_path  <- paste0(data_path, .Platform$file.sep)
-dir.create("Graphs", showWarnings=FALSE)
+data_path <- getwd()
+data_path <- paste0(data_path, .Platform$file.sep)
+dir.create("Graphs", showWarnings = FALSE)
 path_for_graphs <- paste0(data_path, "Graphs", .Platform$file.sep)
 
 data(SYNS)
@@ -56,13 +56,14 @@ max_syns <- max(unlist(lapply(SYNS, function(x) x$syns)))
 for (ii in c(1, 2)) {
   ## Plot the unclassified synergies, trial-by-trial
   plot_syn_trials(SYNS[[ii]],
-                  max_syns=max_syns,
-                  trial=names(SYNS)[ii],
-                  path_for_graphs=path_for_graphs)
+    max_syns = max_syns,
+    trial = names(SYNS)[ii],
+    path_for_graphs = path_for_graphs
+  )
 }
 
 ## Check plots in the new folder before running the following (will delete!)
 
 ## Delete folder
-unlink("Graphs", recursive=TRUE)
+unlink("Graphs", recursive = TRUE)
 }

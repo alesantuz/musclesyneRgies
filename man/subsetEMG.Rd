@@ -32,10 +32,15 @@ are enough for proper synergy extraction (Oliveira et al. 2014).
 \examples{
 ## Subset example raw data to the first 3 cycles
 data("RAW_DATA")
-RAW_DATA_sub <- pbapply::pblapply(RAW_DATA,
-                                  function(x) subsetEMG(x,
-                                                        cy_max=3,
-                                                        cy_start=1))
+RAW_DATA_sub <- pbapply::pblapply(
+  RAW_DATA,
+  function(x) {
+    subsetEMG(x,
+      cy_max = 3,
+      cy_start = 1
+    )
+  }
+)
 }
 \references{
 Oliveira, A. S. C., Gizzi, L., Farina, D. & Kersting, U. G.

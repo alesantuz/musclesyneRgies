@@ -36,12 +36,11 @@
 #' data(primitive)
 #' H <- Hurst(primitive$signal, min_win = max(primitive$time))$Hurst
 #' message("Hurst exponent: ", round(H, 3))
-
-Hurst <- function (P,
-                   min_win = 2) {
+Hurst <- function(P,
+                  min_win = 2) {
 
   # Stop if data is not in the right form
-  if(!is.numeric(P) && !is.numeric(min_win)) {
+  if (!is.numeric(P) && !is.numeric(min_win)) {
     stop("Please check that time series and min_win are numeric")
   }
 
@@ -49,19 +48,19 @@ Hurst <- function (P,
   n <- length(P)
 
   # Data must have an even number of elements
-  if (n%%2!=0) {
-    P <- c(P, (P[n-1]+P[n])/2)
-    n <- n+1
+  if (n %% 2 != 0) {
+    P <- c(P, (P[n - 1] + P[n]) / 2)
+    n <- n + 1
   }
 
   # Half intervals of indices
   half <- function(ind) {
-    sort(c(ind, ind[-length(ind)]+((diff(ind)+1)%/%2)))
+    sort(c(ind, ind[-length(ind)] + ((diff(ind) + 1) %/% 2)))
   }
 
   # Define the R/S scale
   rsscale <- function(x) {
-    y <- x-mean(x)
+    y <- x - mean(x)
     s <- cumsum(y) # c(y[1], y[1]+y[2], y[1]+y[2]+y[3], ...)
     # Cumulated range (difference between min and max of the cumsum)
     R <- diff(range(s))
@@ -69,21 +68,21 @@ Hurst <- function (P,
     S <- stats::sd(x)
 
     # Return the rescaled range
-    return(R/S)
+    return(R / S)
   }
 
   # Set initial values
   X <- n
   Y <- rsscale(P)
-  N <- c(0, n%/%2, n)
+  N <- c(0, n %/% 2, n)
 
   # Compute averaged R/S for halved intervals
-  while (min(diff(N))>=min_win) {
+  while (min(diff(N)) >= min_win) {
     xl <- c()
     yl <- c()
     for (ii in 2:length(N)) {
-      rs <- rsscale(P[(N[ii-1]+1):N[ii]])
-      xl <- c(xl, N[ii]-N[ii-1])
+      rs <- rsscale(P[(N[ii - 1] + 1):N[ii]])
+      xl <- c(xl, N[ii] - N[ii - 1])
       yl <- c(yl, rs)
     }
     X <- c(X, mean(xl))
@@ -93,12 +92,16 @@ Hurst <- function (P,
   }
 
   # Save data for loglog plot
-  loglog <- data.frame(log_N=log(X),
-                       log_RS=log(Y))
+  loglog <- data.frame(
+    log_N = log(X),
+    log_RS = log(Y)
+  )
 
   # Calculate Hurst exponent as slope of the loglog
-  Hurst <- stats::coef(stats::lm(loglog$log_RS~loglog$log_N))[2]
+  Hurst <- stats::coef(stats::lm(loglog$log_RS ~ loglog$log_N))[2]
 
-  return(list(loglog=loglog,
-              Hurst=Hurst))
+  return(list(
+    loglog = loglog,
+    Hurst = Hurst
+  ))
 }

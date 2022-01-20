@@ -35,12 +35,11 @@
 #' data(primitive)
 #' fractal_dimension <- HFD(primitive$signal)$Higuchi
 #' message("Higuchi's fractal dimension: ", round(fractal_dimension, 3))
-
 HFD <- function(P,
                 k_max = 10) {
 
   # Stop if data is not in the right form
-  if(!is.numeric(P) && !is.numeric(k_max)) {
+  if (!is.numeric(P) && !is.numeric(k_max)) {
     stop("Please check that time series and k_max are numeric")
   }
 
@@ -54,7 +53,7 @@ HFD <- function(P,
   index <- 0
 
   for (k in k_seq) {
-    index <- index+1
+    index <- index + 1
 
     # Construct k new time series
     L_m <- numeric()
@@ -63,23 +62,25 @@ HFD <- function(P,
       P_k <- P[seq(m, length(P), k)]
 
       # Non-Euclidean length of P_k
-      L_k <- 1/k*(((N-1)/(k*round((N-1)/k, 0)))*(sum(abs(diff(P_k)))))
+      L_k <- 1 / k * (((N - 1) / (k * round((N - 1) / k, 0))) * (sum(abs(diff(P_k)))))
 
       L_m[m] <- L_k
     }
 
-    L[index] <- sum(L_m)/k
-
+    L[index] <- sum(L_m) / k
   }
 
   # Save data for loglog plot
-  loglog <- data.frame(log_k=log(k_seq),
-                       log_L=log(L))
+  loglog <- data.frame(
+    log_k = log(k_seq),
+    log_L = log(L)
+  )
 
   # Calculate HFD as slope of the loglog
-  Higuchi <- abs(stats::coef(stats::lm(log(L)~log(k_seq)))[2])
+  Higuchi <- abs(stats::coef(stats::lm(log(L) ~ log(k_seq)))[2])
 
-  return(list(loglog=loglog,
-              Higuchi=Higuchi))
-
+  return(list(
+    loglog = loglog,
+    Higuchi = Higuchi
+  ))
 }

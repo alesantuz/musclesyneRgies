@@ -26,37 +26,43 @@
 #' @examples
 #' ## Subset example raw data to the first 3 cycles
 #' data("RAW_DATA")
-#' RAW_DATA_sub <- pbapply::pblapply(RAW_DATA,
-#'                                   function(x) subsetEMG(x,
-#'                                                         cy_max=3,
-#'                                                         cy_start=1))
-
+#' RAW_DATA_sub <- pbapply::pblapply(
+#'   RAW_DATA,
+#'   function(x) {
+#'     subsetEMG(x,
+#'       cy_max = 3,
+#'       cy_start = 1
+#'     )
+#'   }
+#' )
 subsetEMG <- function(x,
                       cy_max,
                       cy_start = 1) {
-
   if (!inherits(x, "EMG")) {
     stop("Object is not of class EMG, please create objects in the right format with \"rawdata\"")
   } else {
     cycles <- x$cycles
-    x      <- x$emg
+    x <- x$emg
   }
 
-  sub <- as.numeric(cycles[cy_start+cy_max+1, 1])
+  sub <- as.numeric(cycles[cy_start + cy_max + 1, 1])
 
   # Check if there are more than cy_max+2 cycles and do not trim if false
-  label <- which(x[, 1]>sub)[1]
+  label <- which(x[, 1] > sub)[1]
 
   if (!is.na(label)) {
-    RAW_DATA <- list(cycles=cycles[cy_start:(cy_max+1), ],
-                     emg=x[1:label, ])
+    RAW_DATA <- list(
+      cycles = cycles[cy_start:(cy_max + 1), ],
+      emg = x[1:label, ]
+    )
   } else {
-    RAW_DATA <- list(cycles=cycles,
-                     emg=x)
+    RAW_DATA <- list(
+      cycles = cycles,
+      emg = x
+    )
   }
 
   class(RAW_DATA) <- "EMG"
 
   return(RAW_DATA)
-
 }

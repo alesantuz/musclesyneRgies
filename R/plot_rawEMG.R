@@ -19,9 +19,9 @@
 #'
 #' @examples
 #' ## Create "Graphs" folder if it does not exist
-#' data_path  <- getwd()
-#' data_path  <- paste0(data_path, .Platform$file.sep)
-#' dir.create("Graphs", showWarnings=FALSE)
+#' data_path <- getwd()
+#' data_path <- paste0(data_path, .Platform$file.sep)
+#' dir.create("Graphs", showWarnings = FALSE)
 #' path_for_graphs <- paste0(data_path, "Graphs", .Platform$file.sep)
 #'
 #' data(RAW_DATA)
@@ -36,8 +36,7 @@
 #' ## Check plots in the new folder before running the following (will delete!)
 #'
 #' ## Delete folder
-#' unlink("Graphs", recursive=TRUE)
-
+#' unlink("Graphs", recursive = TRUE)
 plot_rawEMG <- function(x,
                         trial,
                         plot_time = 3,
@@ -47,7 +46,6 @@ plot_rawEMG <- function(x,
                         width = 2000,
                         height = 500,
                         resolution = 280) {
-
   if (!inherits(x, "EMG")) {
     stop("Object is not of class EMG, please create objects in the right format with \"rawdata\"")
   } else {
@@ -59,48 +57,57 @@ plot_rawEMG <- function(x,
   # Muscle list, including time
   muscles <- colnames(x)
   # EMG system acquisition frequency [Hz]
-  freq <- round(1/(mean(diff(x[, "time"]), na.rm=T)), 0)
+  freq <- round(1 / (mean(diff(x[, "time"]), na.rm = T)), 0)
 
   start <- 1
-  stop  <- freq*plot_time+start-1
-  if(start<=0) start <- 1
+  stop <- freq * plot_time + start - 1
+  if (start <= 0) start <- 1
 
   if (!is.na(path_for_graphs)) {
-    Cairo::Cairo(file=paste0(path_for_graphs, trial, ".", filetype),
-                 width=width, height=height*(length(muscles)-1), dpi=resolution)
+    Cairo::Cairo(
+      file = paste0(path_for_graphs, trial, ".", filetype),
+      width = width, height = height * (length(muscles) - 1), dpi = resolution
+    )
   }
 
   varlist <- list()
 
   for (mm in 2:length(muscles)) {
-    data <- data.frame(time=x[start:stop, "time"],
-                       signal=x[start:stop, grep(paste0("^", muscles[mm], "$"), colnames(x))])
+    data <- data.frame(
+      time = x[start:stop, "time"],
+      signal = x[start:stop, grep(paste0("^", muscles[mm], "$"), colnames(x))]
+    )
 
-    data$signal <- data$signal/max(data$signal, na.rm=T)
-    data$signal <- data$signal/min(data$signal, na.rm=T)
+    data$signal <- data$signal / max(data$signal, na.rm = T)
+    data$signal <- data$signal / min(data$signal, na.rm = T)
 
-    varname <- paste("pp", mm, sep="")
+    varname <- paste("pp", mm, sep = "")
 
     temp <- ggplot2::ggplot() +
       ggplot2::ggtitle(muscles[mm]) +
       ggplot2::ylim(-1, 1) +
-      ggplot2::geom_line(data=data,
-                         ggplot2::aes(x=time,  y=signal),
-                         colour="black", size=0.3) +
-      ggplot2::theme(axis.title=ggplot2::element_blank(),
-                     panel.background=ggplot2::element_rect(fill="white", colour="grey"),
-                     panel.grid.major=ggplot2::element_line(colour="grey", size=0.05),
-                     panel.grid.minor=ggplot2::element_blank(),
-                     legend.position="none")
+      ggplot2::geom_line(
+        data = data,
+        ggplot2::aes(x = time, y = signal),
+        colour = "black", size = 0.3
+      ) +
+      ggplot2::theme(
+        axis.title = ggplot2::element_blank(),
+        panel.background = ggplot2::element_rect(fill = "white", colour = "grey"),
+        panel.grid.major = ggplot2::element_line(colour = "grey", size = 0.05),
+        panel.grid.minor = ggplot2::element_blank(),
+        legend.position = "none"
+      )
 
-    varlist[[mm-1]] <- assign(varname, temp)
+    varlist[[mm - 1]] <- assign(varname, temp)
   }
 
-  gridExtra::grid.arrange(grobs=varlist,
-                          nrow=length(varlist),
-                          ncol=1,
-                          top=(paste0(trial, sep="")))
+  gridExtra::grid.arrange(
+    grobs = varlist,
+    nrow = length(varlist),
+    ncol = 1,
+    top = (paste0(trial, sep = ""))
+  )
 
   if (!is.na(path_for_graphs)) grDevices::dev.off()
-
 }

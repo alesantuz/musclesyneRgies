@@ -25,14 +25,14 @@ ts <- datasets::WWWusage
 ts_FWHM <- FWHM(ts)
 
 ## Half maximum (for the plots)
-hm <- min(ts)+(max(ts)-min(ts))/2
+hm <- min(ts) + (max(ts) - min(ts)) / 2
 hm_plot <- ts
-hm_plot[which(hm_plot>hm)] <- hm
-hm_plot[which(hm_plot<hm)] <- NA
+hm_plot[which(hm_plot > hm)] <- hm
+hm_plot[which(hm_plot < hm)] <- NA
 
 ## Plots
-plot(ts, ty="l", xlab="Time", ylab="Number of users")
-lines(hm_plot, lwd=3, col=2)
+plot(ts, ty = "l", xlab = "Time", ylab = "Number of users")
+lines(hm_plot, lwd = 3, col = 2)
 }
 \references{
 Martino, G. et al.

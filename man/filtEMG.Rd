@@ -53,12 +53,17 @@ used for \code{cycles} (e.g., [s] or [ms]).
 \examples{
 ## Filter raw EMG
 data("RAW_DATA")
-filtered_EMG <- pbapply::pblapply(RAW_DATA,
-                                  function(x) filtEMG(x,
-                                                      HPf=50,
-                                                      HPo=4,
-                                                      LPf=20,
-                                                      LPo=4))
+filtered_EMG <- pbapply::pblapply(
+  RAW_DATA,
+  function(x) {
+    filtEMG(x,
+      HPf = 50,
+      HPo = 4,
+      LPf = 20,
+      LPo = 4
+    )
+  }
+)
 }
 \references{
 Santuz, A., Ekizos, A., Janshen, L., Baltzopoulos, V. & Arampatzis, A.

@@ -54,19 +54,20 @@ If \code{path_for_graphs} is not specified, plots will appear in the plot pane a
 }
 \examples{
 ## Create "Graphs" folder if it does not exist
-data_path  <- getwd()
-data_path  <- paste0(data_path, .Platform$file.sep)
-dir.create("Graphs", showWarnings=FALSE)
+data_path <- getwd()
+data_path <- paste0(data_path, .Platform$file.sep)
+dir.create("Graphs", showWarnings = FALSE)
 path_for_graphs <- paste0(data_path, "Graphs", .Platform$file.sep)
 
 data("SYNS")
 
 SYNS_classified <- classify_kmeans(SYNS,
-                                   path_for_graphs=path_for_graphs,
-                                   interactive=FALSE)
+  path_for_graphs = path_for_graphs,
+  interactive = FALSE
+)
 
 ## Check plots in the new folder before running the following (will delete!)
 
 ## Delete folder
-unlink("Graphs", recursive=TRUE)
+unlink("Graphs", recursive = TRUE)
 }

@@ -25,30 +25,38 @@
 #' @examples
 #' ## Filter raw EMG
 #' data("RAW_DATA")
-#' filtered_EMG <- pbapply::pblapply(RAW_DATA,
-#'                                   function(x) filtEMG(x,
-#'                                                       HPf=50,
-#'                                                       HPo=4,
-#'                                                       LPf=20,
-#'                                                       LPo=4))
+#' filtered_EMG <- pbapply::pblapply(
+#'   RAW_DATA,
+#'   function(x) {
+#'     filtEMG(x,
+#'       HPf = 50,
+#'       HPo = 4,
+#'       LPf = 20,
+#'       LPo = 4
+#'     )
+#'   }
+#' )
 #'
 #' ## Time-normalise filtered EMG, including three cycles and trimming first and last
-#' norm_EMG <- pbapply::pblapply(filtered_EMG,
-#'                               function(x) normEMG(x,
-#'                                                   trim=TRUE,
-#'                                                   cy_max=3,
-#'                                                   cycle_div=c(100, 100)))
-
+#' norm_EMG <- pbapply::pblapply(
+#'   filtered_EMG,
+#'   function(x) {
+#'     normEMG(x,
+#'       trim = TRUE,
+#'       cy_max = 3,
+#'       cycle_div = c(100, 100)
+#'     )
+#'   }
+#' )
 normEMG <- function(x,
                     trim = TRUE,
                     cy_max,
                     cycle_div = c(100, 100)) {
-
   if (!inherits(x, "EMG")) {
     stop("Object is not of class EMG, please create objects in the right format with \"rawdata\"")
   } else {
     cycles <- x$cycles
-    x      <- x$emg
+    x <- x$emg
   }
 
   if (!identical(length(cycle_div), ncol(cycles))) {
@@ -61,51 +69,68 @@ normEMG <- function(x,
 
   if (isTRUE(trim)) {
     # Trim first and last cycle to remove filtering effects
-    cycles <- cycles[2:(nrow(cycles)-1), ]
+    cycles <- cycles[2:(nrow(cycles) - 1), ]
   }
-  cycs <- nrow(cycles)-1
+  cycs <- nrow(cycles) - 1
 
   # Remove excess cycles, if present
-  if (cycs>cy_max) cycs <- cy_max
+  if (cycs > cy_max) cycs <- cy_max
 
   # Isolate cycles and normalise time to "points" points
   # (first half stance, second half swing)
   for (jj in 1:cycs) {
-
     for (segment in 1:length(cycle_div)) {
 
       # Define start of segment
-      if (segment==1) {
+      if (segment == 1) {
         t1 <- as.numeric(cycles[jj, segment])
-      } else t1 <- t2+1
+      } else {
+        t1 <- t2 + 1
+      }
       # Define stop of segment
-      if (segment<length(cycle_div)) {
-        t2 <- as.numeric(cycles[jj, segment+1])
-      } else if (segment==length(cycle_div)) {
-        t2 <- as.numeric(cycles[jj+1, 1])
+      if (segment < length(cycle_div)) {
+        t2 <- as.numeric(cycles[jj, segment + 1])
+      } else if (segment == length(cycle_div)) {
+        t2 <- as.numeric(cycles[jj + 1, 1])
       }
 
-      if (segment==1) {
-        t1 <- which(emg_time>=t1)[1]
+      if (segment == 1) {
+        t1 <- which(emg_time >= t1)[1]
       }
-      t2 <- which(emg_time>=t2)[1]-1
+      t2 <- which(emg_time >= t2)[1] - 1
 
       temp <- x[t1:t2, ]
 
       # Interpolate each channel to wanted number of points
-      if (jj==1 && segment==1) {
-        emg_interp <- data.frame(time=c(1:cycle_div[segment]),
-                                 apply(temp, 2,
-                                       function(x) stats::approx(x,
-                                                                 method="linear",
-                                                                 n=cycle_div[segment])$y))
+      if (jj == 1 && segment == 1) {
+        emg_interp <- data.frame(
+          time = c(1:cycle_div[segment]),
+          apply(
+            temp, 2,
+            function(x) {
+              stats::approx(x,
+                method = "linear",
+                n = cycle_div[segment]
+              )$y
+            }
+          )
+        )
       } else {
-        emg_interp <- rbind(emg_interp,
-                            data.frame(time=c(1:cycle_div[segment]),
-                                       apply(temp, 2,
-                                             function(x) stats::approx(x,
-                                                                       method="linear",
-                                                                       n=cycle_div[segment])$y)))
+        emg_interp <- rbind(
+          emg_interp,
+          data.frame(
+            time = c(1:cycle_div[segment]),
+            apply(
+              temp, 2,
+              function(x) {
+                stats::approx(x,
+                  method = "linear",
+                  n = cycle_div[segment]
+                )$y
+              }
+            )
+          )
+        )
       }
     }
   }
@@ -114,5 +139,4 @@ normEMG <- function(x,
   emg_interp$time <- c(1:sum(cycle_div))
 
   return(emg_interp)
-
 }
