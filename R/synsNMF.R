@@ -40,12 +40,12 @@
 #' SYNS <- pbapply::pblapply(FILT_EMG, synsNMF)
 
 synsNMF <- function(V,
-                    R2_target=0.01,
-                    runs=5,
-                    max_iter=1000,
-                    last_iter=20,
-                    MSE_min=1e-04,
-                    fixed_syns=NA) {
+                    R2_target = 0.01,
+                    runs = 5,
+                    max_iter = 1000,
+                    last_iter = 20,
+                    MSE_min = 1e-04,
+                    fixed_syns = NA) {
 
   if (!inherits(V, "data.frame")) {
     stop("Object is not a data frame")

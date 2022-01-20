@@ -33,7 +33,7 @@
 
 subsetEMG <- function(x,
                       cy_max,
-                      cy_start=1) {
+                      cy_start = 1) {
 
   if (!inherits(x, "EMG")) {
     stop("Object is not of class EMG, please create objects in the right format with \"rawdata\"")

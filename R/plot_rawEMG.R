@@ -40,13 +40,13 @@
 
 plot_rawEMG <- function(x,
                         trial,
-                        plot_time=3,
-                        start=1,
-                        path_for_graphs=NA,
-                        filetype="png",
-                        width=2000,
-                        height=500,
-                        resolution=280) {
+                        plot_time = 3,
+                        start = 1,
+                        path_for_graphs = NA,
+                        filetype = "png",
+                        width = 2000,
+                        height = 500,
+                        resolution = 280) {
 
   if (!inherits(x, "EMG")) {
     stop("Object is not of class EMG, please create objects in the right format with \"rawdata\"")

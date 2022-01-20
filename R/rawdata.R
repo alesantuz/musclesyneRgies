@@ -49,10 +49,10 @@
 #' unlink("cycles", recursive=TRUE)
 #' unlink("emg", recursive=TRUE)
 
-rawdata <- function(path_cycles=NA,
-                    path_emg=NA,
+rawdata <- function(path_cycles = NA,
+                    path_emg = NA,
                     header_cycles,
-                    header_emg=TRUE) {
+                    header_emg = TRUE) {
 
   if (is.na(path_cycles) && is.na(path_emg)) {
     if (.Platform$OS.type=="windows") {

@@ -45,13 +45,13 @@
 #' unlink("Graphs", recursive=TRUE)
 
 classify_kmeans <- function(x,
-                            MSE_lim=1e-03,
-                            path_for_graphs=NA,
-                            filetype="png",
-                            width=1620,
-                            height=1300,
-                            resolution=280,
-                            interactive=TRUE) {
+                            MSE_lim = 1e-03,
+                            path_for_graphs = NA,
+                            filetype = "png",
+                            width = 1620,
+                            height = 1300,
+                            resolution = 280,
+                            interactive = TRUE) {
 
   FWHM <- clusters_M <- clusters_P <- NULL
 

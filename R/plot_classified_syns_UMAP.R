@@ -40,12 +40,12 @@
 #' unlink("Graphs", recursive=TRUE)
 
 plot_classified_syns_UMAP <- function(x,
-                                      path_for_graphs=NA,
+                                      path_for_graphs = NA,
                                       condition,
-                                      filetype="png",
-                                      width=1800,
-                                      height=2840,
-                                      resolution=280) {
+                                      filetype = "png",
+                                      width = 1800,
+                                      height = 2840,
+                                      resolution = 280) {
 
   message("\nSaving 2D UMAP synergy plots for condition ", condition, "...")
 

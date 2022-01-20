@@ -40,9 +40,9 @@
 #'                                                   cycle_div=c(100, 100)))
 
 normEMG <- function(x,
-                    trim=TRUE,
+                    trim = TRUE,
                     cy_max,
-                    cycle_div=c(100, 100)) {
+                    cycle_div = c(100, 100)) {
 
   if (!inherits(x, "EMG")) {
     stop("Object is not of class EMG, please create objects in the right format with \"rawdata\"")

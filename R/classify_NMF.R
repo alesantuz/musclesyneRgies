@@ -24,7 +24,7 @@
 #'                                 interactive=FALSE)
 
 classify_NMF <- function(x,
-                         interactive=TRUE) {
+                         interactive = TRUE) {
 
   # Define NMF function
   NMFn <- function(V)

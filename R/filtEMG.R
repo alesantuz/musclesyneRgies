@@ -38,14 +38,14 @@
 #'                                                       LPo=4))
 
 filtEMG <- function(x,
-                    demean=TRUE,
-                    rectif="fullwave",
-                    HPf=50,
-                    HPo=4,
-                    LPf=20,
-                    LPo=4,
-                    min_sub=TRUE,
-                    ampl_norm=TRUE) {
+                    demean = TRUE,
+                    rectif = "fullwave",
+                    HPf = 50,
+                    HPo = 4,
+                    LPf = 20,
+                    LPo = 4,
+                    min_sub = TRUE,
+                    ampl_norm = TRUE) {
 
   if (!inherits(x, "EMG")) {
     stop("Object is not of class EMG, please create objects in the right format with \"rawdata\"")

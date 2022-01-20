@@ -37,7 +37,7 @@
 #' message("Higuchi's fractal dimension: ", round(fractal_dimension, 3))
 
 HFD <- function(P,
-                k_max=10) {
+                k_max = 10) {
 
   # Stop if data is not in the right form
   if(!is.numeric(P) && !is.numeric(k_max)) {

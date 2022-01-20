@@ -44,11 +44,11 @@
 plot_syn_trials <- function(x,
                             max_syns,
                             trial,
-                            path_for_graphs=NA,
-                            filetype="png",
-                            width=2000,
-                            height=500*max_syns,
-                            resolution=280) {
+                            path_for_graphs = NA,
+                            filetype = "png",
+                            width = 2000,
+                            height = 500*max_syns,
+                            resolution = 280) {
 
   if (!inherits(x, "musclesyneRgies")) {
     stop("Object is not of class musclesynergies, please create objects in the right format with \"synsNMF\"")

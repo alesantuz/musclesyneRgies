@@ -38,11 +38,11 @@
 
 plot_meanEMG <- function(x,
                          trial,
-                         path_for_graphs=NA,
-                         filetype="png",
-                         width=2000,
-                         height=1875,
-                         resolution=140) {
+                         path_for_graphs = NA,
+                         filetype = "png",
+                         width = 2000,
+                         height = 1875,
+                         resolution = 140) {
 
   if (!inherits(x, "data.frame")) {
     stop("Objects are not data frames")

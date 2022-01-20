@@ -41,12 +41,12 @@
 #' unlink("Graphs", recursive=TRUE)
 
 plot_classified_syns <- function(x,
-                                 path_for_graphs=NA,
+                                 path_for_graphs = NA,
                                  condition,
-                                 filetype="png",
-                                 width=1800,
-                                 height=625,
-                                 resolution=280) {
+                                 filetype = "png",
+                                 width = 1800,
+                                 height = 625,
+                                 resolution = 280) {
 
   message("\nSaving synergy plots for condition ", condition, "...")
 

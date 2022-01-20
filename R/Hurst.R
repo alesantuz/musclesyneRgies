@@ -38,7 +38,7 @@
 #' message("Hurst exponent: ", round(H, 3))
 
 Hurst <- function (P,
-                   min_win=2) {
+                   min_win = 2) {
 
   # Stop if data is not in the right form
   if(!is.numeric(P) && !is.numeric(min_win)) {
