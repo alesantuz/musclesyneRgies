@@ -99,36 +99,22 @@ normEMG <- function(x,
       }
       t2 <- which(emg_time >= t2)[1] - 1
 
-      temp <- x[t1:t2, ]
-
       # Interpolate each channel to wanted number of points
       if (jj == 1 && segment == 1) {
         emg_interp <- data.frame(
           time = c(1:cycle_div[segment]),
-          apply(
-            temp, 2,
-            function(x) {
-              stats::approx(x,
-                method = "linear",
-                n = cycle_div[segment]
-              )$y
-            }
-          )
+          apply(x[t1:t2, ], 2, function(x) {
+            stats::approx(x, method = "linear", n = cycle_div[segment])$y
+          })
         )
       } else {
         emg_interp <- rbind(
           emg_interp,
           data.frame(
             time = c(1:cycle_div[segment]),
-            apply(
-              temp, 2,
-              function(x) {
-                stats::approx(x,
-                  method = "linear",
-                  n = cycle_div[segment]
-                )$y
-              }
-            )
+            apply(x[t1:t2, ], 2, function(x) {
+              stats::approx(x, method = "linear", n = cycle_div[segment])$y
+            })
           )
         )
       }

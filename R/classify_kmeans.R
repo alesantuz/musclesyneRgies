@@ -52,7 +52,7 @@ classify_kmeans <- function(x,
                             height = 1300,
                             resolution = 280,
                             interactive = TRUE) {
-  FWHM <- clusters_M <- clusters_P <- NULL
+  FWHM_P <- CoA_P <- clusters_M <- clusters_P <- NULL
 
   # Get motor modules and concatenated motor primitives
   M <- lapply(x, function(y) y$M)
@@ -204,8 +204,8 @@ classify_kmeans <- function(x,
   orders <- data.frame(
     clusters_P = clust_P$cluster,
     clusters_M = clust_M$cluster,
-    FWHM = apply(data_P, 1, function(y) length(which(y >= 0.5))),
-    CoA = apply(data_P, 1, function(z) CoA(z))
+    FWHM_P = apply(data_P, 1, function(y) musclesyneRgies::FWHM(y)),
+    CoA_P = apply(data_P, 1, function(z) musclesyneRgies::CoA(z))
   )
 
   clust_num <- clust_num_P
@@ -214,20 +214,20 @@ classify_kmeans <- function(x,
   temp_P <- subset(orders, select = -c(clusters_M))
   temp_M <- subset(orders, select = -c(clusters_P))
   # Take average FWHM and CoA based on cluster
-  geoms_P <- data.frame(stats::aggregate(FWHM ~ clusters_P, temp_P, mean),
-    CoA = stats::aggregate(CoA ~ clusters_P, temp_P, mean)$CoA
+  geoms_P <- data.frame(stats::aggregate(FWHM_P ~ clusters_P, temp_P, mean),
+    CoA_P = stats::aggregate(CoA_P ~ clusters_P, temp_P, mean)$CoA_P
   )
-  geoms_M <- data.frame(stats::aggregate(FWHM ~ clusters_M, temp_M, mean),
-    CoA = stats::aggregate(CoA ~ clusters_M, temp_M, mean)$CoA
+  geoms_M <- data.frame(stats::aggregate(FWHM_P ~ clusters_M, temp_M, mean),
+    CoA_P = stats::aggregate(CoA_P ~ clusters_M, temp_M, mean)$CoA_P
   )
   # Define score as sum of FWHM and CoA and normalise to number of points
   geoms_P <- data.frame(
     clust_P = geoms_P$clusters_P,
-    score = geoms_P$FWHM * geoms_P$CoA
+    score = geoms_P$FWHM_P * geoms_P$CoA_P
   )
   geoms_M <- data.frame(
     clust_M = geoms_M$clusters_M,
-    score = geoms_M$FWHM * geoms_M$CoA
+    score = geoms_M$FWHM_P * geoms_M$CoA_P
   )
 
   # Calculate mutual score squared residuals and find minimum
@@ -312,6 +312,7 @@ classify_kmeans <- function(x,
     mean_P[clust, ] <- mean_P[clust, ] / max(mean_P[clust, ])
     mean_M[clust, ] <- mean_M[clust, ] / max(mean_M[clust, ])
   }
+
   # Create ordering rule
   order_rule <- data.frame(
     old = c(1:clust_num),
@@ -463,8 +464,6 @@ classify_kmeans <- function(x,
     }
   }
 
-
-
   # Remove double classifications, if present
   trials <- unique(gsub("_Syn.+", "", rownames(orders)))
 
@@ -516,7 +515,7 @@ classify_kmeans <- function(x,
   ggfinal <- ggplot2::ggplot(
     data = orders_new,
     ggplot2::aes(
-      x = FWHM, y = CoA,
+      x = FWHM_P, y = CoA_P,
       colour = factor(paste0("Syn ", clusters_P))
     )
   ) +

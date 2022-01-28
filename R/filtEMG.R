@@ -57,10 +57,11 @@ filtEMG <- function(x,
     x <- x$emg
   }
 
-  # EMG system acquisition frequency [Hz]
-  freq <- round(1 / (mean(diff(x[, 1]), na.rm = T)), 0)
-
+  # Time information
   time <- x[, 1]
+
+  # EMG system acquisition frequency [Hz]
+  freq <- round(1 / (mean(diff(time), na.rm = T)), 0)
 
   # Remove time column
   x <- x[, -1]
@@ -85,7 +86,7 @@ filtEMG <- function(x,
     x[x < 0] <- 0
   }
 
-  if (HPf != 0) {
+  if (LPf != 0) {
     # Low-pass IIR (Infinite Impulse Response) Butterworth zero-phase filter design
     # Critical frequencies must be between 0 and 1, where 1 is the Nyquist frequency
     # "filtfilt" is for zero-phase filtering
@@ -94,10 +95,8 @@ filtEMG <- function(x,
     x <- apply(x, 2, function(y) signal::filtfilt(LP, y))
   }
 
-  x[x < 0] <- 0 # Set negative values to zero
-  temp <- x
-  temp[temp == 0] <- Inf
-  x[x == 0] <- min(temp) # Set the zeros to the smallest non-zero entry
+  # Replace values <= 0 with the smallest non-zero value
+  x[x <= 0] <- min(x[x > 0], na.rm=T)
 
   if (isTRUE(min_sub)) {
     # Subtract the minimum

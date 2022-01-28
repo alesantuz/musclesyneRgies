@@ -32,7 +32,11 @@
 #'
 #' Santuz, A., Ekizos, A., Janshen, L., Baltzopoulos, V. & Arampatzis, A.
 #' On the Methodological Implications of Extracting Muscle Synergies from Human Locomotion.
-#' Int. J. Neural Syst. 27, 1750007 (2017).
+#' Int. J. Neural Syst. 27, 1750007 (2017).\cr
+#'
+#' Févotte, C., Idier, J.
+#' Algorithms for Nonnegative Matrix Factorization with the ß-Divergence
+#' Neural Computation 23, 9 (2011).
 #'
 #' @examples
 #' ## Note that for bigger data sets one might want to run computation in parallel
@@ -58,10 +62,9 @@ synsNMF <- function(V,
   # Original matrix
   time <- V[, 1]
   V <- as.matrix(t(V[, -1])) # Needs to be transposed for NMF
-  V[V < 0] <- 0 # Set negative values to zero
-  V[V == 0] <- min(V[V > 0],
-    na.rm = TRUE
-  ) # Replace the zeros with the smallest non-zero entry
+
+  # Replace values <= 0 with the smallest non-zero value
+  V[V <= 0] <- min(V[V > 0], na.rm = T)
 
   m <- nrow(V) # Number of muscles
   n <- ncol(V) # Number of time points
@@ -83,65 +86,51 @@ synsNMF <- function(V,
     P_temp <- list()
     Vr_temp <- list()
 
-    for (j in 1:runs) { # Run NMF multiple times for each syn and choose best run
-      # To save error values
-      R2 <- numeric() # 1st cost function (R squared)
-      SST <- numeric() # Total sum of squares
-      RSS <- numeric() # Residual sum of squares or min reconstruction error
-
-      # Initialise iterations
-      iter <- 1
+    for (run in 1:runs) { # Run NMF multiple times for each syn and choose best run
       # Initialise the two factorisation matrices with random values (uniform distribution)
       P <- matrix(stats::runif(r * n, min = min(V), max = max(V)), nrow = r, ncol = n)
       M <- matrix(stats::runif(m * r, min = min(V), max = max(V)), nrow = m, ncol = r)
 
-      # Iteration zero
+      # Iteration "zero"
       P <- P * crossprod(M, V) / crossprod((crossprod(M, M)), P)
       M <- M * tcrossprod(V, P) / tcrossprod(M, tcrossprod(P, P))
       Vr <- M %*% P # Reconstructed matrix
-      RSS <- sum((V - Vr)^2)
-      SST <- sum((V - mean(V))^2)
-      R2[iter] <- 1 - (RSS / SST)
+
+      # Reconstruction quality (coefficient of determination)
+      R2 <- 1 - (sum((V - Vr)^2) / sum((V - mean(V))^2))
 
       # l2-norm normalisation which eliminates trivial scale indeterminacies
+      # See Févotte, C., Idier, J. (2011)
       # The cost function doesn't change. Impose ||M||2=1 and normalise P accordingly.
       # ||M||2, also called L2,1 norm or l2-norm, is a sum of Euclidean norm of columns.
-      for (kk in 1:r) {
-        norm <- sqrt(sum(M[, kk]^2))
-        M[, kk] <- M[, kk] / norm
-        P[kk, ] <- P[kk, ] * norm
-      }
+      l2_norms <- apply(M, 2, function(nn) sqrt(sum(nn^2)))
+      M1 <- sweep(M, 2, l2_norms, FUN = "/")
+      P1 <- sweep(P, 1, l2_norms, FUN = "*")
 
       # Start iterations for NMF convergence
-      for (iter in iter:max_iter) {
+      for (iter in 2:max_iter) {
         P <- P * crossprod(M, V) / crossprod((crossprod(M, M)), P)
         M <- M * tcrossprod(V, P) / tcrossprod(M, tcrossprod(P, P))
         Vr <- M %*% P
-        RSS <- sum((V - Vr)^2)
-        SST <- sum((V - mean(V))^2)
-        R2[iter] <- 1 - (RSS / SST)
+        R2[iter] <- 1 - (sum((V - Vr)^2) / sum((V - mean(V))^2))
 
         # l2-norm normalisation
-        for (kk in 1:r) {
-          norm <- sqrt(sum(M[, kk]^2))
-          M[, kk] <- M[, kk] / norm
-          P[kk, ] <- P[kk, ] * norm
-        }
+        l2_norms <- apply(M, 2, function(nn) sqrt(sum(nn^2)))
+        M <- sweep(M, 2, l2_norms, FUN = "/")
+        P <- sweep(P, 1, l2_norms, FUN = "*")
 
         # Check if the increase of R2 in the last "last_iter" iterations
         # is less than the target
-        if (iter > last_iter) {
-          R2_diff <- R2[iter] - R2[iter - last_iter]
-          if (R2_diff < R2[iter] * R2_target / 100) {
-            break
-          }
+        if (iter > last_iter &&
+          R2[iter] - R2[iter - last_iter] < R2[iter] * R2_target / 100) {
+          break
         }
       }
-      R2_choice[j] <- R2[iter]
+      R2_choice[run] <- R2[iter]
 
-      M_temp[[j]] <- M
-      P_temp[[j]] <- P
-      Vr_temp[[j]] <- Vr
+      M_temp[[run]] <- M
+      P_temp[[run]] <- P
+      Vr_temp[[run]] <- Vr
     }
 
     choice <- which.max(R2_choice)

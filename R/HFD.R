@@ -57,16 +57,14 @@ HFD <- function(P,
 
     # Construct k new time series
     L_m <- numeric()
+
     for (m in 1:k) {
       # New time series, downsampled from P with time interval k
       P_k <- P[seq(m, length(P), k)]
 
       # Non-Euclidean length of P_k
-      L_k <- 1 / k * (((N - 1) / (k * round((N - 1) / k, 0))) * (sum(abs(diff(P_k)))))
-
-      L_m[m] <- L_k
+      L_m[m] <- 1 / k * (((N - 1) / (k * round((N - 1) / k, 0))) * (sum(abs(diff(P_k)))))
     }
-
     L[index] <- sum(L_m) / k
   }
 

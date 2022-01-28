@@ -61,7 +61,7 @@ Hurst <- function(P,
   # Define the R/S scale
   rsscale <- function(x) {
     y <- x - mean(x)
-    s <- cumsum(y) # c(y[1], y[1]+y[2], y[1]+y[2]+y[3], ...)
+    s <- cumsum(y) # cumsum does: c(y[1], y[1]+y[2], y[1]+y[2]+y[3], ...)
     # Cumulated range (difference between min and max of the cumsum)
     R <- diff(range(s))
     # Sample variance

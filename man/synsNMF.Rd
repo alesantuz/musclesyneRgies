@@ -61,5 +61,9 @@ Nature 401, 788-91 (1999).\cr
 
 Santuz, A., Ekizos, A., Janshen, L., Baltzopoulos, V. & Arampatzis, A.
 On the Methodological Implications of Extracting Muscle Synergies from Human Locomotion.
-Int. J. Neural Syst. 27, 1750007 (2017).
+Int. J. Neural Syst. 27, 1750007 (2017).\cr
+
+Févotte, C., Idier, J.
+Algorithms for Nonnegative Matrix Factorization with the ß-Divergence
+Neural Computation 23, 9 (2011).
 }
