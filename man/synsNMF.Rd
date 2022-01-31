@@ -47,7 +47,7 @@ Object of class \code{musclesyneRgies} with elements:\cr
 Non-negative matrix factorisation
 }
 \details{
-The first column of \code{V} must contain time information.
+The first column of \code{V} must always contain time information.
 }
 \examples{
 ## Note that for bigger data sets one might want to run computation in parallel

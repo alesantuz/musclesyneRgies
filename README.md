@@ -1,3 +1,12 @@
+---
+title:
+output:
+  html_document:
+    keep_md: yes
+---
+
+
+
 # musclesyneRgies
 ![](./images/musclesyneRgies_logo.png)
 

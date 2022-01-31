@@ -104,7 +104,7 @@
 #' @source \url{https://doi.org/10.1016/j.isci.2019.100796}
 "SYNS"
 
-#' Motor primitive example (30 cycles)
+#' Single motor primitive example (30 cycles)
 #'
 #' A data frame containing one motor primitive extracted from one wild type mouse
 #' walking on a treadmill.
@@ -117,3 +117,19 @@
 #' }
 #' @source \url{https://doi.org/10.1152/jn.00360.2020}
 "primitive"
+
+#' All motor primitives of one synergy example (30 cycles)
+#'
+#' A demo and incomplete `musclesyneRgies` object containing time info and three motor primitives
+#' extracted from one wild type mouse walking on a treadmill.
+#'
+#' @format A data frame of four columns:
+#'
+#' \describe{
+#'   \item{`time`}{Normalised time in points.}\cr
+#'   \item{`Syn1`}{Motor primitive of synergy 1}\cr
+#'   \item{`Syn2`}{Motor primitive of synergy 2}\cr
+#'   \item{`Syn3`}{Motor primitive of synergy 3}
+#' }
+#' @source \url{https://doi.org/10.1152/jn.00360.2020}
+"primitives"

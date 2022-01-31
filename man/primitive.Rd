@@ -3,7 +3,7 @@
 \docType{data}
 \name{primitive}
 \alias{primitive}
-\title{Motor primitive example (30 cycles)}
+\title{Single motor primitive example (30 cycles)}
 \format{
 A data frame of two columns:
 

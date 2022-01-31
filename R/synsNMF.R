@@ -9,7 +9,7 @@
 #' @param fixed_syns To impose the factorisation rank or number of synergies
 #'
 #' @details
-#' The first column of `V` must contain time information.
+#' The first column of `V` must always contain time information.
 #'
 #' @return
 #' Object of class `musclesyneRgies` with elements:\cr

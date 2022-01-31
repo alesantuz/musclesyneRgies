@@ -1,6 +1,6 @@
 Package: musclesyneRgies
 Title: Extract Muscle Synergies from EMG
-Version: 0.9.4
+Version: 1.0.0
 Authors@R: 
     person("Alessandro", "Santuz", , "alessandro.santuz@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-6577-5101"))
@@ -23,10 +23,10 @@ Imports:
     gridExtra,
     benchmarkme,
     reshape2,
-    entropy,
-    infotheo
+    proxy,
+    FNN
 URL: https://github.com/alesantuz/musclesyneRgies
 BugReports: https://github.com/alesantuz/musclesyneRgies/issues
 Depends: 
-    R (>= 2.10)
+    R (>= 3.50)
 LazyData: true

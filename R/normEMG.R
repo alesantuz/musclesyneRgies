@@ -25,29 +25,13 @@
 #' @examples
 #' ## Filter raw EMG
 #' data("RAW_DATA")
-#' filtered_EMG <- pbapply::pblapply(
-#'   RAW_DATA,
-#'   function(x) {
-#'     filtEMG(x,
-#'       HPf = 50,
-#'       HPo = 4,
-#'       LPf = 20,
-#'       LPo = 4
-#'     )
-#'   }
-#' )
-#'
+#' filtered_EMG <- pbapply::pblapply(RAW_DATA, function(x) {
+#'   filtEMG(x, HPf = 50, HPo = 4, LPf = 20, LPo = 4)
+#' })
 #' ## Time-normalise filtered EMG, including three cycles and trimming first and last
-#' norm_EMG <- pbapply::pblapply(
-#'   filtered_EMG,
-#'   function(x) {
-#'     normEMG(x,
-#'       trim = TRUE,
-#'       cy_max = 3,
-#'       cycle_div = c(100, 100)
-#'     )
-#'   }
-#' )
+#' norm_EMG <- pbapply::pblapply(filtered_EMG, function(x) {
+#'   normEMG(x, trim = TRUE, cy_max = 3, cycle_div = c(100, 100))
+#' })
 normEMG <- function(x,
                     trim = TRUE,
                     cy_max,
