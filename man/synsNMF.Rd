@@ -25,7 +25,8 @@ synsNMF(
 
 \item{last_iter}{How many of the last iterations should be checked before stopping?}
 
-\item{MSE_min}{Threshold on the mean squared error to choose the factorisation rank or minimum number of synergies}
+\item{MSE_min}{Threshold on the mean squared error to choose the factorisation rank or
+minimum number of synergies}
 
 \item{fixed_syns}{To impose the factorisation rank or number of synergies}
 }

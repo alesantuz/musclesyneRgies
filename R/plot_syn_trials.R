@@ -76,7 +76,8 @@ plot_syn_trials <- function(x,
     if (syn <= ncol(M)) {
 
       # Select relevant synergies
-      data_P <- data.frame(time,
+      data_P <- data.frame(
+        time,
         value = P[, syn]
       )
       data_M <- data.frame(

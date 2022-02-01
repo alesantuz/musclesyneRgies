@@ -26,12 +26,13 @@
 #'
 #' data(RAW_DATA)
 #'
-# for (ii in seq_along(RAW_DATA)) {
-#   ## Plot the first three seconds of each trial
-#   plot_rawEMG(RAW_DATA[[ii]],
-#               trial=names(RAW_DATA)[ii],
-#               path_for_graphs=path_for_graphs)
-# }
+#' for (ii in seq_along(RAW_DATA)) {
+#'   ## Plot the first three seconds of each trial
+#'   plot_rawEMG(RAW_DATA[[ii]],
+#'     trial = names(RAW_DATA)[ii],
+#'     path_for_graphs = path_for_graphs
+#'   )
+#' }
 #'
 #' ## Check plots in the new folder before running the following (will delete!)
 #'
@@ -52,42 +53,39 @@ plot_rawEMG <- function(x,
     x <- x$emg
   }
 
-  time <- signal <- NULL
+  signal <- NULL
 
-  # Muscle list, including time
-  muscles <- colnames(x)
   # EMG system acquisition frequency [Hz]
-  freq <- round(1 / (mean(diff(x[, "time"]), na.rm = T)), 0)
+  freq <- round(1 / (mean(diff(x$time), na.rm = T)), 0)
 
-  start <- 1
+  # Calculate starting and stopping point for the subset
   stop <- freq * plot_time + start - 1
   if (start <= 0) start <- 1
+
+  # Put time info aside
+  time <- x$time[start:stop]
+
+  # Create data subset, remove time column and normalise signal amplitude between -1 and 1
+  x <- x[start:stop, ] |>
+    subset(select = -time) |>
+    apply(2, function(y) 2 * (y - min(y)) / (max(y) - min(y)) - 1)
 
   if (!is.na(path_for_graphs)) {
     Cairo::Cairo(
       file = paste0(path_for_graphs, trial, ".", filetype),
-      width = width, height = height * (length(muscles) - 1), dpi = resolution
+      width = width, height = height * (length(colnames(x)) - 1), dpi = resolution
     )
   }
 
-  varlist <- list()
+  # Create plots
+  varlist <- lapply(colnames(x), function(y) {
+    muscle_data <- data.frame(time, signal = x[, y])
 
-  for (mm in 2:length(muscles)) {
-    data <- data.frame(
-      time = x[start:stop, "time"],
-      signal = x[start:stop, grep(paste0("^", muscles[mm], "$"), colnames(x))]
-    )
-
-    data$signal <- data$signal / max(data$signal, na.rm = T)
-    data$signal <- data$signal / min(data$signal, na.rm = T)
-
-    varname <- paste("pp", mm, sep = "")
-
-    temp <- ggplot2::ggplot() +
-      ggplot2::ggtitle(muscles[mm]) +
+    gg <- ggplot2::ggplot() +
+      ggplot2::ggtitle(y) +
       ggplot2::ylim(-1, 1) +
       ggplot2::geom_line(
-        data = data,
+        data = muscle_data,
         ggplot2::aes(x = time, y = signal),
         colour = "black", size = 0.3
       ) +
@@ -98,15 +96,15 @@ plot_rawEMG <- function(x,
         panel.grid.minor = ggplot2::element_blank(),
         legend.position = "none"
       )
+    return(gg)
+  })
 
-    varlist[[mm - 1]] <- assign(varname, temp)
-  }
-
+  # Arrange plots nicely
   gridExtra::grid.arrange(
     grobs = varlist,
     nrow = length(varlist),
     ncol = 1,
-    top = (paste0(trial, sep = ""))
+    top = paste0(trial)
   )
 
   if (!is.na(path_for_graphs)) grDevices::dev.off()

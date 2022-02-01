@@ -53,6 +53,13 @@ path_for_graphs <- paste0(data_path, "Graphs", .Platform$file.sep)
 
 data(RAW_DATA)
 
+for (ii in seq_along(RAW_DATA)) {
+  ## Plot the first three seconds of each trial
+  plot_rawEMG(RAW_DATA[[ii]],
+    trial = names(RAW_DATA)[ii],
+    path_for_graphs = path_for_graphs
+  )
+}
 
 ## Check plots in the new folder before running the following (will delete!)
 

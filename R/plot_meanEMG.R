@@ -45,20 +45,18 @@ plot_meanEMG <- function(x,
                          resolution = 140) {
   if (!inherits(x, "data.frame")) {
     stop("Objects are not data frames")
-  } else {
-    # Muscle list, including time
-    muscles <- colnames(x)
   }
 
-  time <- signal <- NULL
+  signal <- NULL
 
-  # Calculate mean cycles
-  x <- stats::aggregate(x, by = list(x[, "time"]), FUN = mean)
-  x[, grep("^Group.+", colnames(x))] <- NULL
-  points <- max(x[, "time"])
-  # Normalise mean cycles
-  x <- data.frame(apply(x, 2, function(y) y / max(y)))
-  x[, "time"] <- c(1:points)
+  # Put time info aside
+  time <- c(1:max(x[, "time"]))
+
+  # Calculate mean cycles and normalise them, remove Group and time columns
+  x <- stats::aggregate(x, by = list(x[, "time"]), FUN = mean)[-1] |>
+    subset(select = -time) |>
+    apply(2, function(y) y / max(y)) |>
+    as.data.frame()
 
   if (!is.na(path_for_graphs)) {
     Cairo::Cairo(
@@ -67,21 +65,15 @@ plot_meanEMG <- function(x,
     )
   }
 
-  varlist <- list()
+  # Create plots
+  varlist <- lapply(colnames(x), function(y) {
+    muscle_data <- data.frame(time, signal = x[, y])
 
-  for (mm in 2:length(muscles)) {
-    data <- data.frame(
-      time = x$time,
-      signal = x[, grep(paste0("^", muscles[mm], "$"), colnames(x))]
-    )
-
-    varname <- paste("pp", mm, sep = "")
-
-    temp <- ggplot2::ggplot() +
-      ggplot2::ggtitle(muscles[mm]) +
+    gg <- ggplot2::ggplot() +
+      ggplot2::ggtitle(y) +
       ggplot2::ylim(0, 1) +
       ggplot2::geom_line(
-        data = data,
+        data = muscle_data,
         ggplot2::aes(x = time, y = signal),
         colour = "black", size = 0.9
       ) +
@@ -92,9 +84,8 @@ plot_meanEMG <- function(x,
         panel.grid.minor = ggplot2::element_blank(),
         legend.position = "none"
       )
-
-    varlist[[mm - 1]] <- assign(varname, temp)
-  }
+    return(gg)
+  })
 
   gridExtra::grid.arrange(
     grobs = varlist,

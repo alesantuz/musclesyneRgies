@@ -5,7 +5,8 @@
 #' @param runs Number of repetitions for each rank to avoid local minima
 #' @param max_iter Maximum number of iterations allowed for each rank
 #' @param last_iter How many of the last iterations should be checked before stopping?
-#' @param MSE_min Threshold on the mean squared error to choose the factorisation rank or minimum number of synergies
+#' @param MSE_min Threshold on the mean squared error to choose the factorisation rank or
+#' minimum number of synergies
 #' @param fixed_syns To impose the factorisation rank or number of synergies
 #'
 #' @details
@@ -53,15 +54,19 @@ synsNMF <- function(V,
     stop("Object is not a data frame")
   }
 
+  # Put aside time information
+  time <- V$time
+
   R2_cross <- numeric() # R2 values for cross validation and syn number assessment
   M_list <- list() # To save factorisation M matrices (synergies)
   P_list <- list() # To save factorisation P matrices (primitives)
   Vr_list <- list() # To save factorisation Vr matrices (reconstructed signals)
   iters <- numeric() # To save the iterations number
 
-  # Original matrix
-  time <- V[, 1]
-  V <- as.matrix(t(V[, -1])) # Needs to be transposed for NMF
+  # Remove time colum and transpose for upcoming NMF
+  V <- subset(V, select = -time) |>
+    t() |>
+    as.matrix()
 
   # Replace values <= 0 with the smallest non-zero value
   V[V <= 0] <- min(V[V > 0], na.rm = T)
@@ -104,8 +109,8 @@ synsNMF <- function(V,
       # The cost function doesn't change. Impose ||M||2=1 and normalise P accordingly.
       # ||M||2, also called L2,1 norm or l2-norm, is a sum of Euclidean norm of columns.
       l2_norms <- apply(M, 2, function(nn) sqrt(sum(nn^2)))
-      M1 <- sweep(M, 2, l2_norms, FUN = "/")
-      P1 <- sweep(P, 1, l2_norms, FUN = "*")
+      M <- sweep(M, 2, l2_norms, FUN = "/")
+      P <- sweep(P, 1, l2_norms, FUN = "*")
 
       # Start iterations for NMF convergence
       for (iter in 2:max_iter) {
