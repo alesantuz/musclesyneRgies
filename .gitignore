@@ -52,3 +52,6 @@ vignettes/*.pdf
 .Rproj.user
 .Rdata
 .DS_Store
+inst/doc
+/doc/
+/Meta/

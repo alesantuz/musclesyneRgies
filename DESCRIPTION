@@ -1,6 +1,6 @@
 Package: musclesyneRgies
 Title: Extract Muscle Synergies from EMG
-Version: 1.0.1
+Version: 1.1.0
 Authors@R: 
     person("Alessandro", "Santuz", , "alessandro.santuz@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-6577-5101"))
@@ -30,3 +30,9 @@ BugReports: https://github.com/alesantuz/musclesyneRgies/issues
 Depends: 
     R (>= 3.50)
 LazyData: true
+Suggests: 
+    rmarkdown,
+    knitr,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr

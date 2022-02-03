@@ -59,7 +59,7 @@ data_path <- paste0(data_path, .Platform$file.sep)
 dir.create("Graphs", showWarnings = FALSE)
 path_for_graphs <- paste0(data_path, "Graphs", .Platform$file.sep)
 
-data("SYNS")
+data(SYNS)
 
 SYNS_classified <- classify_kmeans(SYNS,
   path_for_graphs = path_for_graphs,

@@ -56,6 +56,7 @@ short_term_MLE <- sMLE(primitives,
 Rosenstein, M.T., Collins, J.J., and De Luca, C.J. (1993).
 A practical method for calculating largest Lyapunov exponents from small data sets.
 Phys. D 65, 117–134.\cr
+
 Santuz A, Brüll L, Ekizos A, Schroll A, Eckardt N, Kibele A, et al.
 Neuromotor Dynamics of Human Locomotion in Challenging Settings.
 iScience. 2020;23: 100796.\cr

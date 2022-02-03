@@ -18,7 +18,7 @@
 #' @export
 #'
 #' @examples
-#' data("SYNS")
+#' data(SYNS)
 #'
 #' SYNS_classified <- classify_NMF(SYNS,
 #'   interactive = FALSE

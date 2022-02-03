@@ -29,7 +29,7 @@ List of \code{musclesyneRgies} objects, each with elements:\cr
 Muscle synergy classification with NMF
 }
 \examples{
-data("SYNS")
+data(SYNS)
 
 SYNS_classified <- classify_NMF(SYNS,
   interactive = FALSE

@@ -52,7 +52,7 @@ The first column of \code{V} must always contain time information.
 }
 \examples{
 ## Note that for bigger data sets one might want to run computation in parallel
-data("FILT_EMG")
+data(FILT_EMG)
 SYNS <- pbapply::pblapply(FILT_EMG, synsNMF)
 }
 \references{

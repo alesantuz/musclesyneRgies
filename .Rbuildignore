@@ -1,4 +1,13 @@
-^musclesyneRgies\.Rproj$
 ^\.Rproj\.user$
+^\.git$
+^README_files$
+^images$
+^musclesyneRgies\.Rproj$
 ^LICENSE\.md$
 ^data-raw$
+^CODE_OF_CONDUCT\.md$
+^CONTRIBUTING\.md$
+^README\.Rmd$
+^README\.html$
+^doc$
+^Meta$
