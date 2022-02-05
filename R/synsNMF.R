@@ -172,6 +172,7 @@ synsNMF <- function(V,
   P_choice <- data.frame(time, t(P_list[[syns_R2]]))
   colnames(P_choice) <- c("time", paste0("Syn", 1:(ncol(P_choice) - 1)))
   rownames(P_choice) <- NULL
+  colnames(M_list[[syns_R2]]) <- paste0("Syn", 1:ncol(M_list[[syns_R2]]))
 
   SYNS <- list(
     syns = as.numeric(syns_R2),

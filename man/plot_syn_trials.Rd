@@ -8,23 +8,36 @@ plot_syn_trials(
   x,
   max_syns,
   trial,
+  dark_mode = FALSE,
+  line_size = 0.6,
+  line_col = "black",
+  sd_col = "grey80",
   path_for_graphs = NA,
-  filetype = "png",
-  width = 2000,
-  height = 500 * max_syns,
-  resolution = 280
+  filetype,
+  width,
+  height,
+  resolution
 )
 }
 \arguments{
 \item{x}{Object of class \code{musclesyneRgies}}
 
-\item{max_syns}{Maximum number of synergies to be plotted}
+\item{max_syns}{Number of synergies to be plotted or how many rows should the final panel
+be divided into}
 
 \item{trial}{Character: the name of the considered trial, for archiving purposes}
 
+\item{dark_mode}{To enable dark mode}
+
+\item{line_size}{Line thickness}
+
+\item{line_col}{Line colour}
+
+\item{sd_col}{Standard deviation ribbon colour}
+
 \item{path_for_graphs}{Path where plots should be saved}
 
-\item{filetype}{Plot file type}
+\item{filetype}{Plot file type (e.g., "png" or "svg")}
 
 \item{width}{Plot width in pixels}
 
@@ -48,19 +61,25 @@ data_path <- paste0(data_path, .Platform$file.sep)
 dir.create("Graphs", showWarnings = FALSE)
 path_for_graphs <- paste0(data_path, "Graphs", .Platform$file.sep)
 
-data(SYNS)
+data(FILT_EMG)
+SYNS <- pbapply::pblapply(FILT_EMG, synsNMF)
 
 max_syns <- max(unlist(lapply(SYNS, function(x) x$syns)))
 
-## Plot the first two trials in the list
-for (ii in c(1, 2)) {
-  ## Plot the unclassified synergies, trial-by-trial
-  plot_syn_trials(SYNS[[ii]],
-    max_syns = max_syns,
-    trial = names(SYNS)[ii],
-    path_for_graphs = path_for_graphs
-  )
-}
+## Plot the first (and only) trial in the list
+plot_syn_trials(SYNS[[1]],
+  max_syns = max_syns,
+  trial = names(SYNS)[1],
+  path_for_graphs = path_for_graphs,
+  dark_mode = TRUE,
+  line_size = 0.8,
+  line_col = "tomato1",
+  sd_col = "tomato4",
+  filetype = "png",
+  width = 2000,
+  height = 500 * max_syns,
+  resolution = 280
+)
 
 ## Check plots in the new folder before running the following (will delete!)
 

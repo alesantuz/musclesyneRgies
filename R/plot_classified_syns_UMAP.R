@@ -3,7 +3,7 @@
 #' @param x List of objects of class `musclesyneRgies` (must be classified)
 #' @param path_for_graphs Path where plots should be saved
 #' @param condition Character: the condition that is being analysed, for archiving purposes
-#' @param filetype Plot file type
+#' @param filetype Plot file type (e.g., "png" or "svg")
 #' @param width Plot width in pixels
 #' @param height Plot height in pixels
 #' @param resolution Plot resolution in pixels
@@ -33,7 +33,11 @@
 #' ## Export plots
 #' plot_classified_syns_UMAP(SYNS_classified,
 #'   path_for_graphs = path_for_graphs,
-#'   condition = "TW"
+#'   condition = "TW",
+#'   filetype = "png",
+#'   width = 1800,
+#'   height = 2840,
+#'   resolution = 280
 #' )
 #'
 #' ## Check plots in the new folder before running the following (will delete!)
@@ -43,10 +47,10 @@
 plot_classified_syns_UMAP <- function(x,
                                       path_for_graphs = NA,
                                       condition,
-                                      filetype = "png",
-                                      width = 1800,
-                                      height = 2840,
-                                      resolution = 280) {
+                                      filetype,
+                                      width,
+                                      height,
+                                      resolution) {
   message("\nSaving 2D UMAP synergy plots for condition ", condition, "...")
 
   UMAP1 <- UMAP2 <- syn <- NULL

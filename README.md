@@ -33,6 +33,7 @@ The data set must be in a specific format to fit the analysis framework. However
 Here is an example of how those two elements should look like:
 
 ```r
+library(musclesyneRgies)
 data("RAW_DATA")
 head(RAW_DATA[[1]]$cycles)
 ```
@@ -96,16 +97,20 @@ dir.create("emg", showWarnings = FALSE)
 
 # Export ASCII data from built-in data set to the new subfolders
 write.table(RAW_DATA[[1]]$cycles,
-            file = paste0(data_path, "cycles", .Platform$file.sep, names(RAW_DATA)[1], ".txt"),
-            sep = "\t", row.names = FALSE)
+  file = paste0(data_path, "cycles", .Platform$file.sep, names(RAW_DATA)[1], ".txt"),
+  sep = "\t", row.names = FALSE
+)
 write.table(RAW_DATA[[1]]$emg,
-            file = paste0(data_path, "emg", .Platform$file.sep, names(RAW_DATA)[1], ".txt"),
-            sep = "\t", row.names = FALSE)
+  file = paste0(data_path, "emg", .Platform$file.sep, names(RAW_DATA)[1], ".txt"),
+  sep = "\t", row.names = FALSE
+)
 
 # Run the function to parse ASCII files into objects of class `EMG`
-raw_data_from_files <- rawdata(path_cycles = paste0(data_path, "/cycles/"),
-                               path_emg = paste0(data_path, "/emg/"),
-                               header_cycles = FALSE)
+raw_data_from_files <- rawdata(
+  path_cycles = paste0(data_path, "/cycles/"),
+  path_emg = paste0(data_path, "/emg/"),
+  header_cycles = FALSE
+)
 
 # Check data in the new folders if needed before running the following (will delete!)
 
@@ -126,14 +131,24 @@ data("RAW_DATA")
 
 # Say you recorded more cycles than those you want to consider for the analysis
 # You can subset the raw data (here we keep only 3 cycles, starting from the first)
-RAW_DATA_subset <- pbapply::pblapply(RAW_DATA,
-                                     function(x) subsetEMG(x,
-                                                           cy_max = 3,
-                                                           cy_start = 1))
+RAW_DATA_subset <- pbapply::pblapply(
+  RAW_DATA,
+  function(x) {
+    subsetEMG(x,
+      cy_max = 3,
+      cy_start = 1
+    )
+  }
+)
 
-# Raw EMG can be plotted with the following (the first three seconds are plot by default)
+# Raw EMG can be plotted with the following (the first three seconds are plot by default), now also in dark mode if you fancy it
 plot_rawEMG(RAW_DATA[[1]],
-            trial = names(RAW_DATA)[1])
+  trial = names(RAW_DATA)[1],
+  row_number = 4,
+  col_number = 4,
+  dark_mode = TRUE,
+  line_col = "tomato3"
+)
 ```
 
 ![](README_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
@@ -151,41 +166,62 @@ plot_rawEMG(RAW_DATA[[1]],
 filtered_EMG <- pbapply::pblapply(RAW_DATA, function(x) filtEMG(x))
 
 # If you decide to change filtering parameters, just give them as arguments:
-another_filtered_EMG <- pbapply::pblapply(RAW_DATA,
-                                          function(x) filtEMG(x,
-                                                              demean = FALSE,
-                                                              rectif = "halfwave",
-                                                              HPf = 30,
-                                                              HPo = 2,
-                                                              LPf = 10,
-                                                              LPo = 2,
-                                                              min_sub = FALSE,
-                                                              ampl_norm = FALSE))
+another_filtered_EMG <- pbapply::pblapply(
+  RAW_DATA,
+  function(x) {
+    filtEMG(x,
+      demean = FALSE,
+      rectif = "halfwave",
+      HPf = 30,
+      HPo = 2,
+      LPf = 10,
+      LPo = 2,
+      min_sub = FALSE,
+      ampl_norm = FALSE
+    )
+  }
+)
 
 # Now the filtered EMG needs some time normalisation so that cycles will be comparable
 # Here we time-normalise the filtered EMG, including only three cycles and trimming first
 # and last to remove unwanted filtering effects
 # Each cycle is divided into two parts, each normalised to a length of 100 points
-norm_EMG <- pbapply::pblapply(filtered_EMG,
-                              function(x) normEMG(x,
-                                                  trim = TRUE,
-                                                  cy_max = 3,
-                                                  cycle_div = c(100, 100)))
+norm_EMG <- pbapply::pblapply(
+  filtered_EMG,
+  function(x) {
+    normEMG(x,
+      trim = TRUE,
+      cy_max = 3,
+      cycle_div = c(100, 100)
+    )
+  }
+)
 
 # If this cycle division does not work for you, it can be changed
 # But please remember to have the same amount of columns in the cycle times as the number
 # of phases you want your cycles to be divided into
 # Here we divide each cycle with a ratio of 60%-40% and keep only two cycles (first and last
 # are still trimmed, so to have two cycles you must start with at least four available)
-another_norm_EMG <- pbapply::pblapply(filtered_EMG,
-                                      function(x) normEMG(x,
-                                                          trim = TRUE,
-                                                          cy_max = 2,
-                                                          cycle_div = c(120, 80)))
+another_norm_EMG <- pbapply::pblapply(
+  filtered_EMG,
+  function(x) {
+    normEMG(x,
+      trim = TRUE,
+      cy_max = 2,
+      cycle_div = c(120, 80)
+    )
+  }
+)
 
 # The filtered and time-normalised EMG can be plotted with the following
 plot_meanEMG(norm_EMG[[1]],
-             trial = names(norm_EMG)[1])
+  trial = names(norm_EMG)[1],
+  row_number = 4,
+  col_number = 4,
+  dark_mode = TRUE,
+  line_size = 0.8,
+  line_col = "tomato3"
+)
 ```
 
 ![](README_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
@@ -197,8 +233,13 @@ SYNS <- pbapply::pblapply(norm_EMG, synsNMF)
 
 # The extracted synergies can be plotted with the following
 plot_syn_trials(SYNS[[1]],
-                max_syns = max(unlist(lapply(SYNS, function(x) x$syns))),
-                trial = names(SYNS)[1])
+  max_syns = max(unlist(lapply(SYNS, function(x) x$syns))),
+  trial = names(SYNS)[1],
+  dark_mode = TRUE,
+  line_size = 0.8,
+  line_col = "tomato1",
+  sd_col = "tomato4"
+)
 ```
 
 ![](README_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
@@ -215,8 +256,9 @@ data("SYNS")
 # - Centre of activity on the y-axis
 # (both referred to the motor primitives of the classified muscle synergies)
 SYNS_classified <- classify_kmeans(SYNS,
-                                   path_for_graphs = NA,
-                                   interactive = FALSE)
+  path_for_graphs = NA,
+  interactive = FALSE
+)
 ```
 
 ![](README_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
@@ -224,7 +266,11 @@ SYNS_classified <- classify_kmeans(SYNS,
 ```r
 # Classified synergies can be finally plotted with
 plot_classified_syns(SYNS_classified,
-                     condition = "TW") # "TW" = Treadmill Walking, change with your own
+  dark_mode = TRUE,
+  line_col = "tomato1",
+  sd_col = "tomato4",
+  condition = "TW"
+) # "TW" = Treadmill Walking, change with your own
 ```
 
 ![](README_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
@@ -232,7 +278,8 @@ plot_classified_syns(SYNS_classified,
 ```r
 # A 2D UMAP plot of the classified synergies can be obtained with
 plot_classified_syns_UMAP(SYNS_classified,
-                          condition = "TW")
+  condition = "TW"
+)
 ```
 
 ![](README_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
@@ -245,18 +292,18 @@ plot_classified_syns_UMAP(SYNS_classified,
 data("primitive")
 
 # Reduce primitive to the first cycle
-prim_sub <- primitive$signal[1:which(primitive$time==max(primitive$time))[1]]
+prim_sub <- primitive$signal[1:which(primitive$time == max(primitive$time))[1]]
 
 # Calculate FWHM of the first cycle
 prim_sub_FWHM <- FWHM(prim_sub)
 # Calculate CoA of the first cycle
-prim_sub_CoA  <- CoA(prim_sub)
+prim_sub_CoA <- CoA(prim_sub)
 
 # Half maximum (for the plots)
-hm <- min(prim_sub)+(max(prim_sub)-min(prim_sub))/2
+hm <- min(prim_sub) + (max(prim_sub) - min(prim_sub)) / 2
 hm_plot <- prim_sub
-hm_plot[which(hm_plot>hm)] <- hm
-hm_plot[which(hm_plot<hm)] <- NA
+hm_plot[which(hm_plot > hm)] <- hm
+hm_plot[which(hm_plot < hm)] <- NA
 
 # Plots
 plot(prim_sub, ty = "l", xlab = "Time", ylab = "Amplitude")
@@ -273,7 +320,7 @@ prim <- primitive$signal
 # Calculate the local complexity or Higuchi's fractal dimension (HFD)
 nonlin_HFD <- HFD(prim)$Higuchi
 # Calculate the local complexity or Hurst exponent (H)
-nonlin_H   <- Hurst(prim, min_win = max(primitive$time))$Hurst
+nonlin_H <- Hurst(prim, min_win = max(primitive$time))$Hurst
 
 message("Higuchi's fractal dimension: ", round(nonlin_HFD, 3))
 ```
@@ -302,11 +349,11 @@ data("FILT_EMG")
 # Create cluster for parallel computing if not already done
 clusters <- objects()
 
-if (sum(grepl("^cl$", clusters))==0) {
+if (sum(grepl("^cl$", clusters)) == 0) {
   # Decide how many processor threads have to be excluded from the cluster
   # It is a good idea to leave at least one free, so that the machine can be
   # used during computation
-  cl <- parallel::makeCluster(max(1, parallel::detectCores()-1))
+  cl <- parallel::makeCluster(max(1, parallel::detectCores() - 1))
 }
 # Extract synergies in parallel (will speed up computation only for larger data sets)
 SYNS <- pbapply::pblapply(FILT_EMG, musclesyneRgies::synsNMF, cl = cl)

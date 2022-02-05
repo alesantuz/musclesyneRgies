@@ -1,4 +1,4 @@
-# musclesyneRgies 1.1.0
+# musclesyneRgies 1.1.0 (pre-release)
 
 ### How to install
 ```
@@ -12,7 +12,13 @@ Follow the [README](https://github.com/alesantuz/musclesyneRgies/blob/master/REA
 ### What's changed
 - Added tests
 - Added `NEWS.md` to track changes to the package
-- Added vignettes to explain the workflow.
+- Added vignette to explain the workflow
+- Function `plot_rawEMG` can now plot muscle activities in custom grid (arguments `row_number` and `col_number`)
+- Line thickness and colour can now be specified in function `plot_rawEMG` (arguments `line_size` and `line_col`)
+- Added dark mode to `plot_rawEMG`, `plot_meanEMG`, `plot_syn_trials` and `plot_classified_syns`
+- Function `plot_syn_trials` partially rewritten with new native pipes `|>` and `lapply` instead of for loops
+- Updated README
+- Added `CITATION.cff` using R package `cffr`.
 
 # musclesyneRgies 1.0.1
 

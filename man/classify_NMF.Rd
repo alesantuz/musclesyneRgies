@@ -28,6 +28,11 @@ List of \code{musclesyneRgies} objects, each with elements:\cr
 \description{
 Muscle synergy classification with NMF
 }
+\details{
+This function must be applied to a list with a sufficient amount of trials, otherwise the
+classification will not work. Typically, at least 10 trials for the same condition are needed
+for satisfactory classification.
+}
 \examples{
 data(SYNS)
 

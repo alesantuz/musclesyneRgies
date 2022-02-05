@@ -1,10 +1,15 @@
 #' Plot muscle synergies (individual trials)
 #'
 #' @param x Object of class `musclesyneRgies`
-#' @param max_syns Maximum number of synergies to be plotted
+#' @param max_syns Number of synergies to be plotted or how many rows should the final panel
+#' be divided into
 #' @param trial Character: the name of the considered trial, for archiving purposes
+#' @param dark_mode To enable dark mode
+#' @param line_size Line thickness
+#' @param line_col Line colour
+#' @param sd_col Standard deviation ribbon colour
 #' @param path_for_graphs Path where plots should be saved
-#' @param filetype Plot file type
+#' @param filetype Plot file type (e.g., "png" or "svg")
 #' @param width Plot width in pixels
 #' @param height Plot height in pixels
 #' @param resolution Plot resolution in pixels
@@ -23,19 +28,25 @@
 #' dir.create("Graphs", showWarnings = FALSE)
 #' path_for_graphs <- paste0(data_path, "Graphs", .Platform$file.sep)
 #'
-#' data(SYNS)
+#' data(FILT_EMG)
+#' SYNS <- pbapply::pblapply(FILT_EMG, synsNMF)
 #'
 #' max_syns <- max(unlist(lapply(SYNS, function(x) x$syns)))
 #'
-#' ## Plot the first two trials in the list
-#' for (ii in c(1, 2)) {
-#'   ## Plot the unclassified synergies, trial-by-trial
-#'   plot_syn_trials(SYNS[[ii]],
-#'     max_syns = max_syns,
-#'     trial = names(SYNS)[ii],
-#'     path_for_graphs = path_for_graphs
-#'   )
-#' }
+#' ## Plot the first (and only) trial in the list
+#' plot_syn_trials(SYNS[[1]],
+#'   max_syns = max_syns,
+#'   trial = names(SYNS)[1],
+#'   path_for_graphs = path_for_graphs,
+#'   dark_mode = TRUE,
+#'   line_size = 0.8,
+#'   line_col = "tomato1",
+#'   sd_col = "tomato4",
+#'   filetype = "png",
+#'   width = 2000,
+#'   height = 500 * max_syns,
+#'   resolution = 280
+#' )
 #'
 #' ## Check plots in the new folder before running the following (will delete!)
 #'
@@ -44,11 +55,15 @@
 plot_syn_trials <- function(x,
                             max_syns,
                             trial,
+                            dark_mode = FALSE,
+                            line_size = 0.6,
+                            line_col = "black",
+                            sd_col = "grey80",
                             path_for_graphs = NA,
-                            filetype = "png",
-                            width = 2000,
-                            height = 500 * max_syns,
-                            resolution = 280) {
+                            filetype,
+                            width,
+                            height,
+                            resolution) {
   if (!inherits(x, "musclesyneRgies")) {
     stop("Object is not of class musclesynergies, please create objects in the right format with \"synsNMF\"")
   } else {
@@ -57,111 +72,150 @@ plot_syn_trials <- function(x,
     P <- x$P
   }
 
-  ymin <- ymax <- value <- muscle <- NULL
+  Group.1 <- ymin <- ymax <- primitive <- muscle <- module <- NULL
 
   time <- P$time
   P$time <- NULL
-  points <- max(time)
+
+  # Normalise and calculate mean primitives, removing Group and time columns
+  P_av <- apply(P, 2, function(y) y / max(y)) |>
+    stats::aggregate(by = list(time), FUN = mean) |>
+    subset(select = -Group.1)
+
+  # Calculate standard deviation for plot
+  P_sd <- apply(P, 2, function(y) y / max(y)) |>
+    stats::aggregate(by = list(time), FUN = stats::sd) |>
+    subset(select = -Group.1)
+
+  # Prepare colours
+  if (dark_mode) {
+    if (line_col == "black") line_col <- "white"
+    bg_col <- "grey12"
+    text_col <- "white"
+  } else {
+    bg_col <- "white"
+    text_col <- "black"
+  }
 
   if (!is.na(path_for_graphs)) {
+    # For exporting
     Cairo::Cairo(
       file = paste0(path_for_graphs, trial, ".", filetype),
-      type = filetype, width = width, height = height, pointsize = 20, dpi = resolution
+      width = width, height = height, dpi = resolution
     )
+  } else {
+    # For plotting directly (e.g. within RStudio)
+    graphics::par(bg = bg_col)
+    graphics::plot.new()
   }
 
-  varlist <- list()
+  # Create plots
+  # Motor modules
+  varlist_M <- lapply(colnames(M), function(y) {
+    # Gather motor modules
+    M_data <- data.frame(
+      muscle = rownames(M),
+      module = M[, y]
+    )
 
-  for (syn in 1:max_syns) {
-    if (syn <= ncol(M)) {
-
-      # Select relevant synergies
-      data_P <- data.frame(
-        time,
-        value = P[, syn]
-      )
-      data_M <- data.frame(
-        muscle = rownames(M),
-        value = M[, syn]
-      )
-
-      # Normalise primitive
-      data_P$value <- data_P$value / max(data_P$value)
-
-      # Organise primitives one cycle per row
-      data_P_temp <- matrix(0, nrow = nrow(data_P) / points, ncol = points)
-      for (cycle in 1:nrow(data_P_temp)) {
-        start <- (cycle - 1) * points + 1
-        stop <- start + points - 1
-        P_temp <- data_P$value[start:stop]
-        data_P_temp[cycle, ] <- P_temp
-      }
-
-      # Calculate mean and standard deviation of each cycle's primitive
-      data_P_av <- data.frame(time,
-        value = colMeans(data_P_temp)
-      )
-      data_P_sd <- data.frame(time,
-        ymin = data_P_av$value - apply(data_P_temp, 2, stats::sd),
-        ymax = data_P_av$value + apply(data_P_temp, 2, stats::sd)
-      )
-
-      temp_P <- ggplot2::ggplot() +
-        ggplot2::ggtitle(paste0("Motor primitive ", syn)) +
-        ggplot2::ylim(-0.2, 1.2) +
-        ggplot2::geom_ribbon(
-          data = data_P_sd,
-          ggplot2::aes(x = time, ymin = ymin, ymax = ymax),
-          fill = "grey80"
-        ) +
-        ggplot2::geom_line(
-          data = data_P_av,
-          ggplot2::aes(x = time, y = value),
-          colour = "black", size = 0.9
-        ) +
-        ggplot2::theme(
-          axis.title = ggplot2::element_blank(),
-          panel.background = ggplot2::element_rect(fill = "white", colour = "grey"),
-          panel.grid.major = ggplot2::element_line(colour = "grey", size = 0.05),
-          panel.grid.minor = ggplot2::element_blank(),
-          legend.position = "none"
-        )
-
-      temp_M <- ggplot2::ggplot() +
-        ggplot2::ggtitle(paste0("Motor module ", syn)) +
-        ggplot2::ylim(0, 1) +
-        ggplot2::geom_hline(yintercept = c(0.25, 0.5, 0.75, 1), size = 0.05, color = "grey70") +
-        ggplot2::geom_bar(
-          data = data_M,
-          ggplot2::aes(x = muscle, y = value),
-          fill = "black", alpha = 0.3,
-          stat = "identity"
-        ) +
-        ggplot2::scale_x_discrete(limits = data_M$muscle) +
-        ggplot2::theme(
-          axis.title = ggplot2::element_blank(),
-          axis.text.y = ggplot2::element_blank(),
-          panel.background = ggplot2::element_rect(fill = "white", colour = "grey"),
-          panel.grid.major = ggplot2::element_blank(),
-          panel.grid.minor = ggplot2::element_blank(),
-          axis.ticks = ggplot2::element_blank(),
-          legend.position = "none"
-        )
+    # To write axis titles
+    if (y == colnames(M)[length(colnames(M))]) {
+      axis_title_col <- ifelse(dark_mode, "white", "black")
     } else {
-      temp_P <- NULL
-      temp_M <- NULL
+      axis_title_col <- "transparent"
     }
 
-    varname_P <- paste0("r", 2 * syn)
-    varname_M <- paste0("r", 2 * syn - 1)
-    varlist[[2 * syn]] <- assign(varname_P, temp_P)
-    varlist[[2 * syn - 1]] <- assign(varname_M, temp_M)
-  }
+    mm <- ggplot2::ggplot(M_data) +
+      ggplot2::ylim(0, 1) +
+      ggplot2::geom_bar(
+        ggplot2::aes(x = muscle, y = module),
+        fill = line_col, alpha = 0.75,
+        stat = "identity"
+      ) +
+      ggplot2::scale_x_discrete(limits = M_data$muscle) +
+      ggplot2::labs(
+        title = paste0("Motor module ", gsub("Syn", "", y)),
+        x = "Muscle",
+        y = "Contribution"
+      ) +
+      ggplot2::theme(
+        plot.title = ggplot2::element_text(hjust = 0.5, colour = text_col),
+        axis.title.x = ggplot2::element_text(colour = axis_title_col),
+        axis.title.y = ggplot2::element_text(colour = axis_title_col),
+        axis.text.x = ggplot2::element_text(colour = text_col),
+        axis.text.y = ggplot2::element_text(colour = text_col),
+        axis.ticks = ggplot2::element_line(colour = "grey"),
+        plot.background = ggplot2::element_rect(fill = bg_col, colour = bg_col),
+        panel.background = ggplot2::element_rect(fill = bg_col, colour = "grey"),
+        panel.grid.major = ggplot2::element_blank(),
+        panel.grid.minor = ggplot2::element_blank(),
+        plot.margin = ggplot2::unit(c(0, 0.2, 0.1, 0.2), "cm"),
+        legend.position = "none"
+      )
+    return(mm)
+  })
 
-  suppressWarnings(gridExtra::grid.arrange(
-    grobs = varlist, nrow = max_syns, ncol = 2,
-    top = (paste0("Synergies - ", trial))
-  ))
+  # Motor primitives
+  varlist_P <- lapply(colnames(P), function(y) {
+    # Gather mean motor primitive and standard deviation
+    P_data <- data.frame(
+      time,
+      primitive = P_av[, y],
+      ymin = P_av[, y] - P_sd[, y],
+      ymax = P_av[, y] + P_sd[, y],
+      row.names = NULL
+    )
 
+    # To write axis titles
+    if (y == colnames(P)[length(colnames(P))]) {
+      axis_title_col <- ifelse(dark_mode, "white", "black")
+    } else {
+      axis_title_col <- "transparent"
+    }
+
+    pp <- ggplot2::ggplot(P_data) +
+      ggplot2::ylim(-0.2, 1.2) +
+      ggplot2::geom_ribbon(
+        ggplot2::aes(x = time, ymin = ymin, ymax = ymax),
+        fill = sd_col
+      ) +
+      ggplot2::geom_line(
+        ggplot2::aes(x = time, y = primitive),
+        colour = line_col, size = line_size
+      ) +
+      ggplot2::labs(
+        title = paste0("Motor primitive ", gsub("Syn", "", y)),
+        x = "Time",
+        y = "Amplitude"
+      ) +
+      ggplot2::theme(
+        plot.title = ggplot2::element_text(hjust = 0.5, colour = text_col),
+        axis.title.x = ggplot2::element_text(colour = axis_title_col),
+        axis.title.y = ggplot2::element_text(colour = axis_title_col),
+        axis.text.x = ggplot2::element_text(colour = text_col),
+        axis.text.y = ggplot2::element_text(colour = text_col),
+        axis.ticks = ggplot2::element_line(colour = "grey"),
+        plot.background = ggplot2::element_rect(fill = bg_col, colour = bg_col),
+        panel.background = ggplot2::element_rect(fill = bg_col, colour = "grey"),
+        panel.grid.major = ggplot2::element_blank(),
+        panel.grid.minor = ggplot2::element_blank(),
+        plot.margin = ggplot2::unit(c(0, 0.2, 0.1, 0.2), "cm"),
+        legend.position = "none"
+      )
+    return(pp)
+  })
+
+  # Arrange plots nicely
+  names(varlist_M) <- seq(1, 2 * length(varlist_M), 2)
+  names(varlist_P) <- seq(2, 2 * length(varlist_M), 2)
+  varlist <- c(varlist_M, varlist_P)[order(names(c(varlist_M, varlist_P)))]
+
+  gridExtra::grid.arrange(
+    grobs = varlist,
+    nrow = max_syns,
+    ncol = 2,
+    top = grid::textGrob(paste0("Trial: ", trial), gp = grid::gpar(col = text_col)),
+    newpage = FALSE
+  )
   if (!is.na(path_for_graphs)) grDevices::dev.off()
 }

@@ -8,10 +8,10 @@ plot_classified_syns_UMAP(
   x,
   path_for_graphs = NA,
   condition,
-  filetype = "png",
-  width = 1800,
-  height = 2840,
-  resolution = 280
+  filetype,
+  width,
+  height,
+  resolution
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ plot_classified_syns_UMAP(
 
 \item{condition}{Character: the condition that is being analysed, for archiving purposes}
 
-\item{filetype}{Plot file type}
+\item{filetype}{Plot file type (e.g., "png" or "svg")}
 
 \item{width}{Plot width in pixels}
 
@@ -56,7 +56,11 @@ SYNS_classified <- classify_kmeans(SYNS,
 ## Export plots
 plot_classified_syns_UMAP(SYNS_classified,
   path_for_graphs = path_for_graphs,
-  condition = "TW"
+  condition = "TW",
+  filetype = "png",
+  width = 1800,
+  height = 2840,
+  resolution = 280
 )
 
 ## Check plots in the new folder before running the following (will delete!)

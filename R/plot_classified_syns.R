@@ -1,9 +1,14 @@
 #' Plot muscle synergies
 #'
 #' @param x List of objects of class `musclesyneRgies` (must be classified)
+#' @param dark_mode To enable dark mode
+#' @param line_size Line thickness
+#' @param dot_size Dot size on motor modules
+#' @param line_col Line colour
+#' @param sd_col Standard deviation ribbon colour
 #' @param path_for_graphs Path where plots should be saved
 #' @param condition Character: the condition that is being analysed, for archiving purposes
-#' @param filetype Plot file type
+#' @param filetype Plot file type (e.g., "png" or "svg")
 #' @param width Plot width in pixels
 #' @param height Plot height in pixels
 #' @param resolution Plot resolution in pixels
@@ -33,8 +38,15 @@
 #'
 #' ## Export plots
 #' plot_classified_syns(SYNS_classified,
+#'   dark_mode = TRUE,
+#'   line_col = "tomato1",
+#'   sd_col = "tomato4",
 #'   path_for_graphs = path_for_graphs,
-#'   condition = "TW"
+#'   condition = "TW",
+#'   filetype = "png",
+#'   width = 1800,
+#'   height = 625,
+#'   resolution = 280
 #' )
 #'
 #' ## Check plots in the new folder before running the following (will delete!)
@@ -42,15 +54,20 @@
 #' ## Delete folder
 #' unlink("Graphs", recursive = TRUE)
 plot_classified_syns <- function(x,
+                                 dark_mode = FALSE,
+                                 line_size = 0.9,
+                                 dot_size = 0.1,
+                                 line_col = "black",
+                                 sd_col = "grey80",
                                  path_for_graphs = NA,
                                  condition,
-                                 filetype = "png",
-                                 width = 1800,
-                                 height = 625,
-                                 resolution = 280) {
+                                 filetype,
+                                 width,
+                                 height,
+                                 resolution) {
   message("\nSaving synergy plots for condition ", condition, "...")
 
-  time <- ymin <- ymax <- value <- muscle <- variable <- NULL
+  module <- muscle <- time <- value <- variable <- ymax <- ymin <- NULL
 
   # Get classification method
   class_method <- unique(unlist(lapply(x, function(y) y$classification)))
@@ -92,12 +109,21 @@ plot_classified_syns <- function(x,
       # Amplitude normalisation
       x <- apply(temp, 2, function(z) z / max(z))
     }
-
     return(data.frame(x))
   })
 
   points <- unique(unlist(lapply(SYNS_P, function(y) nrow(y))))
   muscles <- unique(unlist(lapply(SYNS_M, function(y) rownames(y))))
+
+  # Prepare colours
+  if (dark_mode) {
+    if (line_col == "black") line_col <- "white"
+    bg_col <- "grey12"
+    text_col <- "white"
+  } else {
+    bg_col <- "white"
+    text_col <- "black"
+  }
 
   if (!is.na(path_for_graphs)) {
     Cairo::Cairo(
@@ -107,32 +133,53 @@ plot_classified_syns <- function(x,
         class_method, "_classification.",
         filetype
       ),
-      type = filetype, width = width, height = height * max_syns, pointsize = 20, dpi = resolution
+      type = filetype,
+      width = width,
+      height = height,
+      pointsize = 20,
+      dpi = resolution
     )
+  } else {
+    # For plotting directly (e.g. within RStudio)
+    graphics::par(bg = bg_col)
+    graphics::plot.new()
   }
 
   varlist <- list()
 
   for (syn in 1:max_syns) {
 
+    # To write axis titles
+    if (syn == max_syns) {
+      axis_title_col <- ifelse(dark_mode, "white", "black")
+    } else {
+      axis_title_col <- "transparent"
+    }
+
     # Select relevant synergies
-    data_P <- lapply(SYNS_P, function(y) t(y[, grep(paste0("^Syn", syn), colnames(y))]))
     data_M <- lapply(SYNS_M, function(y) {
       muscles <- rownames(y)
       y <- y[, grep(paste0("^Syn", syn), colnames(y))]
       if (length(y) > 0) names(y) <- muscles
       t(y)
     })
+    data_P <- lapply(SYNS_P, function(y) t(y[, grep(paste0("^Syn", syn), colnames(y))]))
 
     # Remove empty trials, if present
-    data_P <- data_P[lapply(data_P, length) > 0]
     data_M <- data_M[lapply(data_M, length) > 0]
+    data_P <- data_P[lapply(data_P, length) > 0]
 
     if (length(data_P) > 0) {
-      # Put primitives in a single data frame
-      data_P <- plyr::ldply(data_P, data.frame, .id = "trial")
       # Put modules in a single data frame
       data_M <- plyr::ldply(data_M, data.frame, .id = "trial")
+      # Put primitives in a single data frame
+      data_P <- plyr::ldply(data_P, data.frame, .id = "trial")
+
+      data_M_av <- data.frame(value = colMeans(data_M[, -1]))
+      data_M_av <- data.frame(
+        muscle = rownames(data_M_av),
+        data_M_av
+      )
 
       data_P_av <- data.frame(
         time = c(1:(ncol(data_P) - 1)),
@@ -144,59 +191,74 @@ plot_classified_syns <- function(x,
         ymax = data_P_av$value + apply(data_P[, -1], 2, stats::sd)
       )
 
-      data_M_av <- data.frame(value = colMeans(data_M[, -1]))
-      data_M_av <- data.frame(
-        muscle = rownames(data_M_av),
-        data_M_av
-      )
-
-      data_P <- reshape2::melt(data_P, id = "trial")
       data_M <- reshape2::melt(data_M, id = "trial")
-
-      temp_P <- ggplot2::ggplot() +
-        ggplot2::ggtitle(paste0("Motor primitive ", syn)) +
-        ggplot2::ylim(-0.2, 1.2) +
-        ggplot2::geom_ribbon(
-          data = data_P_sd,
-          ggplot2::aes(x = time, ymin = ymin, ymax = ymax),
-          fill = "grey80"
-        ) +
-        ggplot2::geom_line(
-          data = data_P_av,
-          ggplot2::aes(x = time, y = value),
-          colour = "black", size = 0.9
-        ) +
-        ggplot2::theme(
-          axis.title = ggplot2::element_blank(),
-          panel.background = ggplot2::element_rect(fill = "white", colour = "grey"),
-          panel.grid.major = ggplot2::element_line(colour = "grey", size = 0.05),
-          panel.grid.minor = ggplot2::element_blank(),
-          legend.position = "none"
-        )
+      data_P <- reshape2::melt(data_P, id = "trial")
 
       temp_M <- ggplot2::ggplot() +
-        ggplot2::ggtitle(paste0("Motor module ", syn)) +
         ggplot2::ylim(0, 1) +
-        ggplot2::geom_hline(yintercept = c(0.25, 0.5, 0.75, 1), size = 0.05, color = "grey70") +
         ggplot2::geom_bar(
           data = data_M_av,
           ggplot2::aes(x = muscle, y = value),
-          fill = "black", alpha = 0.3,
+          fill = line_col, alpha = 0.75,
           stat = "identity"
         ) +
         ggplot2::scale_x_discrete(limits = data_M_av$muscle) +
         ggplot2::geom_jitter(
           data = data_M,
+          colour = line_col,
           ggplot2::aes(x = variable, y = value),
-          fill = "black", width = 0.1, size = 0.1
+          width = dot_size,
+          size = dot_size
+        ) +
+        ggplot2::labs(
+          title = paste0("Motor module ", syn),
+          x = "Muscle",
+          y = "Contribution"
         ) +
         ggplot2::theme(
-          axis.title = ggplot2::element_blank(),
-          axis.text.y = ggplot2::element_blank(),
-          panel.background = ggplot2::element_rect(fill = "white", colour = "grey"),
+          plot.title = ggplot2::element_text(hjust = 0.5, colour = text_col),
+          axis.title.x = ggplot2::element_text(colour = axis_title_col),
+          axis.title.y = ggplot2::element_text(colour = axis_title_col),
+          axis.text.x = ggplot2::element_text(colour = text_col),
+          axis.text.y = ggplot2::element_text(colour = text_col),
+          axis.ticks = ggplot2::element_line(colour = "grey"),
+          plot.background = ggplot2::element_rect(fill = bg_col, colour = bg_col),
+          panel.background = ggplot2::element_rect(fill = bg_col, colour = "grey"),
           panel.grid.major = ggplot2::element_blank(),
           panel.grid.minor = ggplot2::element_blank(),
-          axis.ticks = ggplot2::element_blank(),
+          plot.margin = ggplot2::unit(c(0, 0.2, 0.1, 0.2), "cm"),
+          legend.position = "none"
+        )
+
+      temp_P <- ggplot2::ggplot() +
+        ggplot2::ylim(-0.2, 1.2) +
+        ggplot2::geom_ribbon(
+          data = data_P_sd,
+          ggplot2::aes(x = time, ymin = ymin, ymax = ymax),
+          fill = sd_col
+        ) +
+        ggplot2::geom_line(
+          data = data_P_av,
+          ggplot2::aes(x = time, y = value),
+          colour = line_col, size = line_size
+        ) +
+        ggplot2::labs(
+          title = paste0("Motor primitive ", syn),
+          x = "Time",
+          y = "Amplitude"
+        ) +
+        ggplot2::theme(
+          plot.title = ggplot2::element_text(hjust = 0.5, colour = text_col),
+          axis.title.x = ggplot2::element_text(colour = axis_title_col),
+          axis.title.y = ggplot2::element_text(colour = axis_title_col),
+          axis.text.x = ggplot2::element_text(colour = text_col),
+          axis.text.y = ggplot2::element_text(colour = text_col),
+          axis.ticks = ggplot2::element_line(colour = "grey"),
+          plot.background = ggplot2::element_rect(fill = bg_col, colour = bg_col),
+          panel.background = ggplot2::element_rect(fill = bg_col, colour = "grey"),
+          panel.grid.major = ggplot2::element_blank(),
+          panel.grid.minor = ggplot2::element_blank(),
+          plot.margin = ggplot2::unit(c(0, 0.2, 0.1, 0.2), "cm"),
           legend.position = "none"
         )
     } else {
@@ -209,40 +271,59 @@ plot_classified_syns <- function(x,
         value = 0
       )
 
+      temp_M <- ggplot2::ggplot() +
+        ggplot2::ylim(0, 1) +
+        ggplot2::geom_bar(
+          data = data_M_av,
+          ggplot2::aes(x = muscle, y = value),
+          fill = "transparent",
+          stat = "identity"
+        ) +
+        ggplot2::scale_x_discrete(limits = data_M_av$muscle) +
+        ggplot2::labs(
+          title = paste0("Motor module ", syn),
+          x = "Muscle",
+          y = "Contribution"
+        ) +
+        ggplot2::theme(
+          plot.title = ggplot2::element_text(hjust = 0.5, colour = text_col),
+          axis.title.x = ggplot2::element_text(colour = axis_title_col),
+          axis.title.y = ggplot2::element_text(colour = axis_title_col),
+          axis.text.x = ggplot2::element_text(colour = text_col),
+          axis.text.y = ggplot2::element_text(colour = text_col),
+          axis.ticks = ggplot2::element_line(colour = "grey"),
+          plot.background = ggplot2::element_rect(fill = bg_col, colour = bg_col),
+          panel.background = ggplot2::element_rect(fill = bg_col, colour = "grey"),
+          panel.grid.major = ggplot2::element_blank(),
+          panel.grid.minor = ggplot2::element_blank(),
+          plot.margin = ggplot2::unit(c(0, 0.2, 0.1, 0.2), "cm"),
+          legend.position = "none"
+        )
+
       temp_P <- ggplot2::ggplot() +
-        ggplot2::ggtitle(paste0("Motor primitive ", syn)) +
         ggplot2::ylim(-0.2, 1.2) +
         ggplot2::geom_line(
           data = data_P_av,
           ggplot2::aes(x = time, y = value),
-          colour = "transparent"
+          colour = "transparent", size = line_size
+        ) +
+        ggplot2::labs(
+          title = paste0("Motor primitive ", syn),
+          x = "Time",
+          y = "Amplitude"
         ) +
         ggplot2::theme(
-          axis.title = ggplot2::element_blank(),
-          panel.background = ggplot2::element_rect(fill = "white", colour = "grey"),
-          panel.grid.major = ggplot2::element_line(colour = "grey", size = 0.05),
-          panel.grid.minor = ggplot2::element_blank(),
-          legend.position = "none"
-        )
-
-      temp_M <- ggplot2::ggplot() +
-        ggplot2::ggtitle(paste0("Motor module ", syn)) +
-        ggplot2::ylim(0, 1) +
-        ggplot2::geom_hline(yintercept = c(0.25, 0.5, 0.75, 1), size = 0.05, color = "grey70") +
-        ggplot2::geom_bar(
-          data = data_M_av,
-          ggplot2::aes(x = muscle, y = value),
-          fill = "transparent", alpha = 0.3,
-          stat = "identity"
-        ) +
-        ggplot2::scale_x_discrete(limits = data_M_av$muscle) +
-        ggplot2::theme(
-          axis.title = ggplot2::element_blank(),
-          axis.text.y = ggplot2::element_blank(),
-          panel.background = ggplot2::element_rect(fill = "white", colour = "grey"),
+          plot.title = ggplot2::element_text(hjust = 0.5, colour = text_col),
+          axis.title.x = ggplot2::element_text(colour = axis_title_col),
+          axis.title.y = ggplot2::element_text(colour = axis_title_col),
+          axis.text.x = ggplot2::element_text(colour = text_col),
+          axis.text.y = ggplot2::element_text(colour = text_col),
+          axis.ticks = ggplot2::element_line(colour = "grey"),
+          plot.background = ggplot2::element_rect(fill = bg_col, colour = bg_col),
+          panel.background = ggplot2::element_rect(fill = bg_col, colour = "grey"),
           panel.grid.major = ggplot2::element_blank(),
           panel.grid.minor = ggplot2::element_blank(),
-          axis.ticks = ggplot2::element_blank(),
+          plot.margin = ggplot2::unit(c(0, 0.2, 0.1, 0.2), "cm"),
           legend.position = "none"
         )
     }
@@ -254,8 +335,12 @@ plot_classified_syns <- function(x,
   }
 
   suppressWarnings(gridExtra::grid.arrange(
-    grobs = varlist, nrow = max_syns, ncol = 2,
-    top = (paste0("Synergies - ", condition))
+    grobs = varlist,
+    nrow = max_syns,
+    ncol = 2,
+    top = grid::textGrob(paste0("Synergies - ", condition), gp = grid::gpar(col = text_col)),
+    # top = (paste0("Synergies - ", condition)),
+    newpage = FALSE
   ))
 
   if (!is.na(path_for_graphs)) grDevices::dev.off()

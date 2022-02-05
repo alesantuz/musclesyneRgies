@@ -9,11 +9,16 @@ plot_rawEMG(
   trial,
   plot_time = 3,
   start = 1,
+  row_number = NA,
+  col_number = 1,
+  dark_mode = FALSE,
+  line_size = 0.3,
+  line_col = "black",
   path_for_graphs = NA,
-  filetype = "png",
-  width = 2000,
-  height = 500,
-  resolution = 280
+  filetype,
+  width,
+  height,
+  resolution
 )
 }
 \arguments{
@@ -25,9 +30,19 @@ plot_rawEMG(
 
 \item{start}{At which data point should the plot start?}
 
+\item{row_number}{How many rows should the final plot be divided into?}
+
+\item{col_number}{How many columns should the final plot be divided into?}
+
+\item{dark_mode}{To enable dark mode}
+
+\item{line_size}{Line thickness}
+
+\item{line_col}{Line colour}
+
 \item{path_for_graphs}{Path where plots should be saved}
 
-\item{filetype}{Plot file type}
+\item{filetype}{Plot file type (e.g., "png" or "svg")}
 
 \item{width}{Plot width in pixels}
 
@@ -54,10 +69,18 @@ path_for_graphs <- paste0(data_path, "Graphs", .Platform$file.sep)
 data(RAW_DATA)
 
 for (ii in seq_along(RAW_DATA)) {
-  ## Plot the first three seconds of each trial
+  ## Plot the first three seconds of each trial in dark mode
   plot_rawEMG(RAW_DATA[[ii]],
     trial = names(RAW_DATA)[ii],
-    path_for_graphs = path_for_graphs
+    path_for_graphs = path_for_graphs,
+    row_number = 4,
+    col_number = 4,
+    dark_mode = TRUE,
+    line_col = "tomato3",
+    filetype = "png",
+    width = 2000,
+    height = 2000,
+    resolution = 230
   )
 }
 

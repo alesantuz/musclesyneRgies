@@ -10,7 +10,10 @@
 #' @param interactive Logical, ask for interactive re-ordering or go full automated?
 #'
 #' @details
-#' If `path_for_graphs` is not specified, plots will appear in the plot pane and will not be saved.
+#' This function must be applied to a list with a sufficient amount of trials, otherwise the
+#' classification will not work. Typically, at least 10 trials for the same condition are needed
+#' for satisfactory classification. If `path_for_graphs` is not specified, plots will appear
+#' in the plot pane and will not be saved.
 #'
 #' @return
 #' List of `musclesyneRgies` objects, each with elements:\cr

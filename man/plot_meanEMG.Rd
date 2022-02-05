@@ -7,11 +7,16 @@
 plot_meanEMG(
   x,
   trial,
+  row_number = NA,
+  col_number = 1,
+  dark_mode = FALSE,
+  line_size = 0.6,
+  line_col = "black",
   path_for_graphs = NA,
-  filetype = "png",
-  width = 2000,
-  height = 1875,
-  resolution = 140
+  filetype,
+  width,
+  height,
+  resolution
 )
 }
 \arguments{
@@ -19,9 +24,19 @@ plot_meanEMG(
 
 \item{trial}{Character: the name of the considered trial, for archiving purposes}
 
+\item{row_number}{How many rows should the final plot be divided into?}
+
+\item{col_number}{How many columns should the final plot be divided into?}
+
+\item{dark_mode}{To enable dark mode}
+
+\item{line_size}{Line thickness}
+
+\item{line_col}{Line colour}
+
 \item{path_for_graphs}{Path where plots should be saved}
 
-\item{filetype}{Plot file type}
+\item{filetype}{Plot file type (e.g., "png" or "svg")}
 
 \item{width}{Plot width in pixels}
 
@@ -51,7 +66,15 @@ for (ii in seq_along(FILT_EMG)) {
   ## Plot the average filtered and time-normalised EMG
   plot_meanEMG(FILT_EMG[[ii]],
     trial = names(FILT_EMG)[ii],
-    path_for_graphs = path_for_graphs
+    path_for_graphs = path_for_graphs,
+    row_number = 4,
+    col_number = 4,
+    dark_mode = TRUE,
+    line_col = "tomato3",
+    filetype = "png",
+    width = 2000,
+    height = 2000,
+    resolution = 230
   )
 }
 

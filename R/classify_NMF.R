@@ -3,6 +3,11 @@
 #' @param x A list of `musclesyneRgies` objects
 #' @param interactive Logical, ask for interactive re-ordering or go full automated?
 #'
+#' @details
+#' This function must be applied to a list with a sufficient amount of trials, otherwise the
+#' classification will not work. Typically, at least 10 trials for the same condition are needed
+#' for satisfactory classification.
+#'
 #' @return
 #' List of `musclesyneRgies` objects, each with elements:\cr
 #' - `syns` factorisation rank or minimum number of synergies\cr

@@ -6,22 +6,37 @@
 \usage{
 plot_classified_syns(
   x,
+  dark_mode = FALSE,
+  line_size = 0.9,
+  dot_size = 0.1,
+  line_col = "black",
+  sd_col = "grey80",
   path_for_graphs = NA,
   condition,
-  filetype = "png",
-  width = 1800,
-  height = 625,
-  resolution = 280
+  filetype,
+  width,
+  height,
+  resolution
 )
 }
 \arguments{
 \item{x}{List of objects of class \code{musclesyneRgies} (must be classified)}
 
+\item{dark_mode}{To enable dark mode}
+
+\item{line_size}{Line thickness}
+
+\item{dot_size}{Dot size on motor modules}
+
+\item{line_col}{Line colour}
+
+\item{sd_col}{Standard deviation ribbon colour}
+
 \item{path_for_graphs}{Path where plots should be saved}
 
 \item{condition}{Character: the condition that is being analysed, for archiving purposes}
 
-\item{filetype}{Plot file type}
+\item{filetype}{Plot file type (e.g., "png" or "svg")}
 
 \item{width}{Plot width in pixels}
 
@@ -56,8 +71,15 @@ SYNS_classified <- classify_kmeans(SYNS,
 
 ## Export plots
 plot_classified_syns(SYNS_classified,
+  dark_mode = TRUE,
+  line_col = "tomato1",
+  sd_col = "tomato4",
   path_for_graphs = path_for_graphs,
-  condition = "TW"
+  condition = "TW",
+  filetype = "png",
+  width = 1800,
+  height = 625,
+  resolution = 280
 )
 
 ## Check plots in the new folder before running the following (will delete!)
