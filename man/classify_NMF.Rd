@@ -34,8 +34,9 @@ classification will not work. Typically, at least 10 trials for the same conditi
 for satisfactory classification.
 }
 \examples{
+# Load some data
 data(SYNS)
-
+# Classify synergies
 SYNS_classified <- classify_NMF(SYNS,
   interactive = FALSE
 )

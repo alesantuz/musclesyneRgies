@@ -30,8 +30,9 @@ used for \code{cycles} (e.g., [s] or [ms]). For locomotion, thirty cycles
 are enough for proper synergy extraction (Oliveira et al. 2014).
 }
 \examples{
-## Subset example raw data to the first 3 cycles
+# Load some data
 data("RAW_DATA")
+# Subset example raw data to the first 3 cycles
 RAW_DATA_sub <- pbapply::pblapply(
   RAW_DATA,
   function(x) {

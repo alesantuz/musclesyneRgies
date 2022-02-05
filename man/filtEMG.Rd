@@ -51,8 +51,9 @@ The first column of each \code{emg} element must be time in the same units as th
 used for \code{cycles} (e.g., [s] or [ms]).
 }
 \examples{
-## Filter raw EMG
+# Load some data
 data("RAW_DATA")
+# Filter raw EMG
 filtered_EMG <- pbapply::pblapply(
   RAW_DATA,
   function(x) {

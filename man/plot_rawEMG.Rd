@@ -60,32 +60,18 @@ Plot raw EMG
 If \code{path_for_graphs} is not specified, plots will appear in the plot pane and will not be saved.
 }
 \examples{
-## Create "Graphs" folder if it does not exist
-data_path <- getwd()
-data_path <- paste0(data_path, .Platform$file.sep)
-dir.create("Graphs", showWarnings = FALSE)
-path_for_graphs <- paste0(data_path, "Graphs", .Platform$file.sep)
-
+# Load some data
 data(RAW_DATA)
 
+# Plot
 for (ii in seq_along(RAW_DATA)) {
-  ## Plot the first three seconds of each trial in dark mode
+  # Plot the first three seconds of each trial in dark mode
   plot_rawEMG(RAW_DATA[[ii]],
     trial = names(RAW_DATA)[ii],
-    path_for_graphs = path_for_graphs,
     row_number = 4,
     col_number = 4,
     dark_mode = TRUE,
-    line_col = "tomato3",
-    filetype = "png",
-    width = 2000,
-    height = 2000,
-    resolution = 230
+    line_col = "tomato3"
   )
 }
-
-## Check plots in the new folder before running the following (will delete!)
-
-## Delete folder
-unlink("Graphs", recursive = TRUE)
 }

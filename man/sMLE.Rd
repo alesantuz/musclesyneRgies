@@ -42,9 +42,9 @@ For locomotor primitives, 30 gait cycles have been shown to be sensitive to pert
 more are usually needed (Kang and Dingwell, 2006).
 }
 \examples{
-## Get some primitives
+# Load some primitives
 data("primitives")
-## Calculate sMLE of motor primitives in the muscle synergy space
+# Calculate sMLE of motor primitives in the muscle synergy space
 short_term_MLE <- sMLE(primitives,
   mean_period = 100,
   future_pts = 300,

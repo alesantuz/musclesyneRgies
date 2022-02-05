@@ -18,19 +18,19 @@ The full width at half maximum of the time series.
 Full width at half maximum
 }
 \examples{
-## Number of users connected to the Internet through a server every minute
+# Number of users connected to the Internet through a server every minute
 ts <- datasets::WWWusage
 
-## Calculate FWHM
+# Calculate FWHM
 ts_FWHM <- FWHM(ts)
 
-## Half maximum (for the plots)
+# Half maximum (for the plots)
 hm <- min(ts) + (max(ts) - min(ts)) / 2
 hm_plot <- ts
 hm_plot[which(hm_plot > hm)] <- hm
 hm_plot[which(hm_plot < hm)] <- NA
 
-## Plots
+# Plots
 plot(ts, ty = "l", xlab = "Time", ylab = "Number of users")
 lines(hm_plot, lwd = 3, col = 2)
 }

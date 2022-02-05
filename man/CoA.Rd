@@ -17,13 +17,13 @@ circular statistics
 Centre of activity
 }
 \examples{
-## Number of users connected to the Internet through a server every minute
+# Number of users connected to the Internet through a server every minute
 ts <- datasets::WWWusage[1:80]
 
-## Calculate CoA
+# Calculate CoA
 ts_CoA <- CoA(ts)
 
-## Plot
+# Plot
 plot(ts, ty = "l", xlab = "Time", ylab = "Number of users")
 graphics::abline(v = ts_CoA, lwd = 2, lty = 2)
 }

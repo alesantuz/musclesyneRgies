@@ -55,34 +55,22 @@ Plot muscle synergies (individual trials)
 If \code{path_for_graphs} is not specified, plots will appear in the plot pane and will not be saved.
 }
 \examples{
-## Create "Graphs" folder if it does not exist
-data_path <- getwd()
-data_path <- paste0(data_path, .Platform$file.sep)
-dir.create("Graphs", showWarnings = FALSE)
-path_for_graphs <- paste0(data_path, "Graphs", .Platform$file.sep)
-
+# Load some data
 data(FILT_EMG)
+
+# Extract synergies
 SYNS <- pbapply::pblapply(FILT_EMG, synsNMF)
 
+# Found maximum number of synergies
 max_syns <- max(unlist(lapply(SYNS, function(x) x$syns)))
 
-## Plot the first (and only) trial in the list
+# Plot the first (and only, in this case) trial in the list
 plot_syn_trials(SYNS[[1]],
   max_syns = max_syns,
   trial = names(SYNS)[1],
-  path_for_graphs = path_for_graphs,
   dark_mode = TRUE,
   line_size = 0.8,
   line_col = "tomato1",
-  sd_col = "tomato4",
-  filetype = "png",
-  width = 2000,
-  height = 500 * max_syns,
-  resolution = 280
+  sd_col = "tomato4"
 )
-
-## Check plots in the new folder before running the following (will delete!)
-
-## Delete folder
-unlink("Graphs", recursive = TRUE)
 }
