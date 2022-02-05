@@ -24,14 +24,14 @@
 #' J. Neurophysiol. 124, 1083–1091 (2020).
 #'
 #' @examples
-#' ## Measurements of the annual flow of the river Nile at Aswan
+#' # Measurements of the annual flow of the river Nile at Aswan
 #' flow <- datasets::Nile
 #'
-#' ## Calculate HFD
+#' # Calculate HFD
 #' fractal_dimension <- HFD(flow)$Higuchi
 #' message("Higuchi's fractal dimension: ", round(fractal_dimension, 3))
 #'
-#' ## Thirty-cycle locomotor primitive from Santuz & Akay (2020)
+#' # Thirty-cycle locomotor primitive from Santuz & Akay (2020)
 #' data(primitive)
 #' fractal_dimension <- HFD(primitive$signal)$Higuchi
 #' message("Higuchi's fractal dimension: ", round(fractal_dimension, 3))

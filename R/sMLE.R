@@ -40,9 +40,9 @@
 #' Gait Posture. 24(3) 386-390.
 #'
 #' @examples
-#' ## Get some primitives
+#' # Load some primitives
 #' data("primitives")
-#' ## Calculate sMLE of motor primitives in the muscle synergy space
+#' # Calculate sMLE of motor primitives in the muscle synergy space
 #' short_term_MLE <- sMLE(primitives,
 #'   mean_period = 100,
 #'   future_pts = 300,

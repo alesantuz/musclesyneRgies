@@ -28,8 +28,9 @@
 #' Int. J. Neural Syst. 27, 1750007 (2017).
 #'
 #' @examples
-#' ## Filter raw EMG
+#' # Load some data
 #' data("RAW_DATA")
+#' # Filter raw EMG
 #' filtered_EMG <- pbapply::pblapply(
 #'   RAW_DATA,
 #'   function(x) {

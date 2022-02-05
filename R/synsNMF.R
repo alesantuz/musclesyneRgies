@@ -40,8 +40,10 @@
 #' Neural Computation 23, 9 (2011).
 #'
 #' @examples
-#' ## Note that for bigger data sets one might want to run computation in parallel
+#' # Note that for bigger data sets one might want to run computation in parallel
+#' # Load some data
 #' data(FILT_EMG)
+#' # Extract synergies
 #' SYNS <- pbapply::pblapply(FILT_EMG, synsNMF)
 synsNMF <- function(V,
                     R2_target = 0.01,

@@ -22,37 +22,21 @@
 #' @export
 #'
 #' @examples
-#' ## Create "Graphs" folder if it does not exist
-#' data_path <- getwd()
-#' data_path <- paste0(data_path, .Platform$file.sep)
-#' dir.create("Graphs", showWarnings = FALSE)
-#' path_for_graphs <- paste0(data_path, "Graphs", .Platform$file.sep)
-#'
+#' # Load some data
 #' data(SYNS)
 #'
-#' ## Classify synergies with k-means
+#' # Classify synergies with k-means
 #' SYNS_classified <- classify_kmeans(SYNS,
-#'   path_for_graphs = path_for_graphs,
 #'   interactive = FALSE
 #' )
 #'
-#' ## Export plots
+#' # Plot classified synergies
 #' plot_classified_syns(SYNS_classified,
 #'   dark_mode = TRUE,
 #'   line_col = "tomato1",
 #'   sd_col = "tomato4",
-#'   path_for_graphs = path_for_graphs,
-#'   condition = "TW",
-#'   filetype = "png",
-#'   width = 1800,
-#'   height = 625,
-#'   resolution = 280
+#'   condition = "TW"
 #' )
-#'
-#' ## Check plots in the new folder before running the following (will delete!)
-#'
-#' ## Delete folder
-#' unlink("Graphs", recursive = TRUE)
 plot_classified_syns <- function(x,
                                  dark_mode = FALSE,
                                  line_size = 0.9,

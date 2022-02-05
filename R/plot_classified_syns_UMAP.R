@@ -16,34 +16,18 @@
 #' @export
 #'
 #' @examples
-#' ## Create "Graphs" folder if it does not exist
-#' data_path <- getwd()
-#' data_path <- paste0(data_path, .Platform$file.sep)
-#' dir.create("Graphs", showWarnings = FALSE)
-#' path_for_graphs <- paste0(data_path, "Graphs", .Platform$file.sep)
-#'
+#' # Load some data
 #' data(SYNS)
 #'
-#' ## Classify synergies with k-means
+#' # Classify synergies with k-means
 #' SYNS_classified <- classify_kmeans(SYNS,
-#'   path_for_graphs = path_for_graphs,
 #'   interactive = FALSE
 #' )
 #'
-#' ## Export plots
+#' # Plot
 #' plot_classified_syns_UMAP(SYNS_classified,
-#'   path_for_graphs = path_for_graphs,
-#'   condition = "TW",
-#'   filetype = "png",
-#'   width = 1800,
-#'   height = 2840,
-#'   resolution = 280
+#'   condition = "TW"
 #' )
-#'
-#' ## Check plots in the new folder before running the following (will delete!)
-#'
-#' ## Delete folder
-#' unlink("Graphs", recursive = TRUE)
 plot_classified_syns_UMAP <- function(x,
                                       path_for_graphs = NA,
                                       condition,

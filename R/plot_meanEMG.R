@@ -21,34 +21,20 @@
 #' @export
 #'
 #' @examples
-#' ## Create "Graphs" folder if it does not exist
-#' data_path <- getwd()
-#' data_path <- paste0(data_path, .Platform$file.sep)
-#' dir.create("Graphs", showWarnings = FALSE)
-#' path_for_graphs <- paste0(data_path, "Graphs", .Platform$file.sep)
-#'
+#' # Load some data
 #' data(FILT_EMG)
 #'
+#' # Plot
 #' for (ii in seq_along(FILT_EMG)) {
-#'   ## Plot the average filtered and time-normalised EMG
+#'   # Plot the average filtered and time-normalised EMG
 #'   plot_meanEMG(FILT_EMG[[ii]],
 #'     trial = names(FILT_EMG)[ii],
-#'     path_for_graphs = path_for_graphs,
 #'     row_number = 4,
 #'     col_number = 4,
 #'     dark_mode = TRUE,
-#'     line_col = "tomato3",
-#'     filetype = "png",
-#'     width = 2000,
-#'     height = 2000,
-#'     resolution = 230
+#'     line_col = "tomato3"
 #'   )
 #' }
-#'
-#' ## Check plots in the new folder before running the following (will delete!)
-#'
-#' ## Delete folder
-#' unlink("Graphs", recursive = TRUE)
 plot_meanEMG <- function(x,
                          trial,
                          row_number = NA,

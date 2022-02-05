@@ -25,14 +25,14 @@
 #' J. Neurophysiol. 124, 1083-1091 (2020).
 #'
 #' @examples
-#' ## Measurements of the annual flow of the river Nile at Aswan
+#' # Measurements of the annual flow of the river Nile at Aswan
 #' flow <- datasets::Nile
 #'
-#' ## Calculate Hurst exponent
+#' # Calculate Hurst exponent
 #' H <- Hurst(flow)$Hurst
 #' message("Hurst exponent: ", round(H, 3))
 #'
-#' ## Thirty-cycle locomotor primitive from Santuz & Akay (2020)
+#' # Thirty-cycle locomotor primitive from Santuz & Akay (2020)
 #' data(primitive)
 #' H <- Hurst(primitive$signal, min_win = max(primitive$time))$Hurst
 #' message("Hurst exponent: ", round(H, 3))

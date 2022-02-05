@@ -24,8 +24,9 @@
 #' Front. Hum. Neurosci. 8, 335 (2014).
 #'
 #' @examples
-#' ## Subset example raw data to the first 3 cycles
+#' # Load some data
 #' data("RAW_DATA")
+#' # Subset example raw data to the first 3 cycles
 #' RAW_DATA_sub <- pbapply::pblapply(
 #'   RAW_DATA,
 #'   function(x) {

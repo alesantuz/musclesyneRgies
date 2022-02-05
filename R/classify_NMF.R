@@ -23,8 +23,9 @@
 #' @export
 #'
 #' @examples
+#' # Load some data
 #' data(SYNS)
-#'
+#' # Classify synergies
 #' SYNS_classified <- classify_NMF(SYNS,
 #'   interactive = FALSE
 #' )
