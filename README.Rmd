@@ -100,7 +100,7 @@ unlink("emg", recursive = TRUE)
 
 ## Workflow example
 All the code in this section will work as in the example if you copy and paste it in R or RStudio.
-```{r, message = FALSE, results = "hide", fig.width = 6, fig.asp = 1.05}
+```{r, message = FALSE, results = "hide", fig.width = 7, fig.asp = 0.9}
 # Load the package
 library(musclesyneRgies)
 
@@ -119,7 +119,8 @@ RAW_DATA_subset <- pbapply::pblapply(
   }
 )
 
-# Raw EMG can be plotted with the following (the first three seconds are plot by default), now also in dark mode if you fancy it
+# Raw EMG can be plotted with the following (the first three seconds are plot by default)
+# Now also in dark mode if you fancy it
 plot_rawEMG(RAW_DATA[[1]],
   trial = names(RAW_DATA)[1],
   row_number = 4,
@@ -128,7 +129,7 @@ plot_rawEMG(RAW_DATA[[1]],
   line_col = "tomato3"
 )
 ```
-```{r, message = FALSE, results = "hide", fig.width = 6, fig.asp = 1.05}
+```{r, message = FALSE, results = "hide", fig.width = 7, fig.asp = 0.9}
 # The raw EMG data set then needs to be filtered
 # If you don't want to subset the data set, just filter it as it is
 # Here we filter the whole data set with the default parameters for locomotion:

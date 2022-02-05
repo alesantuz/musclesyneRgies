@@ -17,7 +17,7 @@ Follow the [README](https://github.com/alesantuz/musclesyneRgies/blob/master/REA
 - Line thickness and colour can now be specified in function `plot_rawEMG` (arguments `line_size` and `line_col`)
 - Added dark mode to `plot_rawEMG`, `plot_meanEMG`, `plot_syn_trials` and `plot_classified_syns`
 - Function `plot_syn_trials` partially rewritten with new native pipes `|>` and `lapply` instead of for loops
-- Updated README
+- Updated `README`
 - Added `CITATION.cff` using R package `cffr`.
 
 # musclesyneRgies 1.0.1

@@ -1,3 +1,12 @@
+---
+title:
+output:
+  html_document:
+    keep_md: yes
+---
+
+
+
 # musclesyneRgies
 ![](./images/musclesyneRgies_logo.png)
 
@@ -141,7 +150,8 @@ RAW_DATA_subset <- pbapply::pblapply(
   }
 )
 
-# Raw EMG can be plotted with the following (the first three seconds are plot by default), now also in dark mode if you fancy it
+# Raw EMG can be plotted with the following (the first three seconds are plot by default)
+# Now also in dark mode if you fancy it
 plot_rawEMG(RAW_DATA[[1]],
   trial = names(RAW_DATA)[1],
   row_number = 4,
