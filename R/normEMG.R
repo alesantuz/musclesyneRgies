@@ -31,12 +31,15 @@
 #' })
 #' # Time-normalise filtered EMG, including three cycles and trimming first and last
 #' norm_EMG <- pbapply::pblapply(filtered_EMG, function(x) {
-#'   normEMG(x, trim = TRUE, cy_max = 3, cycle_div = c(100, 100))
+#'   normEMG(
+#'   x,
+#'   cy_max = 3,
+#'   cycle_div = c(100, 100))
 #' })
 normEMG <- function(x,
                     trim = TRUE,
-                    cy_max,
-                    cycle_div = c(100, 100)) {
+                    cy_max = NA,
+                    cycle_div = NA) {
   if (!inherits(x, "EMG")) {
     stop("Object is not of class EMG, please create objects in the right format with \"rawdata\"")
   } else {
@@ -59,7 +62,7 @@ normEMG <- function(x,
   cycs <- nrow(cycles) - 1
 
   # Remove excess cycles, if present
-  if (cycs > cy_max) cycs <- cy_max
+  if (!is.na(cy_max) && cycs > cy_max) cycs <- cy_max
 
   # Isolate cycles and normalise time to "points" points
   # (first half stance, second half swing)

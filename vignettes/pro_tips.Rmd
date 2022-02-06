@@ -1,0 +1,56 @@
+---
+title: "Pro tips for fully exploiting the potential of musclesyneRgies"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{pro_tips}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(musclesyneRgies)
+```
+## Pro tips
+### Parallel computation
+For data sets bigger than the built-in ones, it might be worth it to run the synergy extraction in parallel (i.e., using more than one processor core or thread at once). This can be done with the following code, requiring the package "parallel".
+
+```{r, eval = FALSE}
+# Load the built-in example data set
+data("FILT_EMG")
+
+# Create cluster for parallel computing if not already done
+clusters <- objects()
+
+if (sum(grepl("^cl$", clusters)) == 0) {
+  # Decide how many processor threads have to be excluded from the cluster
+  # It is a good idea to leave at least one free, so that the machine can be
+  # used during computation
+  cl <- parallel::makeCluster(max(1, parallel::detectCores() - 1))
+}
+# Extract synergies in parallel (will speed up computation only for larger data sets)
+SYNS <- pbapply::pblapply(FILT_EMG, musclesyneRgies::synsNMF, cl = cl)
+
+parallel::stopCluster(cl)
+```
+### Fractal analysis
+When conducting fractal analysis of motor primitives for cyclic activities, the Higuchi's fractal dimension (HFD) and the Hurst exponent (H) need to be calculated with care, as reported in [Santuz & Akay (2020)](https://journals.physiology.org/doi/full/10.1152/jn.00360.2020). In particular, HFD should be calculated by using only the most linear part of the log-log plot, while H should be calculated by using a minimum window length >= than the period. In the built-in example, the motor primitive has 30 cycles of 200 points each and a proper fractal analysis could be as follows.
+```{r}
+# Thirty-cycle locomotor primitive from Santuz & Akay (2020)
+data(primitive)
+
+# HFD with k_max = 10 to consider only the most linear part of the log-log plot
+# (it's the default value for this function anyway)
+Higuchi_fd <- HFD(primitive$signal, k_max = 10)$Higuchi
+message("Higuchi's fractal dimension: ", round(Higuchi_fd, 3))
+
+# H with min_win = 200 points, which is the length of each cycle
+Hurst_exp <- Hurst(primitive$signal, min_win = max(primitive$time))$Hurst
+message("Hurst exponent: ", round(Hurst_exp, 3))
+```

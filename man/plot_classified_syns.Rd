@@ -11,7 +11,7 @@ plot_classified_syns(
   dot_size = 0.1,
   line_col = "black",
   sd_col = "grey80",
-  condition,
+  condition = NA,
   show_plot = TRUE
 )
 }

@@ -4,7 +4,7 @@
 \alias{normEMG}
 \title{To time-normalise filtered EMG}
 \usage{
-normEMG(x, trim = TRUE, cy_max, cycle_div = c(100, 100))
+normEMG(x, trim = TRUE, cy_max = NA, cycle_div = NA)
 }
 \arguments{
 \item{x}{Object of class \code{EMG} with elements \code{cycles} and \code{emg}}
@@ -39,7 +39,10 @@ filtered_EMG <- pbapply::pblapply(RAW_DATA, function(x) {
 })
 # Time-normalise filtered EMG, including three cycles and trimming first and last
 norm_EMG <- pbapply::pblapply(filtered_EMG, function(x) {
-  normEMG(x, trim = TRUE, cy_max = 3, cycle_div = c(100, 100))
+  normEMG(
+  x,
+  cy_max = 3,
+  cycle_div = c(100, 100))
 })
 }
 \references{

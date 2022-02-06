@@ -13,6 +13,7 @@ The package `musclesyneRgies` allows to extract muscle synergies from electromyo
 Done! Now the package is installed on your computer.
 
 ## What this package does:
+- Help you to prepare the raw data sets in the correct format
 - Filter and normalise raw EMG
 - Extract muscle synergies
 - Classify the extracted muscle synergies
@@ -23,6 +24,19 @@ Done! Now the package is installed on your computer.
 ## What this package does not do:
 - Run the statistics for you
 - All that is not specified in the list above.
+
+## A simple workflow
+The most simplified workflow for synergy extraction could look as follows (please note that the next chunk of code does not refer to real data and is only intended as a mock example to help you write your own scripts).
+
+```r
+# The simplest formulation, using the native (R >= `4.1.0`) pipe operator
+# Here, the raw data set is already in the correct format and named `RAW_DATA`
+SYNS_classified <- lapply(RAW_DATA, filtEMG) |>
+  lapply(function(x) normEMG(x, cycle_div = c(100, 100))) |>
+  lapply(synsNMF) |>
+  classify_kmeans()
+```
+Compact, isn't it? You can of course tweak and tune all the above to fit your scientific needs and more is explained below and in the [vignettes](https://github.com/alesantuz/musclesyneRgies/tree/master/vignettes).
 
 ## How to prepare your data set
 The data set must be in a specific format to fit the analysis framework. However, if you worked with versions <= `0.8.7-alpha` you will find that requirements are now much less stringent, to the benefit of usability. What you need (see also `?rawdata`) is a list of objects of class `EMG`, each of which is a list with two elements:
@@ -152,7 +166,7 @@ pp <- plot_rawEMG(RAW_DATA[[1]],
 )
 ```
 
-![](README_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+![](README_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 ```r
 # The raw EMG data set then needs to be filtered
@@ -225,7 +239,7 @@ pp <- plot_meanEMG(norm_EMG[[1]],
 )
 ```
 
-![](README_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+![](README_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
 ```r
 # At this stage, synergies can be extracted
@@ -243,7 +257,7 @@ pp <- plot_syn_trials(SYNS[[1]],
 )
 ```
 
-![](README_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+![](README_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
 ```r
 # Now synergies don't have a functional order and need classification
@@ -252,17 +266,16 @@ pp <- plot_syn_trials(SYNS[[1]],
 # say less than 10, won't help)
 data("SYNS")
 
-# Classify with k-means# and producing a plot that shows how the clustering went with:
+# Classify with k-means and produce a plot that shows how the clustering went with:
 # - Full width at half maximum on the x-axis
 # - Centre of activity on the y-axis
 # (both referred to the motor primitives of the classified muscle synergies)
 SYNS_classified <- classify_kmeans(SYNS,
-  path_for_graphs = NA,
   interactive = FALSE
 )
 ```
 
-![](README_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+![](README_files/figure-html/unnamed-chunk-7-1.png)<!-- -->![](README_files/figure-html/unnamed-chunk-7-2.png)<!-- -->
 
 ```r
 # Classified synergies can be finally plotted with
@@ -274,7 +287,7 @@ pp <- plot_classified_syns(SYNS_classified,
 ) # "TW" = Treadmill Walking, change with your own
 ```
 
-![](README_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+![](README_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
 
 ```r
 # A 2D UMAP plot of the classified synergies can be obtained with
@@ -283,7 +296,7 @@ pp <- plot_classified_syns_UMAP(SYNS_classified,
 )
 ```
 
-![](README_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+![](README_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
 ```r
 # From now on, it's all about the analysis
@@ -312,7 +325,7 @@ lines(hm_plot, lwd = 3, col = 2) # FWHM (horizontal, in red)
 graphics::abline(v = prim_sub_CoA, lwd = 3, col = 4) # Coa (vertical, in blue)
 ```
 
-![](README_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+![](README_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 ```r
 # Or perhaps one might want to investigate the nonlinear behaviour of a long primitive

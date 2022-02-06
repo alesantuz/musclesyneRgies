@@ -1,5 +1,5 @@
 ---
-title: "Workflow for musclesyneRgies"
+title: "Typical workflow for musclesyneRgies"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{workflow}
@@ -19,16 +19,8 @@ library(musclesyneRgies)
 ```
 The package `musclesyneRgies` allows to extract muscle synergies from electromyographic (EMG) data through linear decomposition based on unsupervised machine learning. Specifically, here we adopted the non-negative matrix factorization (NMF) framework, due to the non-negative nature of EMG biosignals. However, this method can be applied to any other kind of data sets, from time series to images.
 
-## Installation
-- [Download R](https://cran.r-project.org/mirrors.html) and install (please have R >= `3.5.0`)
-- [Download RStudio](https://rstudio.com/products/rstudio/download/) and install
-- Open RStudio and install the package `devtools` with `install.packages("devtools")`
-- Load `devtools` with `library(devtools)`
-- Install the package `musclesyneRgies` with `install_github("alesantuz/musclesyneRgies")`.
-
-Done! Now the package is installed on your computer.
-
 ## What this package does:
+- Help you to prepare the raw data sets in the correct format
 - Filter and normalise raw EMG
 - Extract muscle synergies
 - Classify the extracted muscle synergies
@@ -40,9 +32,38 @@ Done! Now the package is installed on your computer.
 - Run the statistics for you
 - All that is not specified in the list above.
 
-## How to prepare your data set
-The data set must be in a specific format to fit the analysis framework. However, if you worked with versions <= `0.8.7-alpha` you will find that requirements are now much less stringent, to the benefit of usability. What you need (see also `?rawdata`) is a list of objects of class `EMG`, each of which is a list with two elements:
+## Typical workflow
+A typical workflow for synergy extraction could look as follows. Please note that the next chunk will not be run, since it does not refer to real data and should be seen as a mock example to write your own scripts.
+```{r, eval = FALSE}
+# Load package
+library(musclesyneRgies)
 
+# The simplest formulation, using the native (R >= `4.1.0`) pipe operator
+# Here, the raw data set is already in the correct format and named `RAW_DATA`
+SYNS_classified <- lapply(RAW_DATA, function(x) subsetEMG(x, cy_max = 32)) |>
+  lapply(filtEMG) |>
+  lapply(function(x) normEMG(x, cy_max = 30, cycle_div = c(100, 100))) |>
+  lapply(synsNMF) |>
+  classify_kmeans()
+
+# Alternatively, one can save every step for subsequent inspection/analysis as follows
+# Read raw data from ASCII files
+RAW_DATA <- rawdata(header_cycles = FALSE)
+# Subset EMG to reduce the amount of data to the first 32 available cycles
+RAW_DATA <- lapply(RAW_DATA, function(x) subsetEMG(x, cy_max = 32))
+# Filter EMG
+FILT_DATA <- lapply(RAW_DATA, filtEMG)
+# Normalise filtered EMG, trim first and last cycle (32 were available, 30 will be left)
+# and divide cycle into two phases of 100 data points each
+NORM_EMG <- lapply(FILT_DATA, function(x) normEMG(x, cy_max = 30, cycle_div = c(100, 100)))
+# Extract synergies
+SYNS <- lapply(NORM_EMG, synsNMF)
+# Classify synergies with k-means
+# (the result is equivalent to the previous obtained with piping)
+SYNS_classified <- classify_kmeans(SYNS)
+```
+## How to prepare your data set
+The data set must be in a specific format to fit the analysis framework. What you need (see also `?rawdata`) is a list of objects of class `EMG`, each of which is a list with two elements:
 - `cycles` data frame containing cycle timings, with as many columns as many cycle subdivisions are wanted
 - `emg` data frame containing raw EMG data in columns, first column must be time in the same units as in the cycle timings.
 
@@ -100,8 +121,7 @@ unlink("emg", recursive = TRUE)
 ```
 
 ## Workflow example
-All the code in this section will work as in the example if you copy and paste it in R or RStudio.
-```{r, message = FALSE, results = "hide", fig.width = 7, fig.asp = 0.9}
+```{r, message = FALSE, results = "hide"}
 # Load the built-in example data set
 data("RAW_DATA")
 
@@ -117,17 +137,6 @@ RAW_DATA_subset <- pbapply::pblapply(
   }
 )
 
-# Raw EMG can be plotted with the following (the first three seconds are plot by default)
-# Now also in dark mode if you fancy it
-pp <- plot_rawEMG(RAW_DATA[[1]],
-  trial = names(RAW_DATA)[1],
-  row_number = 4,
-  col_number = 4,
-  dark_mode = TRUE,
-  line_col = "tomato3"
-)
-```
-```{r, message = FALSE, results = "hide", fig.width = 7, fig.asp = 0.9}
 # The raw EMG data set then needs to be filtered
 # If you don't want to subset the data set, just filter it as it is
 # Here we filter the whole data set with the default parameters for locomotion:
@@ -187,32 +196,10 @@ another_norm_EMG <- pbapply::pblapply(
   }
 )
 
-# The filtered and time-normalised EMG can be plotted with the following
-pp <- plot_meanEMG(norm_EMG[[1]],
-  trial = names(norm_EMG)[1],
-  row_number = 4,
-  col_number = 4,
-  dark_mode = TRUE,
-  line_size = 0.8,
-  line_col = "tomato3"
-)
-```
-```{r, message = FALSE, results = "hide", fig.width = 6, fig.asp = 1}
 # At this stage, synergies can be extracted
 # This is the core function to extract synergies via NMF
 SYNS <- pbapply::pblapply(norm_EMG, synsNMF)
 
-# The extracted synergies can be plotted with the following
-pp <- plot_syn_trials(SYNS[[1]],
-  max_syns = max(unlist(lapply(SYNS, function(x) x$syns))),
-  trial = names(SYNS)[1],
-  dark_mode = TRUE,
-  line_size = 0.8,
-  line_col = "tomato1",
-  sd_col = "tomato4"
-)
-```
-```{r, message = FALSE, results = "hide", fig.width = 5, fig.asp = 0.7}
 # Now synergies don't have a functional order and need classification
 # Let's load the built-in data set to have some more trial to classify
 # (clustering cannot be done on only one trial and having just a few,
@@ -224,96 +211,8 @@ data("SYNS")
 # - Centre of activity on the y-axis
 # (both referred to the motor primitives of the classified muscle synergies)
 SYNS_classified <- classify_kmeans(SYNS,
-  interactive = FALSE
+  interactive = FALSE,
+  show_plot = FALSE
 )
 ```
-```{r, message = FALSE, results = "hide", fig.width = 6, fig.asp = 1}
-# Classified synergies can be finally plotted with
-pp <- plot_classified_syns(SYNS_classified,
-  dark_mode = TRUE,
-  line_col = "tomato1",
-  sd_col = "tomato4",
-  condition = "TW"
-) # "TW" = Treadmill Walking, change with your own
-```
-```{r, message = FALSE, results = "hide", fig.width = 5, fig.asp = 1.4}
-# A 2D UMAP plot of the classified synergies can be obtained with
-pp <- plot_classified_syns_UMAP(SYNS_classified,
-  condition = "TW"
-)
-```
-```{r, results = "hide", fig.width = 4, fig.asp = 1}
-# From now on, it's all about the analysis
-# For example, one can measure the full width at half maximum (FWHM)
-# of the motor primitives or their centre of activity (CoA)
-# Load a typical motor primitive of 30 cycles (from locomotion)
-data("primitive")
-
-# Reduce primitive to the first cycle
-prim_sub <- primitive$signal[1:which(primitive$time == max(primitive$time))[1]]
-
-# Calculate FWHM of the first cycle
-prim_sub_FWHM <- FWHM(prim_sub)
-# Calculate CoA of the first cycle
-prim_sub_CoA <- CoA(prim_sub)
-
-# Half maximum (for the plots)
-hm <- min(prim_sub) + (max(prim_sub) - min(prim_sub)) / 2
-hm_plot <- prim_sub
-hm_plot[which(hm_plot > hm)] <- hm
-hm_plot[which(hm_plot < hm)] <- NA
-
-# Plots
-plot(prim_sub, ty = "l", xlab = "Time", ylab = "Amplitude")
-lines(hm_plot, lwd = 3, col = 2) # FWHM (horizontal, in red)
-graphics::abline(v = prim_sub_CoA, lwd = 3, col = 4) # Coa (vertical, in blue)
-
-# Or perhaps one might want to investigate the nonlinear behaviour of a long primitive
-prim <- primitive$signal
-
-# Calculate the local complexity or Higuchi's fractal dimension (HFD)
-nonlin_HFD <- HFD(prim)$Higuchi
-# Calculate the local complexity or Hurst exponent (H)
-nonlin_H <- Hurst(prim, min_win = max(primitive$time))$Hurst
-
-message("Higuchi's fractal dimension: ", round(nonlin_HFD, 3))
-message("Hurst exponent: ", round(nonlin_H, 3))
-```
-
-## Pro tips
-### Parallel computation
-For data sets bigger than the built-in ones, it might be worth it to run the synergy extraction in parallel (i.e., using more than one processor core or thread at once). This can be done with the following code, requiring the package "parallel".
-
-```{r, eval = FALSE}
-# Load the built-in example data set
-data("FILT_EMG")
-
-# Create cluster for parallel computing if not already done
-clusters <- objects()
-
-if (sum(grepl("^cl$", clusters)) == 0) {
-  # Decide how many processor threads have to be excluded from the cluster
-  # It is a good idea to leave at least one free, so that the machine can be
-  # used during computation
-  cl <- parallel::makeCluster(max(1, parallel::detectCores() - 1))
-}
-# Extract synergies in parallel (will speed up computation only for larger data sets)
-SYNS <- pbapply::pblapply(FILT_EMG, musclesyneRgies::synsNMF, cl = cl)
-
-parallel::stopCluster(cl)
-```
-### Fractal analysis
-When conducting fractal analysis of motor primitives for cyclic activities, the Higuchi's fractal dimension (HFD) and the Hurst exponent (H) need to be calculated with care, as reported in [Santuz & Akay (2020)](https://journals.physiology.org/doi/full/10.1152/jn.00360.2020). In particular, HFD should be calculated by using only the most linear part of the log-log plot, while H should be calculated by using a minimum window length >= than the period. In the built-in example, the motor primitive has 30 cycles of 200 points each and a proper fractal analysis could be as follows.
-```{r}
-# Thirty-cycle locomotor primitive from Santuz & Akay (2020)
-data(primitive)
-
-# HFD with k_max = 10 to consider only the most linear part of the log-log plot
-# (it's the default value for this function anyway)
-Higuchi_fd <- HFD(primitive$signal, k_max = 10)$Higuchi
-message("Higuchi's fractal dimension: ", round(Higuchi_fd, 3))
-
-# H with min_win = 200 points, which is the length of each cycle
-Hurst_exp <- Hurst(primitive$signal, min_win = max(primitive$time))$Hurst
-message("Hurst exponent: ", round(Hurst_exp, 3))
-```
+Done! Now the analysis of extracted synergies can start.
