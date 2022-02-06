@@ -6,15 +6,12 @@
 #' @param dot_size Dot size on motor modules
 #' @param line_col Line colour
 #' @param sd_col Standard deviation ribbon colour
-#' @param path_for_graphs Path where plots should be saved
 #' @param condition Character: the condition that is being analysed, for archiving purposes
-#' @param filetype Plot file type (e.g., "png" or "svg")
-#' @param width Plot width in pixels
-#' @param height Plot height in pixels
-#' @param resolution Plot resolution in pixels
+#' @param show_plot Logical, to decide whether plots should be plotted in the active graphic device
 #'
 #' @details
-#' If `path_for_graphs` is not specified, plots will appear in the plot pane and will not be saved.
+#' If `show_plot` is TRUE (default) plots are also shown in the active graphic device.
+#' Plots can then be saved with the preferred export method, such as `ggplot2::ggsave`.
 #'
 #' @return Global plot containing the average classified muscle synergies and individual trials
 #' (motor modules) or standard deviations (motor primitives)
@@ -43,13 +40,9 @@ plot_classified_syns <- function(x,
                                  dot_size = 0.1,
                                  line_col = "black",
                                  sd_col = "grey80",
-                                 path_for_graphs = NA,
                                  condition,
-                                 filetype,
-                                 width,
-                                 height,
-                                 resolution) {
-  message("\nSaving synergy plots for condition ", condition, "...")
+                                 show_plot = TRUE) {
+  message("\nCreating synergy plots for condition ", condition, "...")
 
   module <- muscle <- time <- value <- variable <- ymax <- ymin <- NULL
 
@@ -107,26 +100,6 @@ plot_classified_syns <- function(x,
   } else {
     bg_col <- "white"
     text_col <- "black"
-  }
-
-  if (!is.na(path_for_graphs)) {
-    Cairo::Cairo(
-      file = paste0(
-        path_for_graphs, "SYNS_",
-        condition, "_",
-        class_method, "_classification.",
-        filetype
-      ),
-      type = filetype,
-      width = width,
-      height = height,
-      pointsize = 20,
-      dpi = resolution
-    )
-  } else {
-    # For plotting directly (e.g. within RStudio)
-    graphics::par(bg = bg_col)
-    graphics::plot.new()
   }
 
   varlist <- list()
@@ -318,16 +291,21 @@ plot_classified_syns <- function(x,
     varlist[[2 * syn - 1]] <- assign(varname_M, temp_M)
   }
 
-  suppressWarnings(gridExtra::grid.arrange(
+  # Arrange plots nicely and return as gtable
+  gg <- suppressWarnings(gridExtra::arrangeGrob(
     grobs = varlist,
     nrow = max_syns,
     ncol = 2,
-    top = grid::textGrob(paste0("Synergies - ", condition), gp = grid::gpar(col = text_col)),
-    # top = (paste0("Synergies - ", condition)),
-    newpage = FALSE
+    top = grid::textGrob(paste0("Synergies - ", condition), gp = grid::gpar(col = text_col))
   ))
-
-  if (!is.na(path_for_graphs)) grDevices::dev.off()
-
+  # Plot on active graphic device if needed
+  if (show_plot) {
+    # Prepare graphic device
+    graphics::par(bg = bg_col)
+    graphics::plot.new()
+    # Arrange
+    suppressWarnings(gridExtra::grid.arrange(gg, newpage = FALSE))
+  }
+  return(gg)
   message("...done!")
 }

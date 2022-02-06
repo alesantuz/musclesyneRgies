@@ -3,6 +3,9 @@ test_that("NMF works", {
   SYNS <- lapply(FILT_EMG, synsNMF)
   SYNS_fixed <- lapply(FILT_EMG, synsNMF, fixed_syns = 2)
 
+  # Class
+  expect_s3_class(SYNS$ID0012_TW_01, "musclesyneRgies")
+
   # Rank
   expect_equal(SYNS$ID0012_TW_01$syns, 4)
   expect_equal(SYNS_fixed$ID0012_TW_01$syns, 2)

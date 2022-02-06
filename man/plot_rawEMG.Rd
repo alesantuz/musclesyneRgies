@@ -14,11 +14,7 @@ plot_rawEMG(
   dark_mode = FALSE,
   line_size = 0.3,
   line_col = "black",
-  path_for_graphs = NA,
-  filetype,
-  width,
-  height,
-  resolution
+  show_plot = TRUE
 )
 }
 \arguments{
@@ -40,38 +36,28 @@ plot_rawEMG(
 
 \item{line_col}{Line colour}
 
-\item{path_for_graphs}{Path where plots should be saved}
-
-\item{filetype}{Plot file type (e.g., "png" or "svg")}
-
-\item{width}{Plot width in pixels}
-
-\item{height}{Plot height in pixels, for each muscle}
-
-\item{resolution}{Plot resolution in pixels}
+\item{show_plot}{Logical, to decide whether plots should be plotted in the active graphic device}
 }
 \value{
-Exports raw EMG plots of the specified length.
+Plots raw EMG trials of the specified length.
 }
 \description{
 Plot raw EMG
 }
 \details{
-If \code{path_for_graphs} is not specified, plots will appear in the plot pane and will not be saved.
+If \code{show_plot} is TRUE (default) plots are also shown in the active graphic device.
+Plots can then be saved with the preferred export method, such as \code{ggplot2::ggsave}.
 }
 \examples{
 # Load some data
 data(RAW_DATA)
 
-# Plot
-for (ii in seq_along(RAW_DATA)) {
-  # Plot the first three seconds of each trial in dark mode
-  plot_rawEMG(RAW_DATA[[ii]],
-    trial = names(RAW_DATA)[ii],
-    row_number = 4,
-    col_number = 4,
-    dark_mode = TRUE,
-    line_col = "tomato3"
-  )
-}
+# Plot first (and only) trial in RAW_DATA, first three seconds, in dark mode
+plot_rawEMG(RAW_DATA[[1]],
+  trial = names(RAW_DATA)[1],
+  row_number = 4,
+  col_number = 4,
+  dark_mode = TRUE,
+  line_col = "tomato3"
+)
 }

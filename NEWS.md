@@ -18,7 +18,9 @@ Follow the [README](https://github.com/alesantuz/musclesyneRgies/blob/master/REA
 - Added dark mode to `plot_rawEMG`, `plot_meanEMG`, `plot_syn_trials` and `plot_classified_syns`
 - Function `plot_syn_trials` partially rewritten with new native pipes `|>` and `lapply` instead of for loops
 - Updated `README`
-- Added `CITATION.cff` using R package `cffr`.
+- Added `CITATION.cff` using R package `cffr`
+- Simplified all plot functions, which now exports `gtable` objects rather tan saving to file
+- Added tests for plot functions.
 
 # musclesyneRgies 1.0.1
 

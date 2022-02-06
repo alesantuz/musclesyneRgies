@@ -7,14 +7,11 @@
 #' @param dark_mode To enable dark mode
 #' @param line_size Line thickness
 #' @param line_col Line colour
-#' @param path_for_graphs Path where plots should be saved
-#' @param filetype Plot file type (e.g., "png" or "svg")
-#' @param width Plot width in pixels
-#' @param height Plot height in pixels
-#' @param resolution Plot resolution in pixels
+#' @param show_plot Logical, to decide whether plots should be plotted in the active graphic device
 #'
 #' @details
-#' If `path_for_graphs` is not specified, plots will appear in the plot pane and will not be saved.
+#' If `show_plot` is TRUE (default) plots are also shown in the active graphic device.
+#' Plots can then be saved with the preferred export method, such as `ggplot2::ggsave`.
 #'
 #' @return Exports average filtered and normalised EMG.
 #'
@@ -42,11 +39,7 @@ plot_meanEMG <- function(x,
                          dark_mode = FALSE,
                          line_size = 0.6,
                          line_col = "black",
-                         path_for_graphs = NA,
-                         filetype,
-                         width,
-                         height,
-                         resolution) {
+                         show_plot = TRUE) {
   if (!inherits(x, "data.frame")) {
     stop("Objects are not data frames")
   }
@@ -71,18 +64,6 @@ plot_meanEMG <- function(x,
   } else {
     bg_col <- "white"
     text_col <- "black"
-  }
-
-  if (!is.na(path_for_graphs)) {
-    # For exporting
-    Cairo::Cairo(
-      file = paste0(path_for_graphs, trial, ".", filetype),
-      width = width, height = height, dpi = resolution
-    )
-  } else {
-    # For plotting directly (e.g. within RStudio)
-    graphics::par(bg = bg_col)
-    graphics::plot.new()
   }
 
   # Create plots
@@ -124,14 +105,20 @@ plot_meanEMG <- function(x,
   # Check for consistency of row and column number
   if (is.na(row_number)) row_number <- ceiling(length(colnames(x)) / col_number)
 
-  # Arrange plots nicely
-  gridExtra::grid.arrange(
+  # Arrange plots nicely and return as gtable
+  gg <- gridExtra::arrangeGrob(
     grobs = varlist,
     nrow = row_number,
     ncol = col_number,
-    top = grid::textGrob(paste0("Trial: ", trial), gp = grid::gpar(col = text_col)),
-    newpage = FALSE
+    top = grid::textGrob(paste0("Trial: ", trial), gp = grid::gpar(col = text_col))
   )
-
-  if (!is.na(path_for_graphs)) grDevices::dev.off()
+  # Plot on active graphic device if needed
+  if (show_plot) {
+    # Prepare graphic device
+    graphics::par(bg = bg_col)
+    graphics::plot.new()
+    # Arrange
+    gridExtra::grid.arrange(gg, newpage = FALSE)
+  }
+  return(gg)
 }

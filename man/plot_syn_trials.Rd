@@ -12,11 +12,7 @@ plot_syn_trials(
   line_size = 0.6,
   line_col = "black",
   sd_col = "grey80",
-  path_for_graphs = NA,
-  filetype,
-  width,
-  height,
-  resolution
+  show_plot = TRUE
 )
 }
 \arguments{
@@ -35,15 +31,7 @@ be divided into}
 
 \item{sd_col}{Standard deviation ribbon colour}
 
-\item{path_for_graphs}{Path where plots should be saved}
-
-\item{filetype}{Plot file type (e.g., "png" or "svg")}
-
-\item{width}{Plot width in pixels}
-
-\item{height}{Plot height in pixels}
-
-\item{resolution}{Plot resolution in pixels}
+\item{show_plot}{Logical, to decide whether plots should be plotted in the active graphic device}
 }
 \value{
 Plots of the unclassified synergies, trial by trial.
@@ -52,7 +40,8 @@ Plots of the unclassified synergies, trial by trial.
 Plot muscle synergies (individual trials)
 }
 \details{
-If \code{path_for_graphs} is not specified, plots will appear in the plot pane and will not be saved.
+If \code{show_plot} is TRUE (default) plots are also shown in the active graphic device.
+Plots can then be saved with the preferred export method, such as \code{ggplot2::ggsave}.
 }
 \examples{
 # Load some data

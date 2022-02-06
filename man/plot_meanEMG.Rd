@@ -12,11 +12,7 @@ plot_meanEMG(
   dark_mode = FALSE,
   line_size = 0.6,
   line_col = "black",
-  path_for_graphs = NA,
-  filetype,
-  width,
-  height,
-  resolution
+  show_plot = TRUE
 )
 }
 \arguments{
@@ -34,15 +30,7 @@ plot_meanEMG(
 
 \item{line_col}{Line colour}
 
-\item{path_for_graphs}{Path where plots should be saved}
-
-\item{filetype}{Plot file type (e.g., "png" or "svg")}
-
-\item{width}{Plot width in pixels}
-
-\item{height}{Plot height in pixels}
-
-\item{resolution}{Plot resolution in pixels}
+\item{show_plot}{Logical, to decide whether plots should be plotted in the active graphic device}
 }
 \value{
 Exports average filtered and normalised EMG.
@@ -51,7 +39,8 @@ Exports average filtered and normalised EMG.
 Plot EMG averaged across all cycles
 }
 \details{
-If \code{path_for_graphs} is not specified, plots will appear in the plot pane and will not be saved.
+If \code{show_plot} is TRUE (default) plots are also shown in the active graphic device.
+Plots can then be saved with the preferred export method, such as \code{ggplot2::ggsave}.
 }
 \examples{
 # Load some data

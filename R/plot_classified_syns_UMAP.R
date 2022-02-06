@@ -1,15 +1,12 @@
 #' Plot 2D UMAP of muscle synergies
 #'
 #' @param x List of objects of class `musclesyneRgies` (must be classified)
-#' @param path_for_graphs Path where plots should be saved
 #' @param condition Character: the condition that is being analysed, for archiving purposes
-#' @param filetype Plot file type (e.g., "png" or "svg")
-#' @param width Plot width in pixels
-#' @param height Plot height in pixels
-#' @param resolution Plot resolution in pixels
+#' @param show_plot Logical, to decide whether plots should be plotted in the active graphic device
 #'
 #' @details
-#' If `path_for_graphs` is not specified, plots will appear in the plot pane and will not be saved.
+#' If `show_plot` is TRUE (default) plots are also shown in the active graphic device.
+#' Plots can then be saved with the preferred export method, such as `ggplot2::ggsave`.
 #'
 #' @return 2D UMAP plot of classified synergies.
 #'
@@ -29,13 +26,9 @@
 #'   condition = "TW"
 #' )
 plot_classified_syns_UMAP <- function(x,
-                                      path_for_graphs = NA,
                                       condition,
-                                      filetype,
-                                      width,
-                                      height,
-                                      resolution) {
-  message("\nSaving 2D UMAP synergy plots for condition ", condition, "...")
+                                      show_plot = TRUE) {
+  message("\nCreating 2D UMAP synergy plots for condition ", condition, "...")
 
   UMAP1 <- UMAP2 <- syn <- NULL
 
@@ -106,18 +99,6 @@ plot_classified_syns_UMAP <- function(x,
   colnames(umap_P) <- c("syn", "UMAP1", "UMAP2")
   colnames(umap_M) <- colnames(umap_P)
 
-  if (!is.na(path_for_graphs)) {
-    Cairo::Cairo(
-      file = paste0(
-        path_for_graphs, "UMAP_SYNS_",
-        condition, "_",
-        class_method, "_classification.",
-        filetype
-      ),
-      type = filetype, width = width, height = height, pointsize = 20, dpi = resolution
-    )
-  }
-
   ggumap_M <- ggplot2::ggplot(
     data = umap_M,
     ggplot2::aes(
@@ -140,9 +121,19 @@ plot_classified_syns_UMAP <- function(x,
     ggplot2::ggtitle(paste0(condition, " - UMAP (motor primitives)")) +
     ggplot2::theme(legend.title = ggplot2::element_blank())
 
-  suppressWarnings(gridExtra::grid.arrange(grobs = list(ggumap_M, ggumap_P), nrow = 2, ncol = 1))
-
-  if (!is.na(path_for_graphs)) grDevices::dev.off()
-
+  # Arrange plots nicely and return as gtable
+  gg <- gridExtra::arrangeGrob(
+    grobs = list(ggumap_M, ggumap_P),
+    nrow = 2,
+    ncol = 1
+  )
+  # Plot on active graphic device if needed
+  if (show_plot) {
+    # Prepare graphic device
+    graphics::plot.new()
+    # Arrange
+    gridExtra::grid.arrange(gg, newpage = FALSE)
+  }
+  return(gg)
   message("...done!")
 }

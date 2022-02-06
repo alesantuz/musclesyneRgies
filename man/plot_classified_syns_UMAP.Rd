@@ -4,30 +4,14 @@
 \alias{plot_classified_syns_UMAP}
 \title{Plot 2D UMAP of muscle synergies}
 \usage{
-plot_classified_syns_UMAP(
-  x,
-  path_for_graphs = NA,
-  condition,
-  filetype,
-  width,
-  height,
-  resolution
-)
+plot_classified_syns_UMAP(x, condition, show_plot = TRUE)
 }
 \arguments{
 \item{x}{List of objects of class \code{musclesyneRgies} (must be classified)}
 
-\item{path_for_graphs}{Path where plots should be saved}
-
 \item{condition}{Character: the condition that is being analysed, for archiving purposes}
 
-\item{filetype}{Plot file type (e.g., "png" or "svg")}
-
-\item{width}{Plot width in pixels}
-
-\item{height}{Plot height in pixels}
-
-\item{resolution}{Plot resolution in pixels}
+\item{show_plot}{Logical, to decide whether plots should be plotted in the active graphic device}
 }
 \value{
 2D UMAP plot of classified synergies.
@@ -36,7 +20,8 @@ plot_classified_syns_UMAP(
 Plot 2D UMAP of muscle synergies
 }
 \details{
-If \code{path_for_graphs} is not specified, plots will appear in the plot pane and will not be saved.
+If \code{show_plot} is TRUE (default) plots are also shown in the active graphic device.
+Plots can then be saved with the preferred export method, such as \code{ggplot2::ggsave}.
 }
 \examples{
 # Load some data

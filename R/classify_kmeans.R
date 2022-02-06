@@ -2,18 +2,14 @@
 #'
 #' @param x A list of `musclesyneRgies` objects
 #' @param MSE_lim Mean squared error threshold for determining the minimum number of clusters
-#' @param path_for_graphs Path where plots should be saved
-#' @param filetype Plot file type
-#' @param width Plot width in pixels
-#' @param height Plot height in pixels
-#' @param resolution Plot resolution in pixels
-#' @param interactive Logical, ask for interactive re-ordering or go full automated?
+#' @param interactive Logical, ask for interactive re-ordering or go fully automated?
+#' @param show_plot Logical, to decide whether plots should be plotted in the active graphic device
 #'
 #' @details
 #' This function must be applied to a list with a sufficient amount of trials, otherwise the
 #' classification will not work. Typically, at least 10 trials for the same condition are needed
-#' for satisfactory classification. If `path_for_graphs` is not specified, plots will appear
-#' in the plot pane and will not be saved.
+#' for satisfactory classification. If `show_plot` is TRUE (default) plots are also shown in the active graphic device.
+#' Plots can then be saved with the preferred export method, such as `ggplot2::ggsave`.
 #'
 #' @return
 #' List of `musclesyneRgies` objects, each with elements:\cr
@@ -38,12 +34,8 @@
 #' )
 classify_kmeans <- function(x,
                             MSE_lim = 1e-03,
-                            path_for_graphs = NA,
-                            filetype = "png",
-                            width = 1620,
-                            height = 1300,
-                            resolution = 280,
-                            interactive = TRUE) {
+                            interactive = TRUE,
+                            show_plot = TRUE) {
   FWHM_P <- CoA_P <- clusters_M <- clusters_P <- NULL
 
   # Get motor modules and concatenated motor primitives
@@ -496,14 +488,6 @@ classify_kmeans <- function(x,
     }
   }
 
-  if (!is.na(path_for_graphs)) {
-    # Save plots of clustered synergies' scores
-    Cairo::Cairo(
-      file = paste0(path_for_graphs, "SYNS_k-means_classification_clusters.", filetype),
-      type = filetype, width = width, height = height, pointsize = width / 100, dpi = resolution
-    )
-  }
-
   ggfinal <- ggplot2::ggplot(
     data = orders_new,
     ggplot2::aes(
@@ -517,9 +501,13 @@ classify_kmeans <- function(x,
     ggplot2::ggtitle("Final clustering") +
     ggplot2::theme(legend.title = ggplot2::element_blank())
 
-  print(ggfinal)
-
-  if (!is.na(path_for_graphs)) grDevices::dev.off()
+  # Plot on active graphic device if needed
+  if (show_plot) {
+    # Prepare graphic device
+    graphics::plot.new()
+    # Plot
+    print(ggfinal)
+  }
 
   trial <- gsub("_Syn[0-9]*$", "", rownames(orders_new))
   new <- paste0(trial, "_Syn", orders_new$clusters_P)

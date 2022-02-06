@@ -1,7 +1,7 @@
 #' Muscle synergy classification with NMF
 #'
 #' @param x A list of `musclesyneRgies` objects
-#' @param interactive Logical, ask for interactive re-ordering or go full automated?
+#' @param interactive Logical, ask for interactive re-ordering or go fully automated?
 #'
 #' @details
 #' This function must be applied to a list with a sufficient amount of trials, otherwise the

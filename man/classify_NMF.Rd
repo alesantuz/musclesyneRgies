@@ -9,7 +9,7 @@ classify_NMF(x, interactive = TRUE)
 \arguments{
 \item{x}{A list of \code{musclesyneRgies} objects}
 
-\item{interactive}{Logical, ask for interactive re-ordering or go full automated?}
+\item{interactive}{Logical, ask for interactive re-ordering or go fully automated?}
 }
 \value{
 List of \code{musclesyneRgies} objects, each with elements:\cr

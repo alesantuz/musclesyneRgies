@@ -143,7 +143,7 @@ RAW_DATA_subset <- pbapply::pblapply(
 
 # Raw EMG can be plotted with the following (the first three seconds are plot by default)
 # Now also in dark mode if you fancy it
-plot_rawEMG(RAW_DATA[[1]],
+pp <- plot_rawEMG(RAW_DATA[[1]],
   trial = names(RAW_DATA)[1],
   row_number = 4,
   col_number = 4,
@@ -215,7 +215,7 @@ another_norm_EMG <- pbapply::pblapply(
 )
 
 # The filtered and time-normalised EMG can be plotted with the following
-plot_meanEMG(norm_EMG[[1]],
+pp <- plot_meanEMG(norm_EMG[[1]],
   trial = names(norm_EMG)[1],
   row_number = 4,
   col_number = 4,
@@ -233,7 +233,7 @@ plot_meanEMG(norm_EMG[[1]],
 SYNS <- pbapply::pblapply(norm_EMG, synsNMF)
 
 # The extracted synergies can be plotted with the following
-plot_syn_trials(SYNS[[1]],
+pp <- plot_syn_trials(SYNS[[1]],
   max_syns = max(unlist(lapply(SYNS, function(x) x$syns))),
   trial = names(SYNS)[1],
   dark_mode = TRUE,
@@ -266,7 +266,7 @@ SYNS_classified <- classify_kmeans(SYNS,
 
 ```r
 # Classified synergies can be finally plotted with
-plot_classified_syns(SYNS_classified,
+pp <- plot_classified_syns(SYNS_classified,
   dark_mode = TRUE,
   line_col = "tomato1",
   sd_col = "tomato4",
@@ -278,7 +278,7 @@ plot_classified_syns(SYNS_classified,
 
 ```r
 # A 2D UMAP plot of the classified synergies can be obtained with
-plot_classified_syns_UMAP(SYNS_classified,
+pp <- plot_classified_syns_UMAP(SYNS_classified,
   condition = "TW"
 )
 ```

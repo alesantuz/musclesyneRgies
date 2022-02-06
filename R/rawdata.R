@@ -112,8 +112,5 @@ rawdata <- function(path_cycles = NA,
     }
     class(RAW_DATA[[trial]]) <- "EMG"
   }
-
-  # RAW_DATA <- lapply(RAW_DATA, function(y) class(y) <- "EMG")
-
   return(RAW_DATA)
 }

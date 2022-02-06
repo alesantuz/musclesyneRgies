@@ -4,33 +4,16 @@
 \alias{classify_kmeans}
 \title{Muscle synergy classification with k-means}
 \usage{
-classify_kmeans(
-  x,
-  MSE_lim = 0.001,
-  path_for_graphs = NA,
-  filetype = "png",
-  width = 1620,
-  height = 1300,
-  resolution = 280,
-  interactive = TRUE
-)
+classify_kmeans(x, MSE_lim = 0.001, interactive = TRUE, show_plot = TRUE)
 }
 \arguments{
 \item{x}{A list of \code{musclesyneRgies} objects}
 
 \item{MSE_lim}{Mean squared error threshold for determining the minimum number of clusters}
 
-\item{path_for_graphs}{Path where plots should be saved}
+\item{interactive}{Logical, ask for interactive re-ordering or go fully automated?}
 
-\item{filetype}{Plot file type}
-
-\item{width}{Plot width in pixels}
-
-\item{height}{Plot height in pixels}
-
-\item{resolution}{Plot resolution in pixels}
-
-\item{interactive}{Logical, ask for interactive re-ordering or go full automated?}
+\item{show_plot}{Logical, to decide whether plots should be plotted in the active graphic device}
 }
 \value{
 List of \code{musclesyneRgies} objects, each with elements:\cr
@@ -52,8 +35,8 @@ Muscle synergy classification with k-means
 \details{
 This function must be applied to a list with a sufficient amount of trials, otherwise the
 classification will not work. Typically, at least 10 trials for the same condition are needed
-for satisfactory classification. If \code{path_for_graphs} is not specified, plots will appear
-in the plot pane and will not be saved.
+for satisfactory classification. If \code{show_plot} is TRUE (default) plots are also shown in the active graphic device.
+Plots can then be saved with the preferred export method, such as \code{ggplot2::ggsave}.
 }
 \examples{
 # Load some data

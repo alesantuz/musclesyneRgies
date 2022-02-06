@@ -8,14 +8,11 @@
 #' @param line_size Line thickness
 #' @param line_col Line colour
 #' @param sd_col Standard deviation ribbon colour
-#' @param path_for_graphs Path where plots should be saved
-#' @param filetype Plot file type (e.g., "png" or "svg")
-#' @param width Plot width in pixels
-#' @param height Plot height in pixels
-#' @param resolution Plot resolution in pixels
+#' @param show_plot Logical, to decide whether plots should be plotted in the active graphic device
 #'
 #' @details
-#' If `path_for_graphs` is not specified, plots will appear in the plot pane and will not be saved.
+#' If `show_plot` is TRUE (default) plots are also shown in the active graphic device.
+#' Plots can then be saved with the preferred export method, such as `ggplot2::ggsave`.
 #'
 #' @return Plots of the unclassified synergies, trial by trial.
 #'
@@ -47,11 +44,7 @@ plot_syn_trials <- function(x,
                             line_size = 0.6,
                             line_col = "black",
                             sd_col = "grey80",
-                            path_for_graphs = NA,
-                            filetype,
-                            width,
-                            height,
-                            resolution) {
+                            show_plot = TRUE) {
   if (!inherits(x, "musclesyneRgies")) {
     stop("Object is not of class musclesynergies, please create objects in the right format with \"synsNMF\"")
   } else {
@@ -75,6 +68,8 @@ plot_syn_trials <- function(x,
     stats::aggregate(by = list(time), FUN = stats::sd) |>
     subset(select = -Group.1)
 
+  if (all(is.na(P_sd))) P_sd[is.na(P_sd)] <- 0
+
   # Prepare colours
   if (dark_mode) {
     if (line_col == "black") line_col <- "white"
@@ -83,18 +78,6 @@ plot_syn_trials <- function(x,
   } else {
     bg_col <- "white"
     text_col <- "black"
-  }
-
-  if (!is.na(path_for_graphs)) {
-    # For exporting
-    Cairo::Cairo(
-      file = paste0(path_for_graphs, trial, ".", filetype),
-      width = width, height = height, dpi = resolution
-    )
-  } else {
-    # For plotting directly (e.g. within RStudio)
-    graphics::par(bg = bg_col)
-    graphics::plot.new()
   }
 
   # Create plots
@@ -193,17 +176,24 @@ plot_syn_trials <- function(x,
     return(pp)
   })
 
-  # Arrange plots nicely
+  # Arrange plots nicely and return as gtable
   names(varlist_M) <- seq(1, 2 * length(varlist_M), 2)
   names(varlist_P) <- seq(2, 2 * length(varlist_M), 2)
   varlist <- c(varlist_M, varlist_P)[order(names(c(varlist_M, varlist_P)))]
 
-  gridExtra::grid.arrange(
+  gg <- gridExtra::arrangeGrob(
     grobs = varlist,
     nrow = max_syns,
     ncol = 2,
-    top = grid::textGrob(paste0("Trial: ", trial), gp = grid::gpar(col = text_col)),
-    newpage = FALSE
+    top = grid::textGrob(paste0("Trial: ", trial), gp = grid::gpar(col = text_col))
   )
-  if (!is.na(path_for_graphs)) grDevices::dev.off()
+  # Plot on active graphic device if needed
+  if (show_plot) {
+    # Prepare graphic device
+    graphics::par(bg = bg_col)
+    graphics::plot.new()
+    # Arrange
+    gridExtra::grid.arrange(gg, newpage = FALSE)
+  }
+  return(gg)
 }
