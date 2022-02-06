@@ -144,9 +144,9 @@ classify_kmeans <- function(x,
   kmeans_all <- list()
   for (clust in 1:muscle_num) {
     kmeans_all[[clust]] <- stats::kmeans(data_P,
-      centers = clust,
-      nstart = 20,
-      algorithm = "Hartigan-Wong"
+                                         centers = clust,
+                                         nstart = 20,
+                                         algorithm = "Hartigan-Wong"
     )
   }
 
@@ -180,9 +180,9 @@ classify_kmeans <- function(x,
   # message("\nClustering motor modules with k-means...")
   # Use previously-determined number of clusters
   clust_M <- stats::kmeans(data_M,
-    centers = clust_num_P,
-    nstart = 20,
-    algorithm = "Hartigan-Wong"
+                           centers = clust_num_P,
+                           nstart = 20,
+                           algorithm = "Hartigan-Wong"
   )
 
   orders <- data.frame(
@@ -199,10 +199,10 @@ classify_kmeans <- function(x,
   temp_M <- subset(orders, select = -c(clusters_P))
   # Take average FWHM and CoA based on cluster
   geoms_P <- data.frame(stats::aggregate(FWHM_P ~ clusters_P, temp_P, mean),
-    CoA_P = stats::aggregate(CoA_P ~ clusters_P, temp_P, mean)$CoA_P
+                        CoA_P = stats::aggregate(CoA_P ~ clusters_P, temp_P, mean)$CoA_P
   )
   geoms_M <- data.frame(stats::aggregate(FWHM_P ~ clusters_M, temp_M, mean),
-    CoA_P = stats::aggregate(CoA_P ~ clusters_M, temp_M, mean)$CoA_P
+                        CoA_P = stats::aggregate(CoA_P ~ clusters_M, temp_M, mean)$CoA_P
   )
   # Define score as sum of FWHM and CoA and normalise to number of points
   geoms_P <- data.frame(
@@ -498,8 +498,11 @@ classify_kmeans <- function(x,
     ggplot2::geom_point(size = 4, alpha = 0.5) +
     ggplot2::xlim(0, points) +
     ggplot2::ylim(0, points) +
-    ggplot2::ggtitle("Final clustering") +
-    ggplot2::theme(legend.title = ggplot2::element_blank())
+    ggplot2::labs(title = "Final clustering") +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(hjust = 0.5),
+      legend.title = ggplot2::element_blank()
+    )
 
   # Plot on active graphic device if needed
   if (show_plot) {
