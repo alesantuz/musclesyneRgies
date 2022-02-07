@@ -7,6 +7,7 @@ Authors@R:
 Description: This package extracts muscle synergies from EMG and gives some analysis tools, all with sensible defaults.
 License: MIT + file LICENSE
 Encoding: UTF-8
+Language: en-GB
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Imports:
