@@ -1,4 +1,4 @@
-# musclesyneRgies 1.1.0 (pre-release)
+# musclesyneRgies 1.1.0
 
 ### How to install
 ```

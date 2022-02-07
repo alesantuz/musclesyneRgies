@@ -1,4 +1,4 @@
-test_that("NMF works", {
+test_that("NMF produces correct class and output", {
   data(FILT_EMG)
   SYNS <- lapply(FILT_EMG, synsNMF)
   SYNS_fixed <- lapply(FILT_EMG, synsNMF, fixed_syns = 2)
