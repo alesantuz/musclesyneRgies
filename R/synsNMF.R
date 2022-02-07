@@ -36,7 +36,7 @@
 #' Int. J. Neural Syst. 27, 1750007 (2017).\cr
 #'
 #' Févotte, C., Idier, J.
-#' Algorithms for Nonnegative Matrix Factorization with the ß-Divergence
+#' Algorithms for Nonnegative Matrix Factorization with the Beta-Divergence
 #' Neural Computation 23, 9 (2011).
 #'
 #' @examples
@@ -65,7 +65,7 @@ synsNMF <- function(V,
   Vr_list <- list() # To save factorisation Vr matrices (reconstructed signals)
   iters <- numeric() # To save the iterations number
 
-  # Remove time colum and transpose for upcoming NMF
+  # Remove time column and transpose for upcoming NMF
   V <- subset(V, select = -time) |>
     t() |>
     as.matrix()

@@ -67,6 +67,6 @@ On the Methodological Implications of Extracting Muscle Synergies from Human Loc
 Int. J. Neural Syst. 27, 1750007 (2017).\cr
 
 Févotte, C., Idier, J.
-Algorithms for Nonnegative Matrix Factorization with the ß-Divergence
+Algorithms for Nonnegative Matrix Factorization with the Beta-Divergence
 Neural Computation 23, 9 (2011).
 }
