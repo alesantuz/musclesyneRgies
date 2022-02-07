@@ -44,12 +44,12 @@ GL=gastrocnemius lateralis\cr
 SO=soleus}
 \item{\code{Vr}}{Reconstructed data, muscles named as in \code{Vr}}
 \item{\code{iterations}}{Number of iterations to convergence}
-\item{\code{R2}}{Qality of reconstruction (coefficient of determination)}
+\item{\code{R2}}{Quality of reconstruction (coefficient of determination)}
 \item{\code{classification}}{Classification type (e.g., \code{none}, \code{k-means}, \code{NMF}, etc.)}
 }
 }
 \source{
-\url{https://doi.org/10.1016/j.isci.2019.100796}
+\doi{10.1016/j.isci.2019.100796}
 }
 \usage{
 SYNS

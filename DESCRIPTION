@@ -1,39 +1,39 @@
 Package: musclesyneRgies
-Title: Extract Muscle Synergies from EMG
+Title: Extract Muscle Synergies from electromyography
 Version: 1.1.0
 Authors@R: 
-    person("Alessandro", "Santuz", email = "alessandro.santuz@gmail.com", role = c("aut", "cre"),
+    person("Alessandro", "Santuz", , "alessandro.santuz@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-6577-5101"))
-Description: This package extracts muscle synergies from EMG and gives some analysis tools, all with sensible defaults.
+Description: Extract muscle synergies from electromyography data
+    and give some analysis tools, all with sensible defaults.
 License: MIT + file LICENSE
-Encoding: UTF-8
-Language: en-GB
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
-Imports:
-    pbapply,
-    stats,
-    signal,
-    graphics,
-    grDevices,
-    umap,
-    plyr,
-    gtools,
-    Cairo,
-    ggplot2,
-    gridExtra,
-    benchmarkme,
-    reshape2,
-    proxy,
-    FNN
 URL: https://github.com/alesantuz/musclesyneRgies
 BugReports: https://github.com/alesantuz/musclesyneRgies/issues
 Depends: 
     R (>= 3.50)
-LazyData: true
+Imports:
+    FNN,
+    ggplot2,
+    graphics,
+    grDevices,
+    gridExtra,
+    gtools,
+    pbapply,
+    plyr,
+    proxy,
+    reshape2,
+    signal,
+    stats,
+    umap
 Suggests: 
-    rmarkdown,
     knitr,
+    rmarkdown,
     testthat (>= 3.0.0)
+VignetteBuilder: 
+    knitr
 Config/testthat/edition: 3
-VignetteBuilder: knitr
+Encoding: UTF-8
+Language: en-GB
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2

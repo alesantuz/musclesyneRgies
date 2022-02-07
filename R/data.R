@@ -23,7 +23,7 @@
 #'          GL=gastrocnemius lateralis\cr
 #'          SO=soleus}
 #' }
-#' @source \url{https://doi.org/10.1016/j.isci.2019.100796}
+#' @source \doi{10.1016/j.isci.2019.100796}
 "RAW_DATA"
 
 #' Filtered EMG example
@@ -51,7 +51,7 @@
 #'          GL=gastrocnemius lateralis\cr
 #'          SO=soleus}
 #' }
-#' @source \url{https://doi.org/10.1016/j.isci.2019.100796}
+#' @source \doi{10.1016/j.isci.2019.100796}
 "FILT_EMG"
 
 #' Muscle synergies example
@@ -98,10 +98,10 @@
 #'          SO=soleus}
 #'   \item{`Vr`}{Reconstructed data, muscles named as in `Vr`}
 #'   \item{`iterations`}{Number of iterations to convergence}
-#'   \item{`R2`}{Qality of reconstruction (coefficient of determination)}
+#'   \item{`R2`}{Quality of reconstruction (coefficient of determination)}
 #'   \item{`classification`}{Classification type (e.g., `none`, `k-means`, `NMF`, etc.)}
 #' }
-#' @source \url{https://doi.org/10.1016/j.isci.2019.100796}
+#' @source \doi{10.1016/j.isci.2019.100796}
 "SYNS"
 
 #' Single motor primitive example (30 cycles)
@@ -115,7 +115,7 @@
 #'   \item{`time`}{Normalised time in points.}\cr
 #'   \item{`signal`}{Motor primitive}
 #' }
-#' @source \url{https://doi.org/10.1152/jn.00360.2020}
+#' @source \doi{10.1152/jn.00360.2020}
 "primitive"
 
 #' All motor primitives of one synergy example (30 cycles)
@@ -131,5 +131,5 @@
 #'   \item{`Syn2`}{Motor primitive of synergy 2}\cr
 #'   \item{`Syn3`}{Motor primitive of synergy 3}
 #' }
-#' @source \url{https://doi.org/10.1152/jn.00360.2020}
+#' @source \doi{10.1152/jn.00360.2020}
 "primitives"

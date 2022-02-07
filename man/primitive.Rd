@@ -13,7 +13,7 @@ A data frame of two columns:
 }
 }
 \source{
-\url{https://doi.org/10.1152/jn.00360.2020}
+\doi{10.1152/jn.00360.2020}
 }
 \usage{
 primitive

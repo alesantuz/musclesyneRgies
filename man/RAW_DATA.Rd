@@ -27,7 +27,7 @@ SO=soleus}
 }
 }
 \source{
-\url{https://doi.org/10.1016/j.isci.2019.100796}
+\doi{10.1016/j.isci.2019.100796}
 }
 \usage{
 RAW_DATA

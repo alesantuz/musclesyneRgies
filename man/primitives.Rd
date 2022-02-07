@@ -15,7 +15,7 @@ A data frame of four columns:
 }
 }
 \source{
-\url{https://doi.org/10.1152/jn.00360.2020}
+\doi{10.1152/jn.00360.2020}
 }
 \usage{
 primitives
