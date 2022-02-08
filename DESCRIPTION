@@ -4,8 +4,13 @@ Version: 1.1.0
 Authors@R: 
     person("Alessandro", "Santuz", , "alessandro.santuz@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-6577-5101"))
-Description: Extract muscle synergies from electromyography data
-    and give some analysis tools, all with sensible defaults.
+Description: Provides a framework to factorise electromyography (EMG) data.
+    Tools are provided for raw data pre-processing, non negative matrix factorisation,
+    classification of factorised data and plotting of obtained outcomes.
+    In particular, reading from ASCII files is supported, along with wide-used
+    filtering approaches to process EMG data. All steps include one or more sensible
+    defaults that aim at simplifying the workflow. Yet, all functions are largely
+    tunable at need. Example data sets are included.
 License: MIT + file LICENSE
 URL: https://github.com/alesantuz/musclesyneRgies
 BugReports: https://github.com/alesantuz/musclesyneRgies/issues
