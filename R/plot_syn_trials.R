@@ -190,6 +190,8 @@ plot_syn_trials <- function(x,
   # Plot on active graphic device if needed
   if (show_plot) {
     # Prepare graphic device
+    oldpar <- par(no.readonly = TRUE)
+    on.exit(par(oldpar))
     graphics::par(bg = bg_col)
     graphics::plot.new()
     # Arrange

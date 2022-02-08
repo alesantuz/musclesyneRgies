@@ -10,3 +10,7 @@ Remote using github workflows (workflow derived from https://github.com/r-lib/ac
 - Modified LICENSE file according to CRAN standards
 - Modified wrong link in README
 - Modified title in DESCRIPTION
+
+## After second checks on 08 Feb 2022
+- Modified description in DESCRIPTION
+- Placed immediate call of `on.exit()` when `par()` is called within a function
