@@ -324,8 +324,8 @@ classify_kmeans <- function(x,
     # bottom, left, top, right
     # Reduction factor of margins to account for screens at different resolutions
     red_factor <- 25
-    oldpar <- par(no.readonly = TRUE)
-    on.exit(par(oldpar))
+    oldpar <- graphics::par(no.readonly = TRUE)
+    on.exit(graphics::par(oldpar))
     graphics::par(
       mfrow = c(clust_num, 2),
       mai = c(
@@ -396,8 +396,8 @@ classify_kmeans <- function(x,
         rownames(mean_M_temp) <- paste0("Syn", 1:nrow(mean_M_temp))
 
         # Re-plot classified synergies
-        oldpar <- par(no.readonly = TRUE)
-        on.exit(par(oldpar))
+        oldpar <- graphics::par(no.readonly = TRUE)
+        on.exit(graphics::par(oldpar))
         graphics::par(
           mfrow = c(clust_num, 2),
           mai = c(

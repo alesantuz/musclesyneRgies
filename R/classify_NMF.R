@@ -281,8 +281,8 @@ classify_NMF <- function(x,
     # bottom, left, top, right
     # Reduction factor of margins to account for screens at different resolutions
     red_factor <- 35
-    oldpar <- par(no.readonly = TRUE)
-    on.exit(par(oldpar))
+    oldpar <- graphics::par(no.readonly = TRUE)
+    on.exit(graphics::par(oldpar))
     graphics::par(
       mfrow = c(syns_num_n, 2),
       mai = c(
@@ -355,8 +355,8 @@ classify_NMF <- function(x,
         colnames(data_NMF_M_temp) <- paste0("Syn", 1:ncol(data_NMF_M_temp))
 
         # Re-plot classified syns
-        oldpar <- par(no.readonly = TRUE)
-        on.exit(par(oldpar))
+        oldpar <- graphics::par(no.readonly = TRUE)
+        on.exit(graphics::par(oldpar))
         graphics::par(
           mfrow = c(syns_num_n, 2),
           mai = c(
