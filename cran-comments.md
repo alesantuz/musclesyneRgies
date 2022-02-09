@@ -14,3 +14,8 @@ Remote using github workflows (workflow derived from https://github.com/r-lib/ac
 ## After second checks on 08 Feb 2022
 - Modified description in DESCRIPTION
 - Placed immediate call of `on.exit()` when `par()` is called within a function
+
+## After CRAN Package Check Results on 2022-02-09 15:00:53 CET
+- Modified test-CoA.R to comply with `M1mac` and `noLD`
+Results:
+- rhub::check(platform = "macos-m1-bigsur-release") OK

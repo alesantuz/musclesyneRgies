@@ -2,9 +2,7 @@
 
 ### How to install
 ```
-install.packages("devtools")
-library(devtools)
-install_github("alesantuz/musclesyneRgies")
+install.packages("musclesyneRgies")
 ```
 ### How to use
 Follow the [README](https://github.com/alesantuz/musclesyneRgies/blob/master/README.md) for a breakdown of the typical workflow.
