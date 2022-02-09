@@ -15,7 +15,7 @@ License: MIT + file LICENSE
 URL: https://github.com/alesantuz/musclesyneRgies
 BugReports: https://github.com/alesantuz/musclesyneRgies/issues
 Depends: 
-    R (>= 3.50)
+    R (>= 4.1.0)
 Imports:
     FNN,
     ggplot2,

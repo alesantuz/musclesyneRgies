@@ -10,7 +10,7 @@ README and vignettes are available both on [CRAN](https://CRAN.R-project.org/pac
 
 ### What's changed
 - `musclesyneRgies` is on CRAN!
-- Adjusted `test-CoA.R` to pass on `M1mac` and `noLD`
+- Adjusted `test-CoA.R` to pass on `M1mac` and `noLD`.
 
 # musclesyneRgies 1.1.0
 
