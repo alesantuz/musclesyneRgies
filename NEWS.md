@@ -1,13 +1,30 @@
-# musclesyneRgies 1.1.0
+# musclesyneRgies 1.1.1
 
 ### How to install
 ```
 install.packages("musclesyneRgies")
 ```
+
+### How to use
+README and vignettes are available both on [CRAN](https://CRAN.R-project.org/package=musclesyneRgies) and on [GitHub](https://github.com/alesantuz/musclesyneRgies).
+
+### What's changed
+- `musclesyneRgies` is on CRAN!
+- Adjusted `test-CoA.R` to pass on `M1mac` and `noLD`
+
+# musclesyneRgies 1.1.0
+
+### How to install
+```
+install.packages("devtools")
+library(devtools)
+install_github("alesantuz/musclesyneRgies")
+```
 ### How to use
 Follow the [README](https://github.com/alesantuz/musclesyneRgies/blob/master/README.md) for a breakdown of the typical workflow.
 
 ### What's changed
+- This version was submitted to CRAN for checks
 - Added tests
 - Added `NEWS.md` to track changes to the package
 - Function `plot_rawEMG` can now plot muscle activities in custom grid (arguments `row_number` and `col_number`)

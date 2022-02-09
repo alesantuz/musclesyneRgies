@@ -19,3 +19,6 @@ Remote using github workflows (workflow derived from https://github.com/r-lib/ac
 - Modified test-CoA.R to comply with `M1mac` and `noLD`
 Results:
 - rhub::check(platform = "macos-m1-bigsur-release") OK
+
+## After re-submission on 09 Feb 2022
+- Version was not bumped, now updated from version 1.1.0 to version 1.1.1
