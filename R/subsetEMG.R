@@ -27,7 +27,7 @@
 #' # Load some data
 #' data("RAW_DATA")
 #' # Subset example raw data to the first 3 cycles
-#' RAW_DATA_sub <- pbapply::pblapply(
+#' RAW_DATA_sub <- lapply(
 #'   RAW_DATA,
 #'   function(x) {
 #'     subsetEMG(x,

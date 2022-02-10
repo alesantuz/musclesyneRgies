@@ -55,7 +55,7 @@ The first column of \code{V} must always contain time information.
 # Load some data
 data(FILT_EMG)
 # Extract synergies
-SYNS <- pbapply::pblapply(FILT_EMG, synsNMF)
+SYNS <- lapply(FILT_EMG, synsNMF)
 }
 \references{
 Lee, D. D. & Seung, H. S.

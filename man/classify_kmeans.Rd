@@ -4,14 +4,14 @@
 \alias{classify_kmeans}
 \title{Muscle synergy classification with k-means}
 \usage{
-classify_kmeans(x, MSE_lim = 0.001, interactive = TRUE, show_plot = TRUE)
+classify_kmeans(x, MSE_lim = 0.001, inspect = FALSE, show_plot = FALSE)
 }
 \arguments{
 \item{x}{A list of \code{musclesyneRgies} objects}
 
 \item{MSE_lim}{Mean squared error threshold for determining the minimum number of clusters}
 
-\item{interactive}{Logical, ask for interactive re-ordering or go fully automated?}
+\item{inspect}{Logical, ask for interactive re-ordering or go fully automated?}
 
 \item{show_plot}{Logical, to decide whether plots should be plotted in the active graphic device}
 }
@@ -42,7 +42,5 @@ Plots can then be saved with the preferred export method, such as \code{ggplot2:
 # Load some data
 data(SYNS)
 # Classify synergies
-SYNS_classified <- classify_kmeans(SYNS,
-  interactive = FALSE
-)
+SYNS_classified <- classify_kmeans(SYNS)
 }

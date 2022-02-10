@@ -2,7 +2,7 @@
 #'
 #' @param x A list of `musclesyneRgies` objects
 #' @param MSE_lim Mean squared error threshold for determining the minimum number of clusters
-#' @param interactive Logical, ask for interactive re-ordering or go fully automated?
+#' @param inspect Logical, ask for interactive re-ordering or go fully automated?
 #' @param show_plot Logical, to decide whether plots should be plotted in the active graphic device
 #'
 #' @details
@@ -29,13 +29,11 @@
 #' # Load some data
 #' data(SYNS)
 #' # Classify synergies
-#' SYNS_classified <- classify_kmeans(SYNS,
-#'   interactive = FALSE
-#' )
+#' SYNS_classified <- classify_kmeans(SYNS)
 classify_kmeans <- function(x,
                             MSE_lim = 1e-03,
-                            interactive = TRUE,
-                            show_plot = TRUE) {
+                            inspect = FALSE,
+                            show_plot = FALSE) {
   FWHM_P <- CoA_P <- clusters_M <- clusters_P <- NULL
 
   # Get motor modules and concatenated motor primitives
@@ -60,9 +58,9 @@ classify_kmeans <- function(x,
     stop("Not all trials have the same number of muscles!!!")
   }
 
-  message("\nCalculating mean gait cycles...")
+  if (interactive()) message("\nCalculating mean gait cycles...")
 
-  P <- pbapply::pblapply(P, function(y) {
+  P <- lapply(P, function(y) {
     y$time <- NULL
     temp <- matrix(0, nrow = points, ncol = ncol(y))
 
@@ -79,15 +77,15 @@ classify_kmeans <- function(x,
     # Transpose to facilitate visualisation
     return(t(y))
   })
-  message("...done!")
+  if (interactive()) message("...done!")
 
-  message("\nPutting primitives into a single data frame...")
-  data_P <- plyr::ldply(P, function(y) data.frame(y), .progress = plyr::progress_text(char = "+"))
-  message("...done!")
+  if (interactive()) message("\nPutting primitives into a single data frame...")
+  data_P <- plyr::ldply(P, function(y) data.frame(y))
+  if (interactive()) message("...done!")
 
-  message("\nPutting modules into a single data frame...")
-  data_M <- plyr::ldply(M, function(y) t(data.frame(y)), .progress = plyr::progress_text(char = "+"))
-  message("...done!")
+  if (interactive()) message("\nPutting modules into a single data frame...")
+  data_M <- plyr::ldply(M, function(y) t(data.frame(y)))
+  if (interactive()) message("...done!")
 
   # Check if names are the same for primitives and modules
   if (identical(data_P$.id, data_M$.id)) {
@@ -144,9 +142,9 @@ classify_kmeans <- function(x,
   kmeans_all <- list()
   for (clust in 1:muscle_num) {
     kmeans_all[[clust]] <- stats::kmeans(data_P,
-                                         centers = clust,
-                                         nstart = 20,
-                                         algorithm = "Hartigan-Wong"
+      centers = clust,
+      nstart = 20,
+      algorithm = "Hartigan-Wong"
     )
   }
 
@@ -177,12 +175,11 @@ classify_kmeans <- function(x,
   clust_num_P <- max(clust_P$cluster)
 
   # Apply k-means to motor modules
-  # message("\nClustering motor modules with k-means...")
   # Use previously-determined number of clusters
   clust_M <- stats::kmeans(data_M,
-                           centers = clust_num_P,
-                           nstart = 20,
-                           algorithm = "Hartigan-Wong"
+    centers = clust_num_P,
+    nstart = 20,
+    algorithm = "Hartigan-Wong"
   )
 
   orders <- data.frame(
@@ -199,10 +196,10 @@ classify_kmeans <- function(x,
   temp_M <- subset(orders, select = -c(clusters_P))
   # Take average FWHM and CoA based on cluster
   geoms_P <- data.frame(stats::aggregate(FWHM_P ~ clusters_P, temp_P, mean),
-                        CoA_P = stats::aggregate(CoA_P ~ clusters_P, temp_P, mean)$CoA_P
+    CoA_P = stats::aggregate(CoA_P ~ clusters_P, temp_P, mean)$CoA_P
   )
   geoms_M <- data.frame(stats::aggregate(FWHM_P ~ clusters_M, temp_M, mean),
-                        CoA_P = stats::aggregate(CoA_P ~ clusters_M, temp_M, mean)$CoA_P
+    CoA_P = stats::aggregate(CoA_P ~ clusters_M, temp_M, mean)$CoA_P
   )
   # Define score as sum of FWHM and CoA and normalise to number of points
   geoms_P <- data.frame(
@@ -237,21 +234,24 @@ classify_kmeans <- function(x,
     clust_test <- unique(clust_test[-discordant])
 
     if (length(clust_test) < clust_num) {
-      message(
-        "\nATTENTION: primitive- and module-based classification don't match!",
-        "\nModule-based classification will be discarded!"
-      )
-
+      if (interactive()) {
+        message(
+          "\nATTENTION: primitive- and module-based classification don't match!",
+          "\nModule-based classification will be discarded!"
+        )
+      }
       orders$clusters_M <- orders$clusters_P
     } else {
       orders$clusters_P[discordant] <- "combined"
       orders$clusters_M[discordant] <- "combined"
     }
   } else if (all(!duplicated(perms$old)) && any(!duplicated(perms$new))) {
-    message(
-      "\nATTENTION: primitive- and module-based classification don't match!",
-      "\nModule-based classification will be discarded!"
-    )
+    if (interactive()) {
+      message(
+        "\nATTENTION: primitive- and module-based classification don't match!",
+        "\nModule-based classification will be discarded!"
+      )
+    }
 
     orders$clusters_M <- orders$clusters_P
   }
@@ -316,7 +316,7 @@ classify_kmeans <- function(x,
   orders$clusters_P <- c(order_rule$old, temp_P)[match(temp_P, c(order_rule$new, temp_P))]
   orders$clusters_M <- c(order_rule$old, temp_M)[match(temp_M, c(order_rule$new, temp_M))]
 
-  if (isTRUE(interactive)) {
+  if (inspect) {
     # Plot classified syns
     # Find plot size
     dev_size <- grDevices::dev.size(units = "in")
@@ -529,20 +529,22 @@ classify_kmeans <- function(x,
   combined <- length(grep("Syncombined", orders_new$new))
   total <- nrow(orders_new)
 
-  message(
-    "\n  Total synergies: ", total,
-    "\n       Recognised: ", total - combined,
-    "\n         Combined: ", combined, " (~", round(combined / total * 100, 0), "%)",
-    "\n         Clusters: ", clust_num, "\n"
-  )
+  if (interactive()) {
+    message(
+      "\n  Total synergies: ", total,
+      "\n       Recognised: ", total - combined,
+      "\n         Combined: ", combined, " (~", round(combined / total * 100, 0), "%)",
+      "\n         Clusters: ", clust_num, "\n"
+    )
 
-  syn_perc <- numeric()
-  for (ss in 1:clust_num) {
-    syn_perc[ss] <- round(length(grep(
-      paste0("^", ss, "$"),
-      orders_new$syn_classified
-    )) / length(trials) * 100, 0)
-    message("             Syn", ss, ": ", syn_perc[ss], "%")
+    syn_perc <- numeric()
+    for (ss in 1:clust_num) {
+      syn_perc[ss] <- round(length(grep(
+        paste0("^", ss, "$"),
+        orders_new$syn_classified
+      )) / length(trials) * 100, 0)
+      message("             Syn", ss, ": ", syn_perc[ss], "%")
+    }
   }
 
   # Rename synergies in the correct order and save

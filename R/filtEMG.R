@@ -31,7 +31,7 @@
 #' # Load some data
 #' data("RAW_DATA")
 #' # Filter raw EMG
-#' filtered_EMG <- pbapply::pblapply(
+#' filtered_EMG <- lapply(
 #'   RAW_DATA,
 #'   function(x) {
 #'     filtEMG(x,

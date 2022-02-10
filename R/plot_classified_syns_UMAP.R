@@ -17,9 +17,7 @@
 #' data(SYNS)
 #'
 #' # Classify synergies with k-means
-#' SYNS_classified <- classify_kmeans(SYNS,
-#'   interactive = FALSE
-#' )
+#' SYNS_classified <- classify_kmeans(SYNS)
 #'
 #' # Plot
 #' plot_classified_syns_UMAP(SYNS_classified,
@@ -28,7 +26,7 @@
 plot_classified_syns_UMAP <- function(x,
                                       condition,
                                       show_plot = TRUE) {
-  message("\nCreating 2D UMAP synergy plots for condition ", condition, "...")
+  if (interactive()) message("\nCreating 2D UMAP synergy plots for condition ", condition, "...")
 
   UMAP1 <- UMAP2 <- syn <- NULL
 
@@ -135,5 +133,5 @@ plot_classified_syns_UMAP <- function(x,
     gridExtra::grid.arrange(gg, newpage = FALSE)
   }
   return(gg)
-  message("...done!")
+  if (interactive()) message("...done!")
 }

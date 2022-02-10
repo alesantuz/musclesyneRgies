@@ -143,7 +143,7 @@ data("RAW_DATA")
 
 # Say you recorded more cycles than those you want to consider for the analysis
 # You can subset the raw data (here we keep only 3 cycles, starting from the first)
-RAW_DATA_subset <- pbapply::pblapply(
+RAW_DATA_subset <- lapply(
   RAW_DATA,
   function(x) {
     subsetEMG(x,
@@ -176,10 +176,10 @@ pp <- plot_rawEMG(RAW_DATA[[1]],
 # - Low-pass IIR Butterworth 4th order filter (cut-off frequency 20 Hz)
 # - Minimum subtraction
 # - Amplitude normalisation
-filtered_EMG <- pbapply::pblapply(RAW_DATA, function(x) filtEMG(x))
+filtered_EMG <- lapply(RAW_DATA, function(x) filtEMG(x))
 
 # If you decide to change filtering parameters, just give them as arguments:
-another_filtered_EMG <- pbapply::pblapply(
+another_filtered_EMG <- lapply(
   RAW_DATA,
   function(x) {
     filtEMG(x,
@@ -199,7 +199,7 @@ another_filtered_EMG <- pbapply::pblapply(
 # Here we time-normalise the filtered EMG, including only three cycles and trimming first
 # and last to remove unwanted filtering effects
 # Each cycle is divided into two parts, each normalised to a length of 100 points
-norm_EMG <- pbapply::pblapply(
+norm_EMG <- lapply(
   filtered_EMG,
   function(x) {
     normEMG(x,
@@ -215,7 +215,7 @@ norm_EMG <- pbapply::pblapply(
 # of phases you want your cycles to be divided into
 # Here we divide each cycle with a ratio of 60%-40% and keep only two cycles (first and last
 # are still trimmed, so to have two cycles you must start with at least four available)
-another_norm_EMG <- pbapply::pblapply(
+another_norm_EMG <- lapply(
   filtered_EMG,
   function(x) {
     normEMG(x,
@@ -242,7 +242,7 @@ pp <- plot_meanEMG(norm_EMG[[1]],
 ```r
 # At this stage, synergies can be extracted
 # This is the core function to extract synergies via NMF
-SYNS <- pbapply::pblapply(norm_EMG, synsNMF)
+SYNS <- lapply(norm_EMG, synsNMF)
 
 # The extracted synergies can be plotted with the following
 pp <- plot_syn_trials(SYNS[[1]],
@@ -268,12 +268,8 @@ data("SYNS")
 # - Full width at half maximum on the x-axis
 # - Centre of activity on the y-axis
 # (both referred to the motor primitives of the classified muscle synergies)
-SYNS_classified <- classify_kmeans(SYNS,
-  interactive = FALSE
-)
+SYNS_classified <- classify_kmeans(SYNS)
 ```
-
-![](README_files/figure-html/unnamed-chunk-7-1.png)<!-- -->![](README_files/figure-html/unnamed-chunk-7-2.png)<!-- -->
 
 ```r
 # Classified synergies can be finally plotted with

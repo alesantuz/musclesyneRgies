@@ -44,7 +44,7 @@
 #' # Load some data
 #' data(FILT_EMG)
 #' # Extract synergies
-#' SYNS <- pbapply::pblapply(FILT_EMG, synsNMF)
+#' SYNS <- lapply(FILT_EMG, synsNMF)
 synsNMF <- function(V,
                     R2_target = 0.01,
                     runs = 5,

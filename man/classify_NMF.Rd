@@ -4,12 +4,12 @@
 \alias{classify_NMF}
 \title{Muscle synergy classification with NMF}
 \usage{
-classify_NMF(x, interactive = TRUE)
+classify_NMF(x, inspect = FALSE)
 }
 \arguments{
 \item{x}{A list of \code{musclesyneRgies} objects}
 
-\item{interactive}{Logical, ask for interactive re-ordering or go fully automated?}
+\item{inspect}{Logical, ask for interactive re-ordering or go fully automated?}
 }
 \value{
 List of \code{musclesyneRgies} objects, each with elements:\cr
@@ -37,7 +37,5 @@ for satisfactory classification.
 # Load some data
 data(SYNS)
 # Classify synergies
-SYNS_classified <- classify_NMF(SYNS,
-  interactive = FALSE
-)
+SYNS_classified <- classify_NMF(SYNS)
 }

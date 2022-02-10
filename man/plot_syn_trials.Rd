@@ -48,7 +48,7 @@ Plots can then be saved with the preferred export method, such as \code{ggplot2:
 data(FILT_EMG)
 
 # Extract synergies
-SYNS <- pbapply::pblapply(FILT_EMG, synsNMF)
+SYNS <- lapply(FILT_EMG, synsNMF)
 
 # Found maximum number of synergies
 max_syns <- max(unlist(lapply(SYNS, function(x) x$syns)))

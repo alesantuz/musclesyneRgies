@@ -23,9 +23,7 @@
 #' data(SYNS)
 #'
 #' # Classify synergies with k-means
-#' SYNS_classified <- classify_kmeans(SYNS,
-#'   interactive = FALSE
-#' )
+#' SYNS_classified <- classify_kmeans(SYNS)
 #'
 #' # Plot classified synergies
 #' plot_classified_syns(SYNS_classified,
@@ -42,7 +40,7 @@ plot_classified_syns <- function(x,
                                  sd_col = "grey80",
                                  condition = NA,
                                  show_plot = TRUE) {
-  message("\nCreating synergy plots for condition ", condition, "...")
+  if (interactive()) message("\nCreating synergy plots for condition ", condition, "...")
 
   module <- muscle <- time <- value <- variable <- ymax <- ymin <- NULL
 
@@ -309,5 +307,5 @@ plot_classified_syns <- function(x,
     suppressWarnings(gridExtra::grid.arrange(gg, newpage = FALSE))
   }
   return(gg)
-  message("...done!")
+  if (interactive()) message("...done!")
 }

@@ -48,9 +48,7 @@ Plots can then be saved with the preferred export method, such as \code{ggplot2:
 data(SYNS)
 
 # Classify synergies with k-means
-SYNS_classified <- classify_kmeans(SYNS,
-  interactive = FALSE
-)
+SYNS_classified <- classify_kmeans(SYNS)
 
 # Plot classified synergies
 plot_classified_syns(SYNS_classified,

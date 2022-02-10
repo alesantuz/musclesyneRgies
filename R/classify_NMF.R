@@ -1,7 +1,7 @@
 #' Muscle synergy classification with NMF
 #'
 #' @param x A list of `musclesyneRgies` objects
-#' @param interactive Logical, ask for interactive re-ordering or go fully automated?
+#' @param inspect Logical, ask for interactive re-ordering or go fully automated?
 #'
 #' @details
 #' This function must be applied to a list with a sufficient amount of trials, otherwise the
@@ -26,11 +26,9 @@
 #' # Load some data
 #' data(SYNS)
 #' # Classify synergies
-#' SYNS_classified <- classify_NMF(SYNS,
-#'   interactive = FALSE
-#' )
+#' SYNS_classified <- classify_NMF(SYNS)
 classify_NMF <- function(x,
-                         interactive = TRUE) {
+                         inspect = FALSE) {
 
   # Define NMF function
   NMFn <- function(V) {
@@ -173,9 +171,9 @@ classify_NMF <- function(x,
     stop("Not all trials have the same number of muscles!!!")
   }
 
-  message("\nCalculating mean gait cycles...")
+  if (interactive()) message("\nCalculating mean gait cycles...")
 
-  P <- pbapply::pblapply(P, function(y) {
+  P <- lapply(P, function(y) {
     y$time <- NULL
     temp <- matrix(0, nrow = points, ncol = ncol(y))
 
@@ -192,15 +190,15 @@ classify_NMF <- function(x,
     # Transpose to facilitate visualisation
     return(t(y))
   })
-  message("...done!")
+  if (interactive()) message("...done!")
 
-  message("\nPutting primitives into a single data frame...")
-  data_P <- plyr::ldply(P, function(y) data.frame(y), .progress = plyr::progress_text(char = "+"))
-  message("...done!")
+  if (interactive()) message("\nPutting primitives into a single data frame...")
+  data_P <- plyr::ldply(P, function(y) data.frame(y))
+  if (interactive()) message("...done!")
 
-  message("\nPutting modules into a single data frame...")
-  data_M <- plyr::ldply(M, function(y) t(data.frame(y)), .progress = plyr::progress_text(char = "+"))
-  message("...done!")
+  if (interactive()) message("\nPutting modules into a single data frame...")
+  data_M <- plyr::ldply(M, function(y) t(data.frame(y)))
+  if (interactive()) message("...done!")
 
   # Check if names are the same for primitives and modules
   if (identical(data_P$.id, data_M$.id)) {
@@ -273,7 +271,7 @@ classify_NMF <- function(x,
   rownames(data_NMF_P) <- paste0("Syn", 1:nrow(data_NMF_P))
   colnames(data_NMF_M) <- paste0("Syn", 1:ncol(data_NMF_M))
 
-  if (isTRUE(interactive)) {
+  if (inspect) {
     # Plot classified syns
     # Find plot size
     dev_size <- grDevices::dev.size(units = "in")
@@ -413,8 +411,6 @@ classify_NMF <- function(x,
     }
   }
 
-
-
   # Now search for syns having module bigger than "M_threshold"
   # If a syn has more than one module, choose the one with the highest value
   # Then compare the primitive to the relevant one and assess similarity
@@ -552,21 +548,23 @@ classify_NMF <- function(x,
   combined <- length(grep("combined", ordered$syn_classified))
   total <- nrow(ordered)
 
-  message(
-    "\n  Total synergies: ", total,
-    "\n       Recognised: ", total - combined,
-    "\n         Combined: ", combined, " (~", round(combined / total * 100, 0), "%)",
-    "\n     R2 threshold: ", round(R2_threshold, 2),
-    "\n Module threshold: ", round(M_threshold, 2), "\n"
-  )
+  if (interactive()) {
+    message(
+      "\n  Total synergies: ", total,
+      "\n       Recognised: ", total - combined,
+      "\n         Combined: ", combined, " (~", round(combined / total * 100, 0), "%)",
+      "\n     R2 threshold: ", round(R2_threshold, 2),
+      "\n Module threshold: ", round(M_threshold, 2), "\n"
+    )
 
-  syn_perc <- numeric()
-  for (ss in 1:syns_num) {
-    syn_perc[ss] <- round(length(grep(
-      paste0("^", ss, "$"),
-      ordered$syn_classified
-    )) / length(trials) * 100, 0)
-    message("             Syn", ss, ": ", syn_perc[ss], "%")
+    syn_perc <- numeric()
+    for (ss in 1:syns_num) {
+      syn_perc[ss] <- round(length(grep(
+        paste0("^", ss, "$"),
+        ordered$syn_classified
+      )) / length(trials) * 100, 0)
+      message("             Syn", ss, ": ", syn_perc[ss], "%")
+    }
   }
 
   # Rename synergies in the correct order and save

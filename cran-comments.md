@@ -1,3 +1,6 @@
+## After checks on 10 Feb 2022 (v1.1.1 resubmitted as v1.1.2)
+- Removed all progress bars
+
 ## After re-submission on 09 Feb 2022
 - Version was not bumped, now updated from version 1.1.0 to version 1.1.1
 - Updated DESCRIPTION Depends: R (>= 4.1.0) due to the use of the new native pipe in some functions

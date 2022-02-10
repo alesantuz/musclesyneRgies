@@ -2,11 +2,7 @@ test_that("Plot function return gtable objects", {
   data("RAW_DATA")
   data("FILT_EMG")
   data("SYNS")
-  SYNS_classified <- classify_kmeans(
-    SYNS,
-    interactive = FALSE,
-    show_plot = FALSE
-  )
+  SYNS_classified <- classify_kmeans(SYNS)
 
   p1 <- plot_rawEMG(
     RAW_DATA[[1]],

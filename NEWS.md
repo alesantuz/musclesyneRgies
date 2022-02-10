@@ -1,3 +1,15 @@
+# musclesyneRgies 1.1.2
+### How to install
+```
+install.packages("musclesyneRgies")
+```
+
+### How to use
+README and vignettes are available both on [CRAN](https://CRAN.R-project.org/package=musclesyneRgies) and on [GitHub](https://github.com/alesantuz/musclesyneRgies).
+
+### What's changed
+- Removed all progress bars.
+
 # musclesyneRgies 1.1.1
 
 ### How to install
