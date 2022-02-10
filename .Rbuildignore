@@ -10,6 +10,7 @@
 ^README\.Rmd$
 ^README\.html$
 ^cran-comments\.md$
+^paper\.md$
 ^doc$
 ^Meta$
 ^CITATION\.cff$
