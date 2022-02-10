@@ -19,9 +19,10 @@
 #' # Classify synergies with k-means
 #' SYNS_classified <- classify_kmeans(SYNS)
 #'
-#' # Plot
-#' plot_classified_syns_UMAP(SYNS_classified,
-#'   condition = "TW"
+#' # Save plot
+#' pp <- plot_classified_syns_UMAP(SYNS_classified,
+#'   condition = "TW",
+#'   show_plot = FALSE
 #' )
 plot_classified_syns_UMAP <- function(x,
                                       condition,

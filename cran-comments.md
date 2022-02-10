@@ -1,3 +1,6 @@
+## After checks on 10 Feb 2022 (v1.1.2 resubmitted as v1.1.3)
+- Improved speed of slow tests and examples, `rhub::check_for_cran()` returned no notes
+
 ## After checks on 10 Feb 2022 (v1.1.1 resubmitted as v1.1.2)
 - Removed all progress bars
 
@@ -8,7 +11,7 @@
 ## After CRAN Package Check Results on 2022-02-09 15:00:53 CET
 - Modified test-CoA.R to comply with `M1mac` and `noLD`
 Results:
-- rhub::check(platform = "macos-m1-bigsur-release") OK
+- `rhub::check(platform = "macos-m1-bigsur-release")` OK
 
 ## After second checks on 08 Feb 2022
 - Modified description in DESCRIPTION

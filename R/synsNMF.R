@@ -43,8 +43,8 @@
 #' # Note that for bigger data sets one might want to run computation in parallel
 #' # Load some data
 #' data(FILT_EMG)
-#' # Extract synergies
-#' SYNS <- lapply(FILT_EMG, synsNMF)
+#' # Extract synergies (careful, rank is imposed here!)
+#' SYNS <- lapply(FILT_EMG, synsNMF, fixed_syns = 4)
 synsNMF <- function(V,
                     R2_target = 0.01,
                     runs = 5,

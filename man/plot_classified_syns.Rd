@@ -50,11 +50,12 @@ data(SYNS)
 # Classify synergies with k-means
 SYNS_classified <- classify_kmeans(SYNS)
 
-# Plot classified synergies
-plot_classified_syns(SYNS_classified,
+# Save plot of classified synergies
+pp <- plot_classified_syns(SYNS_classified,
   dark_mode = TRUE,
   line_col = "tomato1",
   sd_col = "tomato4",
-  condition = "TW"
+  condition = "TW",
+  show_plot = FALSE
 )
 }

@@ -20,22 +20,20 @@
 #'
 #' @examples
 #' # Load some data
-#' data(FILT_EMG)
+#' data(SYNS)
 #'
-#' # Extract synergies
-#' SYNS <- lapply(FILT_EMG, synsNMF)
-#'
-#' # Found maximum number of synergies
+#' # Find maximum number of synergies
 #' max_syns <- max(unlist(lapply(SYNS, function(x) x$syns)))
 #'
-#' # Plot the first (and only, in this case) trial in the list
-#' plot_syn_trials(SYNS[[1]],
+#' # Save a plot with the first (and only, in this case) trial in the list
+#' pp <- plot_syn_trials(SYNS[[1]],
 #'   max_syns = max_syns,
 #'   trial = names(SYNS)[1],
 #'   dark_mode = TRUE,
 #'   line_size = 0.8,
 #'   line_col = "tomato1",
-#'   sd_col = "tomato4"
+#'   sd_col = "tomato4",
+#'   show_plot = FALSE
 #' )
 plot_syn_trials <- function(x,
                             max_syns,

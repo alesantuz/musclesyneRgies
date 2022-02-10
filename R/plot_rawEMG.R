@@ -23,13 +23,14 @@
 #' # Load some data
 #' data(RAW_DATA)
 #'
-#' # Plot first (and only) trial in RAW_DATA, first three seconds, in dark mode
+#' # Save a plot with the first (and only) trial in RAW_DATA, first three seconds, in dark mode
 #' plot_rawEMG(RAW_DATA[[1]],
 #'   trial = names(RAW_DATA)[1],
 #'   row_number = 4,
 #'   col_number = 4,
 #'   dark_mode = TRUE,
-#'   line_col = "tomato3"
+#'   line_col = "tomato3",
+#'   show_plot = FALSE
 #' )
 plot_rawEMG <- function(x,
                         trial,

@@ -46,10 +46,10 @@ more are usually needed (Kang and Dingwell, 2006).
 data("primitives")
 # Calculate sMLE of motor primitives in the muscle synergy space
 short_term_MLE <- sMLE(primitives,
-  mean_period = 100,
-  future_pts = 300,
+  mean_period = 80,
+  future_pts = 200,
   norm = "z",
-  pts = 50
+  pts = 30
 )
 }
 \references{

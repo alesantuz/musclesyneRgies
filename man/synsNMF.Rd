@@ -54,8 +54,8 @@ The first column of \code{V} must always contain time information.
 # Note that for bigger data sets one might want to run computation in parallel
 # Load some data
 data(FILT_EMG)
-# Extract synergies
-SYNS <- lapply(FILT_EMG, synsNMF)
+# Extract synergies (careful, rank is imposed here!)
+SYNS <- lapply(FILT_EMG, synsNMF, fixed_syns = 4)
 }
 \references{
 Lee, D. D. & Seung, H. S.

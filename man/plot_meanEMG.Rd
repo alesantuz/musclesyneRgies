@@ -46,15 +46,13 @@ Plots can then be saved with the preferred export method, such as \code{ggplot2:
 # Load some data
 data(FILT_EMG)
 
-# Plot
-for (ii in seq_along(FILT_EMG)) {
-  # Plot the average filtered and time-normalised EMG
-  plot_meanEMG(FILT_EMG[[ii]],
-    trial = names(FILT_EMG)[ii],
-    row_number = 4,
-    col_number = 4,
-    dark_mode = TRUE,
-    line_col = "tomato3"
-  )
-}
+# Save a plot of the only present trial with the average filtered and time-normalised EMG
+pp <- plot_meanEMG(FILT_EMG[[1]],
+  trial = names(FILT_EMG)[1],
+  row_number = 4,
+  col_number = 4,
+  dark_mode = TRUE,
+  line_col = "tomato3",
+  show_plot = FALSE
+)
 }
