@@ -28,7 +28,7 @@ preferred-citation:
   abstract: This package extracts muscle synergies from EMG and gives some analysis
     tools, all with sensible defaults.
   repository-code: https://github.com/alesantuz/musclesyneRgies
-  url: https://github.com/alesantuz/musclesyneRgies
+  url: https://CRAN.R-project.org/package=musclesyneRgies
   contact:
   - family-names: Santuz
     given-names: Alessandro
