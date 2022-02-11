@@ -17,7 +17,7 @@ The package `musclesyneRgies` allows to extract muscle synergies from electromyo
 ## Installation
 - [Download R](https://cran.r-project.org/mirrors.html) and install (please have R >= `4.1.0`)
 - [Download RStudio](https://www.rstudio.com/products/rstudio/download/) and install
-- Open RStudio and install the package `musclesyneRgies` with `install.packages("musclesyneRgies")`.
+- Open RStudio and install the package with `install.packages("musclesyneRgies")`.
 
 Done! Now the package is installed on your computer.
 
