@@ -11,7 +11,7 @@ rawdata(path_cycles = NA, path_emg = NA, header_cycles, header_emg = TRUE)
 
 \item{path_emg}{Optional, path where raw EMG files are located}
 
-\item{header_cycles}{Logical, are the cycle-ASCII files containing a named header (optional)?}
+\item{header_cycles}{Logical, are the cycle-ASCII files containing a named header (the header is optional)?}
 
 \item{header_emg}{Logical, are the raw EMG-ASCII files containing a named header (they should)?}
 }
@@ -46,7 +46,7 @@ dir.create("emg", showWarnings = FALSE)
 # Export ASCII data from built-in data set to the new subfolders
 write.table(RAW_DATA[[1]]$cycles,
   file = paste0(data_path, "cycles", .Platform$file.sep, names(RAW_DATA)[1], ".txt"),
-  sep = "\t", row.names = FALSE
+  sep = "\t", row.names = FALSE, col.names = FALSE
 )
 write.table(RAW_DATA[[1]]$emg,
   file = paste0(data_path, "emg", .Platform$file.sep, names(RAW_DATA)[1], ".txt"),

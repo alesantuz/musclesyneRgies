@@ -2,7 +2,7 @@
 #'
 #' @param x Object of class `EMG` with elements `cycles` and `emg`
 #' @param demean Logical: should EMG be demeaned?
-#' @param rectif Rectification type: "fullwave", halfwave" or "none"
+#' @param rectif Rectification type: "fullwave", "halfwave" or "none"
 #' @param HPf High-pass filter cut-off frequency, use 0 to exclude high-pass filtering
 #' @param HPo High-pass filter order
 #' @param LPf Low-pass filter cut-off frequency, use 0 to exclude Low-pass filtering

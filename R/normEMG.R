@@ -30,7 +30,7 @@
 #'   filtEMG(x, HPf = 50, HPo = 4, LPf = 20, LPo = 4)
 #' })
 #' # Time-normalise filtered EMG, including three cycles and trimming first and last
-#' norm_EMG <- lapply(filtered_EMG, function(x) {
+#' filt_norm_EMG <- lapply(filtered_EMG, function(x) {
 #'   normEMG(
 #'   x,
 #'   cy_max = 3,
@@ -57,7 +57,7 @@ normEMG <- function(x,
 
   if (isTRUE(trim)) {
     # Trim first and last cycle to remove filtering effects
-    cycles <- cycles[2:(nrow(cycles) - 1), ]
+    cycles <- as.data.frame(cycles[2:(nrow(cycles) - 1), ])
   }
   cycs <- nrow(cycles) - 1
 

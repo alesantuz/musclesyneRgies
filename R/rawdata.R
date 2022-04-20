@@ -2,7 +2,7 @@
 #'
 #' @param path_cycles Optional, path where cycle timing files are located
 #' @param path_emg Optional, path where raw EMG files are located
-#' @param header_cycles Logical, are the cycle-ASCII files containing a named header (optional)?
+#' @param header_cycles Logical, are the cycle-ASCII files containing a named header (the header is optional)?
 #' @param header_emg Logical, are the raw EMG-ASCII files containing a named header (they should)?
 #'
 #' @details
@@ -33,7 +33,7 @@
 #' # Export ASCII data from built-in data set to the new subfolders
 #' write.table(RAW_DATA[[1]]$cycles,
 #'   file = paste0(data_path, "cycles", .Platform$file.sep, names(RAW_DATA)[1], ".txt"),
-#'   sep = "\t", row.names = FALSE
+#'   sep = "\t", row.names = FALSE, col.names = FALSE
 #' )
 #' write.table(RAW_DATA[[1]]$emg,
 #'   file = paste0(data_path, "emg", .Platform$file.sep, names(RAW_DATA)[1], ".txt"),

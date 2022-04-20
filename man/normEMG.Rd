@@ -38,7 +38,7 @@ filtered_EMG <- lapply(RAW_DATA, function(x) {
   filtEMG(x, HPf = 50, HPo = 4, LPf = 20, LPo = 4)
 })
 # Time-normalise filtered EMG, including three cycles and trimming first and last
-norm_EMG <- lapply(filtered_EMG, function(x) {
+filt_norm_EMG <- lapply(filtered_EMG, function(x) {
   normEMG(
   x,
   cy_max = 3,

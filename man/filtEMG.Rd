@@ -21,7 +21,7 @@ filtEMG(
 
 \item{demean}{Logical: should EMG be demeaned?}
 
-\item{rectif}{Rectification type: "fullwave", halfwave" or "none"}
+\item{rectif}{Rectification type: "fullwave", "halfwave" or "none"}
 
 \item{HPf}{High-pass filter cut-off frequency, use 0 to exclude high-pass filtering}
 
