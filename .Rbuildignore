@@ -1,5 +1,6 @@
 ^\.Rproj\.user$
 ^\.git$
+^\.paper$
 ^README_files$
 ^images$
 ^musclesyneRgies\.Rproj$
@@ -10,7 +11,6 @@
 ^README\.Rmd$
 ^README\.html$
 ^cran-comments\.md$
-^paper\.md$
 ^doc$
 ^Meta$
 ^CITATION\.cff$
