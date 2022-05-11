@@ -10,6 +10,7 @@ README and vignettes are available both on [CRAN](https://CRAN.R-project.org/pac
 
 ### What's changed
 - Added Open Journals PDF Generator GitHub Action
+- First JOSS paper draft.
 
 # musclesyneRgies 1.1.3.9000 (development version)
 ### How to install
