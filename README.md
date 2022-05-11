@@ -344,3 +344,5 @@ message("Hurst exponent: ", round(nonlin_H, 3))
 ```
 ## Hurst exponent: 0.338
 ```
+## How to contribute to `musclesyneRgies`
+Thank you for taking the time to read this. Please refer to the [CONTRIBUTING](https://github.com/alesantuz/musclesyneRgies/blob/master/CONTRIBUTING.md) section for a guide on how to contribute to this package.
