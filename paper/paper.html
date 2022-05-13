@@ -386,20 +386,20 @@ functionally related muscle groups rather than by sending commands to
 each muscle individually. With the end of the twentieth century and the
 advent of modern computational tools, the first rigorous mathematical
 models of muscle synergies came to life, based on linear decomposition
-(Lee &amp; Seung, 1999) of electromyographic data (Tresch et al., 1999).
-In the past two decades, several different approaches have been used to
-model muscle synergies as low-dimensional sets of muscle activations and
-non-negative matrix factorization (NMF) has often proved to be one of
-the most reliable and widely employed (Rabbi et al., 2020). Yet, little
-consensus exists on what the best practices to preprocess
-electromyographic data are, which NMF algorithm should be used, what
-convergence criteria should be adopted and so on (Devarajan &amp;
-Cheung, 2014; Oliveira et al., 2014; Santuz et al., 2017). Researchers
-with little to none coding experience will find in the R package
+(Lee &amp; Seung, 1999) of electromyographic (EMG) data (Tresch et al.,
+1999). In the past two decades, several different approaches have been
+used to model muscle synergies as low-dimensional sets of muscle
+activations and non-negative matrix factorization (NMF) has often proved
+to be one of the most reliable and widely employed (Rabbi et al., 2020).
+Yet, little consensus exists on what the best practices to preprocess
+EMG data are, which NMF algorithm should be used, what convergence
+criteria should be adopted and so on (Devarajan &amp; Cheung, 2014;
+Oliveira et al., 2014; Santuz et al., 2017). Researchers with little to
+none coding experience will find in the R package
 <code>musclesyneRgies</code> a complete framework for the preprocessing,
-factorization and visualization of electromyographic data, with sensible
-defaults deriving from peer-reviewed studies on the topic. More advanced
-users will find <code>musclesyneRgies</code> to be fully customizable,
+factorization and visualization of EMG data, with sensible defaults
+deriving from peer-reviewed studies on the topic. More advanced users
+will find <code>musclesyneRgies</code> to be fully customizable,
 depending on the specifics of the study design (e.g. the considered
 biological system, the motor task, the measurement devices used, etc.).
 <code>musclesyneRgies</code> aims at filling the existing gap of tools
@@ -418,6 +418,13 @@ of five main steps:</p>
 <li>Synergy classification</li>
 <li>Plots.</li>
 </ol>
+<p>Using the native pipe operator (R &gt;= <code>4.1.0</code> is
+required), a typical analysis pipeline can be synthetically written as
+follows:</p>
+<pre class="r"><code>SYNS_classified &lt;- lapply(RAW_DATA, filtEMG) |&gt;               # Filter raw data
+  lapply(function(x) normEMG(x, cycle_div = c(100, 100))) |&gt;  # Time-normalization
+  lapply(synsNMF) |&gt;                                          # Synergy extraction
+  classify_kmeans()                                           # Synergy classification</code></pre>
 <p>Extensive documentation is available on <a href="https://github.com/alesantuz/musclesyneRgies">GitHub</a> and the
 <a href="https://CRAN.R-project.org/package=musclesyneRgies">Comprehensive
 <code>R</code> Archive Network</a>. Below, a typical analysis workflow
@@ -469,19 +476,66 @@ function to automatically create the list of objects of class
 </div>
 <div id="raw-data-processing" class="section level2">
 <h2>Raw data processing</h2>
-<p>A</p>
+<p>Raw EMG is commonly filtered before factorization. If the length of
+the data set needs reduction, the function <code>subsetEMG</code> can
+help. If no subsetting is needed, raw data can be filtered done as
+follows:</p>
+<pre class="r"><code>filtered_EMG &lt;- lapply(
+  RAW_DATA,
+  function(x) {
+    filtEMG(x)
+  }
+)</code></pre>
+<p>Defaults can be overridden by specifying the arguments as in the
+follosing example:</p>
+<pre class="r"><code>another_filtered_EMG &lt;- lapply(
+  RAW_DATA,
+  function(x) {
+    filtEMG(x,
+      demean = FALSE,
+      rectif = &quot;halfwave&quot;,
+      HPf = 30,
+      HPo = 2,
+      LPf = 10,
+      LPo = 2,
+      min_sub = FALSE,
+      ampl_norm = FALSE
+    )
+  }
+)</code></pre>
+<p>The filtered EMG can be time-normalized. In the following example,
+the filtered EMG are time-normalized including only three cycles and
+trimming first and last to remove unwanted filtering effects. Each cycle
+is divided into two parts, each normalised to a length of 100
+points:</p>
+<pre class="r"><code>norm_EMG &lt;- lapply(
+  filtered_EMG,
+  function(x) {
+    normEMG(x,
+      trim = TRUE,
+      cy_max = 3,
+      cycle_div = c(100, 100)
+    )
+  }
+)</code></pre>
 </div>
 <div id="synergy-extraction" class="section level2">
 <h2>Synergy extraction</h2>
-<p>A</p>
+<p>Muscle synergies can then be extracted via NMF using:</p>
+<pre class="r"><code>SYNS &lt;- lapply(norm_EMG, synsNMF)</code></pre>
+<p>As all other functions, also <code>synsNMF</code> can be tweaked at
+need by specifying the relevant parameters in the arguments.</p>
 </div>
 <div id="synergy-classification" class="section level2">
 <h2>Synergy classification</h2>
-<p>A</p>
+<p>Since NMF does not return muscle synergies in any specific functional
+order, a reordering is needed:</p>
+<pre class="r"><code>SYNS_classified &lt;- classify_kmeans(SYNS)</code></pre>
 </div>
 <div id="plots" class="section level2">
 <h2>Plots</h2>
-<p>A</p>
+<p>At all stages, it is possible to obtain plots of the considered data
+sets, from the raw EMG and until the classified synergies.</p>
 </div>
 </div>
 <div id="availability" class="section level1">

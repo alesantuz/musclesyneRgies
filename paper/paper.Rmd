@@ -23,18 +23,16 @@ output:
   html_document:
     keep_md: yes
 ---
-
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
 # Summary
 
 A
 
 # Statement of need
 
-The great amount of muscles and joints in the body of vertebrate animals makes the problem of motor control a high-dimensional one: while producing and controlling movement, the central nervous system is constantly dealing with an over-abundant number of degrees of freedom. Amongst the existing theories that attempt to describe the coordination of movements, one proposed by Nikolai Bernstein (Bernstein, 1967) assumes that the central nervous system can simplify the production of movements by implementing orchestrated, synergistic activations of functionally related muscle groups rather than by sending commands to each muscle individually. With the end of the twentieth century and the advent of modern computational tools, the first rigorous mathematical models of muscle synergies came to life, based on linear decomposition (Lee & Seung, 1999) of electromyographic data (Tresch et al., 1999). In the past two decades, several different approaches have been used to model muscle synergies as low-dimensional sets of muscle activations and non-negative matrix factorization (NMF) has often proved to be one of the most reliable and widely employed (Rabbi et al., 2020). Yet, little consensus exists on what the best practices to preprocess electromyographic data are, which NMF algorithm should be used, what convergence criteria should be adopted and so on (Devarajan & Cheung, 2014; Oliveira et al., 2014; Santuz et al., 2017). Researchers with little to none coding experience will find in the R package `musclesyneRgies` a complete framework for the preprocessing, factorization and visualization of electromyographic data, with sensible defaults deriving from peer-reviewed studies on the topic. More advanced users will find `musclesyneRgies` to be fully customizable, depending on the specifics of the study design (e.g. the considered biological system, the motor task, the measurement devices used, etc.). `musclesyneRgies` aims at filling the existing gap of tools available to researchers of all levels in fields that deal with the analysis of vertebrate movement control such as neuroscience, biomechanics, biomedical engineering or sport science.
+The great amount of muscles and joints in the body of vertebrate animals makes the problem of motor control a high-dimensional one: while producing and controlling movement, the central nervous system is constantly dealing with an over-abundant number of degrees of freedom. Amongst the existing theories that attempt to describe the coordination of movements, one proposed by Nikolai Bernstein (Bernstein, 1967) assumes that the central nervous system can simplify the production of movements by implementing orchestrated, synergistic activations of functionally related muscle groups rather than by sending commands to each muscle individually. With the end of the twentieth century and the advent of modern computational tools, the first rigorous mathematical models of muscle synergies came to life, based on linear decomposition (Lee & Seung, 1999) of electromyographic (EMG) data (Tresch et al., 1999). In the past two decades, several different approaches have been used to model muscle synergies as low-dimensional sets of muscle activations and non-negative matrix factorization (NMF) has often proved to be one of the most reliable and widely employed (Rabbi et al., 2020). Yet, little consensus exists on what the best practices to preprocess EMG data are, which NMF algorithm should be used, what convergence criteria should be adopted and so on (Devarajan & Cheung, 2014; Oliveira et al., 2014; Santuz et al., 2017). Researchers with little to none coding experience will find in the R package `musclesyneRgies` a complete framework for the preprocessing, factorization and visualization of EMG data, with sensible defaults deriving from peer-reviewed studies on the topic. More advanced users will find `musclesyneRgies` to be fully customizable, depending on the specifics of the study design (e.g. the considered biological system, the motor task, the measurement devices used, etc.). `musclesyneRgies` aims at filling the existing gap of tools available to researchers of all levels in fields that deal with the analysis of vertebrate movement control such as neuroscience, biomechanics, biomedical engineering or sport science.
 
 # Typical workflow
 
@@ -45,6 +43,14 @@ The typical workflow when using `musclesyneRgies` consists of five main steps:
 3. Synergy extraction
 4. Synergy classification
 5. Plots.
+
+Using the native pipe operator (R >= `4.1.0` is required), a typical analysis pipeline can be synthetically written as follows:
+```{r, eval = FALSE}
+SYNS_classified <- lapply(RAW_DATA, filtEMG) |>               # Filter raw data
+  lapply(function(x) normEMG(x, cycle_div = c(100, 100))) |>  # Time-normalization
+  lapply(synsNMF) |>                                          # Synergy extraction
+  classify_kmeans()                                           # Synergy classification
+```
 
 Extensive documentation is available on [GitHub](https://github.com/alesantuz/musclesyneRgies) and the [Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies). Below, a typical analysis workflow is provided as an example.
 
@@ -67,19 +73,68 @@ It is also possible to read directly from ASCII files such as tab-separated txt 
 
 ## Raw data processing
 
-A
+Raw EMG is commonly filtered before factorization. If the length of the data set needs reduction, the function `subsetEMG` can help. If no subsetting is needed, raw data can be filtered done as follows:
+
+```{r, eval = FALSE}
+filtered_EMG <- lapply(
+  RAW_DATA,
+  function(x) {
+    filtEMG(x)
+  }
+)
+```
+
+Defaults can be overridden by specifying the arguments as in the follosing example:
+
+```{r, eval = FALSE}
+another_filtered_EMG <- lapply(
+  RAW_DATA,
+  function(x) {
+    filtEMG(x,
+      demean = FALSE,
+      rectif = "halfwave",
+      HPf = 30,
+      HPo = 2,
+      LPf = 10,
+      LPo = 2,
+      min_sub = FALSE,
+      ampl_norm = FALSE
+    )
+  }
+)
+```
+The filtered EMG can be time-normalized. In the following example, the filtered EMG are time-normalized including only three cycles and trimming first and last to remove unwanted filtering effects. Each cycle is divided into two parts, each normalised to a length of 100 points:
+```{r, eval = FALSE}
+norm_EMG <- lapply(
+  filtered_EMG,
+  function(x) {
+    normEMG(x,
+      trim = TRUE,
+      cy_max = 3,
+      cycle_div = c(100, 100)
+    )
+  }
+)
+```
 
 ## Synergy extraction
 
-A
+Muscle synergies can then be extracted via NMF using:
+```{r, eval = FALSE}
+SYNS <- lapply(norm_EMG, synsNMF)
+```
+As all other functions, also `synsNMF` can be tweaked at need by specifying the relevant parameters in the arguments.
 
 ## Synergy classification
 
-A
+Since NMF does not return muscle synergies in any specific functional order, a reordering is needed:
+```{r, eval = FALSE}
+SYNS_classified <- classify_kmeans(SYNS)
+```
 
 ## Plots
 
-A
+At all stages, it is possible to obtain plots of the considered data sets, from the raw EMG and until the classified synergies.
 
 # Availability
 The latest development version of `musclesyneRgies` is freely available on [GitHub](https://github.com/alesantuz/musclesyneRgies). A stable release is freely available via the [Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies). Documentation and examples
