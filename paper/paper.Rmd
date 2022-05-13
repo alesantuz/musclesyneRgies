@@ -46,10 +46,10 @@ The typical workflow when using `musclesyneRgies` consists of five main steps:
 
 Using the native pipe operator (R >= `4.1.0` is required), a typical analysis pipeline can be synthetically written as follows:
 ```{r, eval = FALSE}
-SYNS_classified <- lapply(RAW_DATA, filtEMG) |>               # Filter raw data
-  lapply(function(x) normEMG(x, cycle_div = c(100, 100))) |>  # Time-normalization
-  lapply(synsNMF) |>                                          # Synergy extraction
-  classify_kmeans()                                           # Synergy classification
+SYNS_classified <- lapply(RAW_DATA, filtEMG) |>       # Filter raw data
+  lapply(function(x) normEMG(x, cycle_div = 100)) |>  # Time-normalization
+  lapply(synsNMF) |>                                  # Synergy extraction
+  classify_kmeans()                                   # Synergy classification
 ```
 
 Extensive documentation is available on [GitHub](https://github.com/alesantuz/musclesyneRgies) and the [Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies). Below, a typical analysis workflow is provided as an example.
@@ -66,7 +66,7 @@ Those two elements should look similar to the following:
 library(musclesyneRgies)
 data("RAW_DATA")
 head(RAW_DATA[[1]]$cycles)
-head(RAW_DATA[[1]]$emg)
+head(RAW_DATA[[1]]$emg[, 1:6])
 ```
 
 It is also possible to read directly from ASCII files such as tab-separated txt or comma-separated csv and then use the following function to automatically create the list of objects of class `EMG` needed for the subsequent steps using the function `rawdata`.

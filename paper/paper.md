@@ -45,10 +45,10 @@ The typical workflow when using `musclesyneRgies` consists of five main steps:
 Using the native pipe operator (R >= `4.1.0` is required), a typical analysis pipeline can be synthetically written as follows:
 
 ```r
-SYNS_classified <- lapply(RAW_DATA, filtEMG) |>               # Filter raw data
-  lapply(function(x) normEMG(x, cycle_div = c(100, 100))) |>  # Time-normalization
-  lapply(synsNMF) |>                                          # Synergy extraction
-  classify_kmeans()                                           # Synergy classification
+SYNS_classified <- lapply(RAW_DATA, filtEMG) |>       # Filter raw data
+  lapply(function(x) normEMG(x, cycle_div = 100)) |>  # Time-normalization
+  lapply(synsNMF) |>                                  # Synergy extraction
+  classify_kmeans()                                   # Synergy classification
 ```
 
 Extensive documentation is available on [GitHub](https://github.com/alesantuz/musclesyneRgies) and the [Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies). Below, a typical analysis workflow is provided as an example.
@@ -79,24 +79,17 @@ head(RAW_DATA[[1]]$cycles)
 ```
 
 ```r
-head(RAW_DATA[[1]]$emg)
+head(RAW_DATA[[1]]$emg[, 1:6])
 ```
 
 ```
-##    time         ME        MA       FL        RF        VM        VL        ST
-## 1 0.014   0.201416 -6.445313 22.65930 -0.100708 -0.906372  7.351685 -1.309204
-## 2 0.015  -2.316284 -0.100708 24.16992  1.812744 -1.913452 -4.531860  2.920532
-## 3 0.016  -7.351685 -7.150269 23.46497  0.704956 -5.337524  3.424072 -0.604248
-## 4 0.017  -5.538940 -3.222656 27.49329  5.236816 -4.330444 -1.611328  0.503540
-## 5 0.018 -10.675049 -5.740356 23.16284 -0.704956  2.014160  1.007080 -2.719116
-## 6 0.019 -12.487793 -3.927612 19.94019  2.014160 -5.136108 -0.805664  0.000000
-##          BF         TA         PL        GM         GL         SO
-## 1 -7.351685 -44.311523   2.316284  8.862305  -8.358765   8.963013
-## 2 -2.719116 -24.673462  -0.704956 10.070801 -10.775757   1.611328
-## 3 -8.963013 -18.630981 -15.408325  8.358765  -0.704956  -5.035400
-## 4 -5.941772   0.906372 -11.883545  5.136108  -4.330444 -10.574341
-## 5 -3.826904 -25.680542   1.812744 -5.136108  -1.913452  -8.761597
-## 6 -3.524780 -43.807983   6.546021 10.574341  -0.100708   0.302124
+##    time         ME        MA       FL        RF        VM
+## 1 0.014   0.201416 -6.445313 22.65930 -0.100708 -0.906372
+## 2 0.015  -2.316284 -0.100708 24.16992  1.812744 -1.913452
+## 3 0.016  -7.351685 -7.150269 23.46497  0.704956 -5.337524
+## 4 0.017  -5.538940 -3.222656 27.49329  5.236816 -4.330444
+## 5 0.018 -10.675049 -5.740356 23.16284 -0.704956  2.014160
+## 6 0.019 -12.487793 -3.927612 19.94019  2.014160 -5.136108
 ```
 
 It is also possible to read directly from ASCII files such as tab-separated txt or comma-separated csv and then use the following function to automatically create the list of objects of class `EMG` needed for the subsequent steps using the function `rawdata`.
