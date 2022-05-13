@@ -1,3 +1,16 @@
+# musclesyneRgies 1.1.3.9002 (development version)
+### How to install
+```
+install.packages("devtools")
+library(devtools)
+install_github("alesantuz/musclesyneRgies")
+```
+### How to use
+README and vignettes are available both on [CRAN](https://CRAN.R-project.org/package=musclesyneRgies) and on [GitHub](https://github.com/alesantuz/musclesyneRgies).
+
+### What's changed
+- Removed `emg` data frame row names in `RAW_DATA` list.
+
 # musclesyneRgies 1.1.3.9001 (development version)
 ### How to install
 ```
