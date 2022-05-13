@@ -9,7 +9,8 @@ install_github("alesantuz/musclesyneRgies")
 README and vignettes are available both on [CRAN](https://CRAN.R-project.org/package=musclesyneRgies) and on [GitHub](https://github.com/alesantuz/musclesyneRgies).
 
 ### What's changed
-- Removed `emg` data frame row names in `RAW_DATA` list.
+- Removed `emg` data frame row names in `RAW_DATA` list
+- Updated JOSS paper draft.
 
 # musclesyneRgies 1.1.3.9001 (development version)
 ### How to install

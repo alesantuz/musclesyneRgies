@@ -40,7 +40,7 @@ hm_plot[which(hm_plot < hm)] <- NA
 # Plots
 plot(prim_sub, ty = "l", xlab = "Time", ylab = "Amplitude")
 lines(hm_plot, lwd = 3, col = 2) # FWHM (horizontal, in red)
-graphics::abline(v = prim_sub_CoA, lwd = 3, col = 4) # Coa (vertical, in blue)
+graphics::abline(v = prim_sub_CoA, lwd = 3, col = 4) # CoA (vertical, in blue)
 ```
 Or perhaps one might want to investigate the nonlinear behaviour of a long primitive.
 ```{r, results = "hide"}
