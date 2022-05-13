@@ -30,11 +30,19 @@ A
 
 # Statement of need
 
-A
+The great amount of muscles and joints in the body of vertebrate animals makes the problem of motor control a high-dimensional one: while producing and controlling movement, the central nervous system is constantly dealing with an over-abundant number of degrees of freedom. Amongst the existing theories that attempt to describe the coordination of movements, one proposed by Nikolai Bernstein (Bernstein, 1967) assumes that the central nervous system can simplify the production of movements by implementing orchestrated, synergistic activations of functionally related muscle groups rather than by sending commands to each muscle individually. With the end of the twentieth century and the advent of modern computational tools, the first rigorous mathematical models of muscle synergies came to life, based on linear decomposition (Lee & Seung, 1999) of electromyographic data (Tresch et al., 1999). In the past two decades, several different approaches have been used to model muscle synergies as low-dimensional sets of muscle activations and non-negative matrix factorization (NMF) has often proved to be one of the most reliable and widely employed (Rabbi et al., 2020). Yet, little consensus exists on what the best practices to preprocess electromyographic data are, which NMF algorithm should be used, what convergence criteria should be adopted and so on (Devarajan & Cheung, 2014; Oliveira et al., 2014; Santuz et al., 2017). Researchers with little to none coding experience will find in the R package `musclesyneRgies` a complete framework for the preprocessing, factorization and visualization of electromyographic data, with sensible defaults deriving from peer-reviewed studies on the topic. More advanced users will find `musclesyneRgies` to be fully customizable, depending on the specifics of the study design (e.g. the considered biological system, the motor task, the measurement devices used, etc.). `musclesyneRgies` aims at filling the existing gap of tools available to researchers of all levels in fields that deal with the analysis of vertebrate movement control such as neuroscience, biomechanics, biomedical engineering or sport science.
 
 # Typical workflow
 
-A
+The typical workflow when using `musclesyneRgies` consists of five main steps:
+
+1. Data preparation
+2. Raw data processing
+3. Synergy extraction
+4. Synergy classification
+5. Plots.
+
+Extensive documentation is available on [GitHub](https://github.com/alesantuz/musclesyneRgies) and the [Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies). Below, a typical analysis workflow is provided as an example.
 
 ## Data preparation
 
@@ -57,18 +65,20 @@ A
 A
 
 # Availability
-
-A stable release of the `musclesyneRgies` R package is freely available via the
-[Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies).
-Its development version can be found on
-[GitHub](https://github.com/alesantuz/musclesyneRgies). Documentation and examples
-are contained in each version's manual pages, vignette.
-
+The latest development version of `musclesyneRgies` is freely available on [GitHub](https://github.com/alesantuz/musclesyneRgies). A stable release is freely available via the [Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies). Documentation and examples
+are contained in each version's manual pages, vignettes and readme file. To install the latest development version, `devtools` needs to be installed beforehand and then `musclesyneRgies` can be installed directly from GitHub with the following:
+```r
+install.packages("devtools")
+library(devtools)
+install_github("alesantuz/musclesyneRgies")
+```
+The latest stable release appearing on CRAN can be installed with:
+```r
+install.packages("musclesyneRgies")
+```
 
 # Acknowledgments
 
-grateful to ... and we would like to thank reviewers and the editor for taking the time and effort necessary to review the manuscript.
+The author is grateful, for their many contributions, to (in alphabetical order): Turgay Akay, Adamantios Arampatzis, Leon Brüll, Antonis Ekizos, Lukas Hauser, Lars Janshen, Victor Munoz-Martel, Dimitris Patikas, Arno Schroll. An up-to-date list of contributors is available on [GitHub](https://github.com/alesantuz/musclesyneRgies/graphs/contributors).
 
 # References
-
-A
