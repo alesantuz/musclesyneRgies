@@ -252,6 +252,28 @@ if (window.hljs) {
 
 
 
+<style type="text/css">
+/* for pandoc --citeproc since 2.11 */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
 
 
 
@@ -379,29 +401,29 @@ animals makes the problem of motor control a high-dimensional one: while
 producing and controlling movement, the central nervous system is
 constantly dealing with an over-abundant number of degrees of freedom.
 Amongst the existing theories that attempt to describe the coordination
-of movements, one proposed by Nikolai Bernstein (Bernstein, 1967)
-assumes that the central nervous system can simplify the production of
-movements by implementing orchestrated, synergistic activations of
-functionally related muscle groups rather than by sending commands to
-each muscle individually. With the end of the twentieth century and the
-advent of modern computational tools, the first rigorous mathematical
-models of muscle synergies came to life, based on linear decomposition
-(Lee &amp; Seung, 1999) of electromyographic (EMG) data (Tresch et al.,
-1999). In the past two decades, several different approaches have been
-used to model muscle synergies as low-dimensional sets of muscle
-activations and non-negative matrix factorization (NMF) has often proved
-to be one of the most reliable and widely employed (Rabbi et al., 2020).
-Yet, little consensus exists on what the best practices to preprocess
-EMG data are, which NMF algorithm should be used, what convergence
-criteria should be adopted and so on (Devarajan &amp; Cheung, 2014;
-Oliveira et al., 2014; Santuz et al., 2017). Researchers with little to
-none coding experience will find in the R package
-<code>musclesyneRgies</code> a complete framework for the preprocessing,
-factorization and visualization of EMG data, with sensible defaults
-deriving from peer-reviewed studies on the topic. More advanced users
-will find <code>musclesyneRgies</code> to be fully customizable,
-depending on the specifics of the study design (e.g. the considered
-biological system, the motor task, the measurement devices used, etc.).
+of movements, one proposed by Nikolai Bernstein <span class="citation">(Bernstein 1967)</span> assumes that the central
+nervous system can simplify the production of movements by implementing
+orchestrated, synergistic activations of functionally related muscle
+groups rather than by sending commands to each muscle individually. With
+the end of the twentieth century and the advent of modern computational
+tools, the first rigorous mathematical models of muscle synergies came
+to life, based on linear decomposition <span class="citation">(Lee and
+Seung 1999)</span> of electromyographic (EMG) data <span class="citation">(Tresch, Saltiel, and Bizzi 1999)</span>. In the past
+two decades, several different approaches have been used to model muscle
+synergies as low-dimensional sets of muscle activations and non-negative
+matrix factorization (NMF) has often proved to be one of the most
+reliable and widely employed <span class="citation">(Rabbi et al.
+2020)</span>. Yet, little consensus exists on what the best practices to
+preprocess EMG data are, which NMF algorithm should be used, what
+convergence criteria should be adopted and so on <span class="citation">(Devarajan and Cheung 2014; Oliveira et al. 2014;
+Santuz et al. 2017)</span>. Researchers with little to none coding
+experience will find in the R package <code>musclesyneRgies</code> a
+complete framework for the preprocessing, factorization and
+visualization of EMG data, with sensible defaults deriving from
+peer-reviewed studies on the topic. More advanced users will find
+<code>musclesyneRgies</code> to be fully customizable, depending on the
+specifics of the study design (e.g. the considered biological system,
+the motor task, the measurement devices used, etc.).
 <code>musclesyneRgies</code> aims at filling the existing gap of tools
 available to researchers of all levels in fields that deal with the
 analysis of vertebrate movement control such as neuroscience,
@@ -563,8 +585,52 @@ Antonis Ekizos, Lukas Hauser, Lars Janshen, Victor Munoz-Martel,
 Dimitris Patikas, Arno Schroll. An up-to-date list of contributors is
 available on <a href="https://github.com/alesantuz/musclesyneRgies/graphs/contributors">GitHub</a>.</p>
 </div>
-<div id="references" class="section level1">
-<h1>References</h1>
+<div id="references" class="section level1 unnumbered">
+<h1 class="unnumbered">References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-Bernstein1967" class="csl-entry">
+Bernstein, Nikolai Aleksandrovich. 1967. <em>The Co-Ordination and
+Regulation of Movements</em>. <em>Pergamon Press</em>. Pergamon Press
+Ltd.
+</div>
+<div id="ref-Devarajan2014" class="csl-entry">
+Devarajan, Karthik, and Vincent Chi-Kwan Cheung. 2014. <span>“On
+Nonnegative Matrix Factorization Algorithms for Signal-Dependent Noise
+with Application to Electromyography Data.”</span> <em>Neural
+Computation</em> 26 (June): 1128–68. <a href="https://doi.org/10.1162/NECO_a_00576">https://doi.org/10.1162/NECO_a_00576</a>.
+</div>
+<div id="ref-Lee1999" class="csl-entry">
+Lee, Daniel D., and H. Sebastian Seung. 1999. <span>“Learning the Parts
+of Objects by Non-Negative Matrix Factorization.”</span> <em>Nature</em>
+401 (October): 788–91. <a href="https://doi.org/10.1038/44565">https://doi.org/10.1038/44565</a>.
+</div>
+<div id="ref-Oliveira2014" class="csl-entry">
+Oliveira, Anderson Souza Castelo, Leonardo Gizzi, Dario Farina, and Uwe
+Gustav Kersting. 2014. <span>“Motor Modules of Human Locomotion:
+Influence of EMG Averaging, Concatenation, and Number of Step
+Cycles.”</span> <em>Frontiers in Human Neuroscience</em> 8 (January):
+335. <a href="https://doi.org/10.3389/fnhum.2014.00335">https://doi.org/10.3389/fnhum.2014.00335</a>.
+</div>
+<div id="ref-Rabbi2020" class="csl-entry">
+Rabbi, Mohammad Fazle, Claudio Pizzolato, David G. Lloyd, Chris P.
+Carty, Daniel Devaprakash, and Laura E. Diamond. 2020.
+<span>“Non-Negative Matrix Factorisation Is the Most Appropriate Method
+for Extraction of Muscle Synergies in Walking and Running.”</span>
+<em>Scientific Reports</em>, 1–11. <a href="https://doi.org/10.1038/s41598-020-65257-w">https://doi.org/10.1038/s41598-020-65257-w</a>.
+</div>
+<div id="ref-Santuz2017" class="csl-entry">
+Santuz, Alessandro, Antonis Ekizos, Lars Janshen, Vasilios Baltzopoulos,
+and Adamantios Arampatzis. 2017. <span>“On the Methodological
+Implications of Extracting Muscle Synergies from Human
+Locomotion.”</span> <em>International Journal of Neural Systems</em> 27
+(August): 1750007. <a href="https://doi.org/10.1142/S0129065717500071">https://doi.org/10.1142/S0129065717500071</a>.
+</div>
+<div id="ref-Tresch1999" class="csl-entry">
+Tresch, Matthew C., Philippe Saltiel, and Emilio Bizzi. 1999. <span>“The
+Construction of Movement by the Spinal Cord.”</span> <em>Nature
+Neuroscience</em> 2: 162–67. <a href="https://doi.org/10.1038/5721">https://doi.org/10.1038/5721</a>.
+</div>
+</div>
 </div>
 
 
