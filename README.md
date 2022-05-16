@@ -1,3 +1,12 @@
+---
+title:
+output:
+  html_document:
+    keep_md: yes
+---
+
+
+
 # musclesyneRgies
 ![](./images/musclesyneRgies_logo.png)
 
@@ -227,7 +236,8 @@ another_norm_EMG <- lapply(
 )
 
 # The filtered and time-normalised EMG can be plotted with the following
-pp <- plot_meanEMG(norm_EMG[[1]],
+pp <- plot_meanEMG(
+  norm_EMG[[1]],
   trial = names(norm_EMG)[1],
   row_number = 4,
   col_number = 4,
@@ -245,7 +255,8 @@ pp <- plot_meanEMG(norm_EMG[[1]],
 SYNS <- lapply(norm_EMG, synsNMF)
 
 # The extracted synergies can be plotted with the following
-pp <- plot_syn_trials(SYNS[[1]],
+pp <- plot_syn_trials(
+  SYNS[[1]],
   max_syns = max(unlist(lapply(SYNS, function(x) x$syns))),
   trial = names(SYNS)[1],
   dark_mode = TRUE,
@@ -273,7 +284,8 @@ SYNS_classified <- classify_kmeans(SYNS)
 
 ```r
 # Classified synergies can be finally plotted with
-pp <- plot_classified_syns(SYNS_classified,
+pp <- plot_classified_syns(
+  SYNS_classified,
   dark_mode = TRUE,
   line_col = "tomato1",
   sd_col = "tomato4",
@@ -285,7 +297,8 @@ pp <- plot_classified_syns(SYNS_classified,
 
 ```r
 # A 2D UMAP plot of the classified synergies can be obtained with
-pp <- plot_classified_syns_UMAP(SYNS_classified,
+pp <- plot_classified_syns_UMAP(
+  SYNS_classified,
   condition = "TW"
 )
 ```

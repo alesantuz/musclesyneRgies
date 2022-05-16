@@ -36,7 +36,7 @@ Done! Now the package is installed on your computer.
 
 ## A simple workflow
 The most simplified workflow for synergy extraction could look as follows (please note that the next chunk of code does not refer to real data and is only intended as a mock example to help you write your own scripts).
-```{r, eval = FALSE}
+```{r eval = FALSE}
 # The simplest formulation, using the native (R >= `4.1.0`) pipe operator
 # Here, the raw data set is already in the correct format and named `RAW_DATA`
 SYNS_classified <- lapply(RAW_DATA, filtEMG) |>
@@ -111,7 +111,7 @@ unlink("emg", recursive = TRUE)
 
 ## Workflow example
 All the code in this section will work as in the example if you copy and paste it in R or RStudio.
-```{r, message = FALSE, results = "hide", fig.width = 7, fig.asp = 0.9}
+```{r message = FALSE, results = "hide", fig.width = 7, fig.asp = 0.9}
 # Load the package
 library(musclesyneRgies)
 
@@ -140,7 +140,7 @@ pp <- plot_rawEMG(RAW_DATA[[1]],
   line_col = "tomato3"
 )
 ```
-```{r, message = FALSE, results = "hide", fig.width = 7, fig.asp = 0.9}
+```{r message = FALSE, results = "hide", fig.width = 7, fig.asp = 0.9}
 # The raw EMG data set then needs to be filtered
 # If you don't want to subset the data set, just filter it as it is
 # Here we filter the whole data set with the default parameters for locomotion:
@@ -201,7 +201,8 @@ another_norm_EMG <- lapply(
 )
 
 # The filtered and time-normalised EMG can be plotted with the following
-pp <- plot_meanEMG(norm_EMG[[1]],
+pp <- plot_meanEMG(
+  norm_EMG[[1]],
   trial = names(norm_EMG)[1],
   row_number = 4,
   col_number = 4,
@@ -210,13 +211,14 @@ pp <- plot_meanEMG(norm_EMG[[1]],
   line_col = "tomato3"
 )
 ```
-```{r, message = FALSE, results = "hide", fig.width = 6, fig.asp = 1}
+```{r message = FALSE, results = "hide", fig.width = 6, fig.asp = 1}
 # At this stage, synergies can be extracted
 # This is the core function to extract synergies via NMF
 SYNS <- lapply(norm_EMG, synsNMF)
 
 # The extracted synergies can be plotted with the following
-pp <- plot_syn_trials(SYNS[[1]],
+pp <- plot_syn_trials(
+  SYNS[[1]],
   max_syns = max(unlist(lapply(SYNS, function(x) x$syns))),
   trial = names(SYNS)[1],
   dark_mode = TRUE,
@@ -225,7 +227,7 @@ pp <- plot_syn_trials(SYNS[[1]],
   sd_col = "tomato4"
 )
 ```
-```{r, message = FALSE, results = "hide", fig.width = 5, fig.asp = 0.7}
+```{r message = FALSE, results = "hide", fig.width = 5, fig.asp = 0.7}
 # Now synergies don't have a functional order and need classification
 # Let's load the built-in data set to have some more trial to classify
 # (clustering cannot be done on only one trial and having just a few,
@@ -238,22 +240,24 @@ data("SYNS")
 # (both referred to the motor primitives of the classified muscle synergies)
 SYNS_classified <- classify_kmeans(SYNS)
 ```
-```{r, message = FALSE, results = "hide", fig.width = 6, fig.asp = 1}
+```{r message = FALSE, results = "hide", fig.width = 6, fig.asp = 1}
 # Classified synergies can be finally plotted with
-pp <- plot_classified_syns(SYNS_classified,
+pp <- plot_classified_syns(
+  SYNS_classified,
   dark_mode = TRUE,
   line_col = "tomato1",
   sd_col = "tomato4",
   condition = "TW"
 ) # "TW" = Treadmill Walking, change with your own
 ```
-```{r, message = FALSE, results = "hide", fig.width = 5, fig.asp = 1.4}
+```{r message = FALSE, results = "hide", fig.width = 5, fig.asp = 1.4}
 # A 2D UMAP plot of the classified synergies can be obtained with
-pp <- plot_classified_syns_UMAP(SYNS_classified,
+pp <- plot_classified_syns_UMAP(
+  SYNS_classified,
   condition = "TW"
 )
 ```
-```{r, results = "hide", fig.width = 4, fig.asp = 1}
+```{r results = "hide", fig.width = 4, fig.asp = 1}
 # From now on, it's all about the analysis
 # For example, one can measure the full width at half maximum (FWHM)
 # of the motor primitives or their centre of activity (CoA)

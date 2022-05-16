@@ -400,34 +400,38 @@ pre code {
 animals makes the problem of motor control a high-dimensional one: while
 producing and controlling movement, the central nervous system is
 constantly dealing with an over-abundant number of degrees of freedom.
-Amongst the existing theories that attempt to describe the coordination
-of movements, one proposed by Nikolai Bernstein <span class="citation">(Bernstein 1967)</span> assumes that the central
+Amongst the existing theories that attempt to describe the modular
+coordination of movements, one proposed by Nikolai Bernstein <span class="citation">(Bernstein 1967)</span> assumes that the central
 nervous system can simplify the production of movements by implementing
-orchestrated, synergistic activations of functionally related muscle
-groups rather than by sending commands to each muscle individually. With
-the end of the twentieth century and the advent of modern computational
-tools, the first rigorous mathematical models of muscle synergies came
-to life, based on linear decomposition <span class="citation">(Lee and
-Seung 1999)</span> of electromyographic (EMG) data <span class="citation">(Tresch, Saltiel, and Bizzi 1999)</span>. In the past
-two decades, several different approaches have been used to model muscle
-synergies as low-dimensional sets of muscle activations and non-negative
-matrix factorization (NMF) has often proved to be one of the most
-reliable and widely employed <span class="citation">(Rabbi et al.
-2020)</span>. Yet, little consensus exists on what the best practices to
-preprocess EMG data are, which NMF algorithm should be used, what
-convergence criteria should be adopted and so on <span class="citation">(Devarajan and Cheung 2014; Oliveira et al. 2014;
-Santuz et al. 2017)</span>. Researchers with little to none coding
-experience will find in the R package <code>musclesyneRgies</code> a
-complete framework for the preprocessing, factorization and
-visualization of EMG data, with sensible defaults deriving from
-peer-reviewed studies on the topic. More advanced users will find
-<code>musclesyneRgies</code> to be fully customizable, depending on the
-specifics of the study design (e.g. the considered biological system,
-the motor task, the measurement devices used, etc.).
-<code>musclesyneRgies</code> aims at filling the existing gap of tools
-available to researchers of all levels in fields that deal with the
-analysis of vertebrate movement control such as neuroscience,
-biomechanics, biomedical engineering or sport science.</p>
+orchestrated activations of functionally related muscle groups
+(i.e. muscle synergies) rather than by sending commands to each muscle
+individually. While the theory did not receive direct proof as of yet
+<span class="citation">(Cheung and Seki 2021; Tresch and Jarc
+2009)</span>, its neural basis has been indirectly shown in several
+animal models <span class="citation">(Bizzi and Cheung 2013)</span>.
+With the end of the twentieth century and the advent of modern
+computational tools, the first rigorous mathematical models of muscle
+synergies based on linear decomposition of electromyographic (EMG) data
+came to life <span class="citation">(Lee and Seung 1999; Tresch,
+Saltiel, and Bizzi 1999)</span>. In the past two decades, several
+approaches have been used to model muscle synergies as low-dimensional
+sets of muscle activations and weightings <span class="citation">(Bruton
+and O’Dwyer 2018)</span>. Non-negative matrix factorization (NMF) has
+often proved to be one of the most reliable and widely employed <span class="citation">(Ebied et al. 2018; Rabbi et al. 2020)</span>. Yet,
+poor consensus exists on the best practices to preprocess EMG data, the
+most suitable NMF algorithms and convergence criteria and so on <span class="citation">(Devarajan and Cheung 2014; Ebied et al. 2018; Oliveira
+et al. 2014; Santuz et al. 2017; Taborri et al. 2018)</span>.
+Researchers with little to none coding experience will find in the R
+package <code>musclesyneRgies</code> a complete framework for the
+preprocessing, factorization and visualization of EMG data, with
+sensible defaults deriving from peer-reviewed studies on the topic. More
+advanced users will find <code>musclesyneRgies</code> to be fully
+customizable, depending on the specifics of the study design (e.g. the
+considered biological system, the motor task, the measurement devices
+used, etc.). <code>musclesyneRgies</code> aims at filling the existing
+gap of tools available to researchers of all levels in fields that deal
+with the analysis of vertebrate movement control such as neuroscience,
+biomechanics, biomedical engineering, robotics or sport science.</p>
 </div>
 <div id="typical-workflow" class="section level1">
 <h1>Typical workflow</h1>
@@ -438,13 +442,13 @@ of five main steps:</p>
 <li>Raw data processing</li>
 <li>Synergy extraction</li>
 <li>Synergy classification</li>
-<li>Plots.</li>
+<li>Plots (available at each of the previous steps).</li>
 </ol>
 <p>Using the native pipe operator (R &gt;= <code>4.1.0</code> is
 required), a typical analysis pipeline can be synthetically written as
 follows:</p>
 <pre class="r"><code>SYNS_classified &lt;- lapply(RAW_DATA, filtEMG) |&gt;       # Filter raw data
-  lapply(function(x) normEMG(x, cycle_div = 100)) |&gt;  # Time-normalization
+  lapply(function(x) normEMG(x, cycle_div = 100)) |&gt;  # Time-normalization to 100 points
   lapply(synsNMF) |&gt;                                  # Synergy extraction
   classify_kmeans()                                   # Synergy classification</code></pre>
 <p>Extensive documentation is available on <a href="https://github.com/alesantuz/musclesyneRgies">GitHub</a> and the
@@ -484,17 +488,16 @@ head(RAW_DATA[[1]]$cycles)</code></pre>
 ## 5 0.018 -10.675049 -5.740356 23.16284 -0.704956  2.014160
 ## 6 0.019 -12.487793 -3.927612 19.94019  2.014160 -5.136108</code></pre>
 <p>It is also possible to read directly from ASCII files such as
-tab-separated txt or comma-separated csv and then use the following
-function to automatically create the list of objects of class
-<code>EMG</code> needed for the subsequent steps using the function
-<code>rawdata</code>.</p>
+tab-separated txt or comma-separated csv and then, using the function
+<code>rawdata</code>, automatically create the list of objects of class
+<code>EMG</code> needed for the subsequent steps.</p>
 </div>
 <div id="raw-data-processing" class="section level2">
 <h2>Raw data processing</h2>
-<p>Raw EMG is commonly filtered before factorization. If the length of
-the data set needs reduction, the function <code>subsetEMG</code> can
-help. If no subsetting is needed, raw data can be filtered done as
-follows:</p>
+<p>Raw EMG is commonly rectified and filtered before factorization. If
+the length of the data set needs reduction, the function
+<code>subsetEMG</code> can help to remove unnecessary data points. If no
+subsetting is needed, raw data can be filtered as follows:</p>
 <pre class="r"><code>filtered_EMG &lt;- lapply(
   RAW_DATA,
   function(x) {
@@ -502,7 +505,7 @@ follows:</p>
   }
 )</code></pre>
 <p>Defaults can be overridden by specifying the arguments as in the
-follosing example:</p>
+following example:</p>
 <pre class="r"><code>another_filtered_EMG &lt;- lapply(
   RAW_DATA,
   function(x) {
@@ -518,11 +521,11 @@ follosing example:</p>
     )
   }
 )</code></pre>
-<p>The filtered EMG can be time-normalized. In the following example,
-the filtered EMG are time-normalized including only three cycles and
-trimming first and last to remove unwanted filtering effects. Each cycle
-is divided into two parts, each normalised to a length of 100
-points:</p>
+<p>The filtered EMG can be then time-normalized. In the following
+example, the filtered EMG time series are time-normalized including only
+three cycles and trimming first and last to remove unwanted filtering
+effects. Here, each cycle is divided into two parts, each normalised to
+a length of 100 points:</p>
 <pre class="r"><code>norm_EMG &lt;- lapply(
   filtered_EMG,
   function(x) {
@@ -539,18 +542,39 @@ points:</p>
 <p>Muscle synergies can then be extracted via NMF using:</p>
 <pre class="r"><code>SYNS &lt;- lapply(norm_EMG, synsNMF)</code></pre>
 <p>As all other functions, also <code>synsNMF</code> can be tweaked at
-need by specifying the relevant parameters in the arguments.</p>
+need by specifying the relevant parameters in the arguments, such as the
+maximum number of iterations or the total number of runs for each
+rank.</p>
 </div>
 <div id="synergy-classification" class="section level2">
 <h2>Synergy classification</h2>
 <p>Since NMF does not return muscle synergies in any specific functional
-order, a reordering is needed:</p>
+order, a reordering is needed after factorization:</p>
 <pre class="r"><code>SYNS_classified &lt;- classify_kmeans(SYNS)</code></pre>
+<p>This is a crucial step to assign at each synergy a chronological
+meaning, other than a functional one. A common example is locomotion,
+where events such as touchdown, propulsion and leg swing must be in a
+specific order to create meaningful movement.</p>
 </div>
 <div id="plots" class="section level2">
 <h2>Plots</h2>
 <p>At all stages, it is possible to obtain plots of the considered data
-sets, from the raw EMG and until the classified synergies.</p>
+sets, from the raw EMG and until the classified synergies. Plots are
+used in the beginning to inspect the quality of raw or filtered EMG data
+and to explore the synergy extraction outcomes. All plots can be
+exported in publication-ready quality as vector files by changing the
+relevant parameter, such as in the following:</p>
+<pre class="r"><code>pp &lt;- plot_classified_syns(
+  SYNS_classified,
+  line_col = &quot;tomato1&quot;,
+  sd_col = &quot;tomato4&quot;,
+  condition = &quot;Walking&quot;
+)
+
+ggplot2::ggsave(
+  filename = &quot;muscle_synergies.pdf&quot;,
+  plot = pp
+)</code></pre>
 </div>
 </div>
 <div id="availability" class="section level1">
@@ -586,11 +610,34 @@ Bernstein, Nikolai Aleksandrovich. 1967. <em>The Co-Ordination and
 Regulation of Movements</em>. <em>Pergamon Press</em>. Pergamon Press
 Ltd.
 </div>
+<div id="ref-Bizzi2013" class="csl-entry">
+Bizzi, Emilio, and Vincent Chi-Kwan Cheung. 2013. <span>“The Neural
+Origin of Muscle Synergies.”</span> <em>Frontiers in Computational
+Neuroscience</em> 7: 51. <a href="https://doi.org/10.3389/fncom.2013.00051">https://doi.org/10.3389/fncom.2013.00051</a>.
+</div>
+<div id="ref-Bruton2018" class="csl-entry">
+Bruton, Michaela, and Nicholas O’Dwyer. 2018. <span>“Synergies in
+Coordination: A Comprehensive Overview of Neural, Computational, and
+Behavioral Approaches.”</span> <em>Journal of Neurophysiology</em> 120
+(December): 2761–74. <a href="https://doi.org/10.1152/jn.00052.2018">https://doi.org/10.1152/jn.00052.2018</a>.
+</div>
+<div id="ref-Cheung2021" class="csl-entry">
+Cheung, Vincent Chi-Kwan, and Kazuhiko Seki. 2021. <span>“Approaches to
+Revealing the Neural Basis of Muscle Synergies: A Review and a
+Critique.”</span> <em>Journal of Neurophysiology</em> 125 (May):
+1580–97. <a href="https://doi.org/10.1152/jn.00625.2019">https://doi.org/10.1152/jn.00625.2019</a>.
+</div>
 <div id="ref-Devarajan2014" class="csl-entry">
 Devarajan, Karthik, and Vincent Chi-Kwan Cheung. 2014. <span>“On
 Nonnegative Matrix Factorization Algorithms for Signal-Dependent Noise
 with Application to Electromyography Data.”</span> <em>Neural
 Computation</em> 26 (June): 1128–68. <a href="https://doi.org/10.1162/NECO_a_00576">https://doi.org/10.1162/NECO_a_00576</a>.
+</div>
+<div id="ref-Ebied2018" class="csl-entry">
+Ebied, Ahmed, Eli Kinney-Lang, Loukianos Spyrou, and Javier Escudero.
+2018. <span>“Evaluation of Matrix Factorisation Approaches for Muscle
+Synergy Extraction.”</span> <em>Medical Engineering and Physics</em> 57:
+51–60. <a href="https://doi.org/10.1016/j.medengphy.2018.04.003">https://doi.org/10.1016/j.medengphy.2018.04.003</a>.
 </div>
 <div id="ref-Lee1999" class="csl-entry">
 Lee, Daniel D., and H. Sebastian Seung. 1999. <span>“Learning the Parts
@@ -617,6 +664,17 @@ and Adamantios Arampatzis. 2017. <span>“On the Methodological
 Implications of Extracting Muscle Synergies from Human
 Locomotion.”</span> <em>International Journal of Neural Systems</em> 27
 (August): 1750007. <a href="https://doi.org/10.1142/S0129065717500071">https://doi.org/10.1142/S0129065717500071</a>.
+</div>
+<div id="ref-Taborri2018" class="csl-entry">
+Taborri, Juri, Eduardo Palermo, Zaccaria Del Prete, and Stefano Rossi.
+2018. <span>“On the Reliability and Repeatability of Surface
+Electromyography Factorization by Muscle Synergies in Daily Life
+Activities.”</span> <em>Applied Bionics and Biomechanics</em> 2018. <a href="https://doi.org/10.1155/2018/5852307">https://doi.org/10.1155/2018/5852307</a>.
+</div>
+<div id="ref-Tresch2009" class="csl-entry">
+Tresch, Matthew C., and Anthony Jarc. 2009. <span>“The Case for and
+Against Muscle Synergies.”</span> <em>Current Opinion in
+Neurobiology</em> 19 (December): 601–7. <a href="https://doi.org/10.1016/j.conb.2009.09.002">https://doi.org/10.1016/j.conb.2009.09.002</a>.
 </div>
 <div id="ref-Tresch1999" class="csl-entry">
 Tresch, Matthew C., Philippe Saltiel, and Emilio Bizzi. 1999. <span>“The
