@@ -178,6 +178,7 @@ ggplot2::ggsave(
   plot = pp
 )
 ```
+![Four muscle synergies for human walking extracted from 13 leg-muscles after functional classification. Muscle abbreviations: ME = gluteus medius, MA = gluteus maximus, FL = tensor fasciæ latæ, RF = rectus femoris, VM = vastus medialis, VL = vastus lateralis, ST = semitendinosus, BF = biceps femoris, TA = tibialis anterior, PL = peroneus longus, GM = gastrocnemius medialis, GL = gastrocnemius lateralis, SO = soleus. The image was generated using `musclesyneRgies` v1.1.3.](muscle_synergies.pdf)
 
 # Availability
 The latest development version of `musclesyneRgies` is freely available on [GitHub](https://github.com/alesantuz/musclesyneRgies). A stable release is freely available via the [Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies). Documentation and examples
