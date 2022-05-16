@@ -1,5 +1,5 @@
 ---
-title: 'musclesyneRgies'
+title: 'musclesyneRgies: factorization of electromyographic data in R with sensible defaults'
 tags:
   - electromyography
   - NMF
