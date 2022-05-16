@@ -163,7 +163,7 @@ This is a crucial step to assign at each synergy a chronological meaning, other 
 
 ## Plots
 
-At all stages, it is possible to obtain plots of the considered data sets, from the raw EMG and until the classified synergies (see \autoref{fig:muscle_synergies} for an example of the latter). Plots are used in the beginning to inspect the quality of raw or filtered EMG data and to explore the synergy extraction outcomes. All plots can be exported in publication-ready quality as vector files by changing the relevant parameter, such as in the following:
+At all stages, it is possible to obtain plots of the considered data sets, from the raw EMG and until the classified synergies (see \autoref{fig:syns} for an example of the latter). Plots are used in the beginning to inspect the quality of raw or filtered EMG data and to explore the synergy extraction outcomes. All plots can be exported in publication-ready quality as vector files by changing the relevant parameter, such as in the following:
 
 ```r
 pp <- plot_classified_syns(
@@ -178,7 +178,7 @@ ggplot2::ggsave(
   plot = pp
 )
 ```
-![Four muscle synergies for human walking extracted from 13 leg-muscles after functional classification. Muscle abbreviations: ME = gluteus medius, MA = gluteus maximus, FL = tensor fasciæ latæ, RF = rectus femoris, VM = vastus medialis, VL = vastus lateralis, ST = semitendinosus, BF = biceps femoris, TA = tibialis anterior, PL = peroneus longus, GM = gastrocnemius medialis, GL = gastrocnemius lateralis, SO = soleus. The image was generated using `musclesyneRgies` v1.1.3.](muscle_synergies.pdf)
+![Four muscle synergies for human walking extracted from 13 leg-muscles after functional classification. Muscle abbreviations: ME = gluteus medius, MA = gluteus maximus, FL = tensor fasciæ latæ, RF = rectus femoris, VM = vastus medialis, VL = vastus lateralis, ST = semitendinosus, BF = biceps femoris, TA = tibialis anterior, PL = peroneus longus, GM = gastrocnemius medialis, GL = gastrocnemius lateralis, SO = soleus. The image was generated using `musclesyneRgies` v1.1.3.\label{fig:syns}](muscle_synergies.pdf)
 
 # Availability
 The latest development version of `musclesyneRgies` is freely available on [GitHub](https://github.com/alesantuz/musclesyneRgies). A stable release is freely available via the [Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies). Documentation and examples
