@@ -163,7 +163,7 @@ This is a crucial step to assign at each synergy a chronological meaning, other 
 
 ## Plots
 
-At all stages, it is possible to obtain plots of the considered data sets, from the raw EMG and until the classified synergies. Plots are used in the beginning to inspect the quality of raw or filtered EMG data and to explore the synergy extraction outcomes. All plots can be exported in publication-ready quality as vector files by changing the relevant parameter, such as in the following:
+At all stages, it is possible to obtain plots of the considered data sets, from the raw EMG and until the classified synergies (see \autoref{fig:muscle_synergies} for an example of the latter). Plots are used in the beginning to inspect the quality of raw or filtered EMG data and to explore the synergy extraction outcomes. All plots can be exported in publication-ready quality as vector files by changing the relevant parameter, such as in the following:
 
 ```r
 pp <- plot_classified_syns(
