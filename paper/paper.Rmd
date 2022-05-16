@@ -28,7 +28,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 # Summary
 
-A
+Coordinated movements such as walking or playing a musical instrument are the result of accurately timed muscle activations produced by the central nervous system. Mathematical tools can help scientists to visualize which muscle is active during a specific phase of the considered movement and how important is the contribution of each muscle to the overall task. `musclesyneRgies` is an R package [@Rstats] that implements one of the existing mathematical models of motor coordination. From the raw data and until the final factorization of electromyographic activities, the package offers a complete analysis framework with sensible defaults that can be flexibly modified at need. `musclesyneRgies` is addressed to scientists of any programming skill level working in fields such as neuroscience, biomechanics, biomedical engineering, robotics or sport science.
 
 # Statement of need
 
