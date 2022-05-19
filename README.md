@@ -331,7 +331,7 @@ prim <- primitive$signal
 
 # Calculate the local complexity or Higuchi's fractal dimension (HFD)
 nonlin_HFD <- HFD(prim)$Higuchi
-# Calculate the local complexity or Hurst exponent (H)
+# Calculate the global complexity or Hurst exponent (H)
 nonlin_H <- Hurst(prim, min_win = max(primitive$time))$Hurst
 
 message("Higuchi's fractal dimension: ", round(nonlin_HFD, 3))

@@ -6,7 +6,7 @@
 #' @details
 #' `Hurst` calculates the Hurst exponent based on the R/S approach as in Hurst (1951).
 #' For motor primitives, the minimum window length should be bigger than the period
-#' (i.e., the length of each cycle), as reported in Santuz, Akay (2020).
+#' (i.e. the length of each cycle), as reported in Santuz, Akay (2020).
 #'
 #' @return
 #' A list with elements:\cr
