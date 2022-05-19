@@ -34,13 +34,14 @@ The great amount of muscles and joints in the body of vertebrate animals makes t
 
 # Typical workflow
 
-The typical workflow when using `musclesyneRgies` consists of five main steps:
+The typical workflow when using `musclesyneRgies` consists of six main steps:
 
 1. Data preparation
 2. Raw data processing
 3. Synergy extraction
 4. Synergy classification
-5. Plots (available at each of the previous steps).
+5. Synergy analysis
+6. Plots (available at each of the previous steps).
 
 Using the native pipe operator (R >= `4.1.0` is required), a typical analysis pipeline can be synthetically written as follows:
 
@@ -160,6 +161,10 @@ Since NMF does not return muscle synergies in any specific functional order, a r
 SYNS_classified <- classify_kmeans(SYNS)
 ```
 This is a crucial step to assign at each synergy a chronological meaning, other than a functional one. A common example is locomotion, where events such as touchdown, propulsion and leg swing must be in a specific order to create meaningful movement.
+
+## Synergy analysis
+
+`musclesyneRgies` also includes useful functions to evaluate the characteristics of the extracted synergies using linear and nonlinear metrics. For instance, it is possible to measure the full width at half maximum or the centre of activity [@Martino2014] of the time-dependent activation coefficients by using the functions `FWHM` and `CoA`. Additionally, nonlinear metrics can be used to investigate further the time-related properties of coefficients. The three currently implemented possibilities include the local complexity or Higuchi's fractal dimension [@Higuchi1988, @Santuz2020a], the global complexity or Hurst exponent [@Hurst1951, @Santuz2020a] and the short-term maximum Lyapunov exponents [@Rosenstein1993, @Santuz2020b, @Kang2006], computable with the three functions `HFD`, `Hurst` and `sMLE`, respectively.
 
 ## Plots
 
