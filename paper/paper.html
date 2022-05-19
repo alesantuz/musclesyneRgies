@@ -399,10 +399,13 @@ central nervous system. Mathematical tools can help scientists to
 visualize which muscle is active during a specific phase of the
 considered movement and how important is the contribution of each muscle
 to the overall task. <code>musclesyneRgies</code> is an R package <span class="citation">(R Core Team 2022)</span> that implements one of the
-existing mathematical models of motor coordination and is addressed to
-scientists of any programming skill level working in fields such as
-neuroscience, biomechanics, biomedical engineering, robotics or sport
-science.</p>
+existing mathematical models of motor coordination. From the raw data
+and until the final factorization of electromyographic activities, the
+package offers a complete analysis framework with sensible defaults that
+can be flexibly modified at need. <code>musclesyneRgies</code> is
+addressed to scientists of any programming skill level working in fields
+such as neuroscience, biomechanics, biomedical engineering, robotics or
+sport science.</p>
 </div>
 <div id="statement-of-need" class="section level1">
 <h1>Statement of need</h1>
@@ -446,12 +449,13 @@ biomechanics, biomedical engineering, robotics or sport science.</p>
 <div id="typical-workflow" class="section level1">
 <h1>Typical workflow</h1>
 <p>The typical workflow when using <code>musclesyneRgies</code> consists
-of five main steps:</p>
+of six main steps:</p>
 <ol style="list-style-type: decimal">
 <li>Data preparation</li>
 <li>Raw data processing</li>
 <li>Synergy extraction</li>
 <li>Synergy classification</li>
+<li>Synergy analysis</li>
 <li>Plots (available at each of the previous steps).</li>
 </ol>
 <p>Using the native pipe operator (R &gt;= <code>4.1.0</code> is
@@ -566,6 +570,24 @@ meaning, other than a functional one. A common example is locomotion,
 where events such as touchdown, propulsion and leg swing must be in a
 specific order to create meaningful movement.</p>
 </div>
+<div id="synergy-analysis" class="section level2">
+<h2>Synergy analysis</h2>
+<p><code>musclesyneRgies</code> also includes useful functions to
+evaluate the characteristics of the extracted synergies using linear and
+nonlinear metrics. For instance, it is possible to measure the full
+width at half maximum or the centre of activity <span class="citation">(Martino et al. 2014)</span> of the time-dependent
+activation coefficients by using the functions <code>FWHM</code> and
+<code>CoA</code>. Additionally, nonlinear metrics can be used to
+investigate further the time-related properties of coefficients. The
+three currently implemented possibilities include the local complexity
+or Higuchi’s fractal dimension <span class="citation">(Higuchi 1988;
+Santuz and Akay 2020)</span>, the global complexity or Hurst exponent
+<span class="citation">(Hurst 1951; Santuz and Akay 2020)</span> and the
+short-term maximum Lyapunov exponents <span class="citation">(Rosenstein, Collins, and Luca 1993; Santuz et al.
+2020; Kang and Dingwell 2006)</span>, computable with the three
+functions <code>HFD</code>, <code>Hurst</code> and <code>sMLE</code>,
+respectively.</p>
+</div>
 <div id="plots" class="section level2">
 <h2>Plots</h2>
 <p>At all stages, it is possible to obtain plots of the considered data
@@ -661,10 +683,31 @@ Ebied, Ahmed, Eli Kinney-Lang, Loukianos Spyrou, and Javier Escudero.
 Synergy Extraction.”</span> <em>Medical Engineering and Physics</em> 57:
 51–60. <a href="https://doi.org/10.1016/j.medengphy.2018.04.003">https://doi.org/10.1016/j.medengphy.2018.04.003</a>.
 </div>
+<div id="ref-Higuchi1988" class="csl-entry">
+Higuchi, Tomoyuki. 1988. <span>“Approach to an Irregular Time Series on
+the Basis of the Fractal Theory.”</span> <em>Physica D: Nonlinear
+Phenomena</em> 31 (June): 277–83. <a href="https://doi.org/10.1016/0167-2789(88)90081-4">https://doi.org/10.1016/0167-2789(88)90081-4</a>.
+</div>
+<div id="ref-Hurst1951" class="csl-entry">
+Hurst, Harold Edwin. 1951. <span>“Long-Term Storage Capacity of
+Reservoirs.”</span> <em>Transactions of the American Society of Civil
+Engineers</em> 116: 770–808. <a href="https://doi.org/10.1061/TACEAT.0006518">https://doi.org/10.1061/TACEAT.0006518</a>.
+</div>
+<div id="ref-Kang2006" class="csl-entry">
+Kang, Hyun Gu, and Jonathan B. Dingwell. 2006. <span>“Intra-Session
+Reliability of Local Dynamic Stability of Walking.”</span> <em>Gait
+&amp; Posture</em> 24 (November): 386–90. <a href="https://doi.org/10.1016/j.gaitpost.2005.11.004">https://doi.org/10.1016/j.gaitpost.2005.11.004</a>.
+</div>
 <div id="ref-Lee1999" class="csl-entry">
 Lee, Daniel D., and H. Sebastian Seung. 1999. <span>“Learning the Parts
 of Objects by Non-Negative Matrix Factorization.”</span> <em>Nature</em>
 401 (October): 788–91. <a href="https://doi.org/10.1038/44565">https://doi.org/10.1038/44565</a>.
+</div>
+<div id="ref-Martino2014" class="csl-entry">
+Martino, Giovanni, Yury P. Ivanenko, M. Serrao, A. Ranavolo, Andrea
+D’Avella, F. Draicchio, C. Conte, C. Casali, and Francesco Lacquaniti.
+2014. <span>“Locomotor Patterns in Cerebellar Ataxia.”</span>
+<em>Journal of Neurophysiology</em> 112 (December): 2810–21. <a href="https://doi.org/10.1152/jn.00275.2014">https://doi.org/10.1152/jn.00275.2014</a>.
 </div>
 <div id="ref-Oliveira2014" class="csl-entry">
 Oliveira, Anderson Souza Castelo, Leonardo Gizzi, Dario Farina, and Uwe
@@ -684,6 +727,23 @@ Carty, Daniel Devaprakash, and Laura E. Diamond. 2020.
 <span>“Non-Negative Matrix Factorisation Is the Most Appropriate Method
 for Extraction of Muscle Synergies in Walking and Running.”</span>
 <em>Scientific Reports</em>, 1–11. <a href="https://doi.org/10.1038/s41598-020-65257-w">https://doi.org/10.1038/s41598-020-65257-w</a>.
+</div>
+<div id="ref-Rosenstein1993" class="csl-entry">
+Rosenstein, Michael T., James J. Collins, and Carlo J. De Luca. 1993.
+<span>“A Practical Method for Calculating Largest Lyapunov Exponents
+from Small Data Sets.”</span> <em>Physica D</em> 65 (May): 117–34. <a href="https://doi.org/10.1016/0167-2789(93)90009-P">https://doi.org/10.1016/0167-2789(93)90009-P</a>.
+</div>
+<div id="ref-Santuz2020a" class="csl-entry">
+Santuz, Alessandro, and Turgay Akay. 2020. <span>“Fractal Analysis of
+Muscle Activity Patterns During Locomotion: Pitfalls and How to Avoid
+Them.”</span> <em>Journal of Neurophysiology</em> 124 (October):
+1083–91. <a href="https://doi.org/10.1152/jn.00360.2020">https://doi.org/10.1152/jn.00360.2020</a>.
+</div>
+<div id="ref-Santuz2020b" class="csl-entry">
+Santuz, Alessandro, Leon Brüll, Antonis Ekizos, Arno Schroll, Nils
+Eckardt, Armin Kibele, Michael Schwenk, and Adamantios Arampatzis. 2020.
+<span>“Neuromotor Dynamics of Human Locomotion in Challenging
+Settings.”</span> <em>iScience</em> 23 (January): 100796. <a href="https://doi.org/10.1016/j.isci.2019.100796">https://doi.org/10.1016/j.isci.2019.100796</a>.
 </div>
 <div id="ref-Santuz2017" class="csl-entry">
 Santuz, Alessandro, Antonis Ekizos, Lars Janshen, Vasilios Baltzopoulos,

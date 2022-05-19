@@ -164,7 +164,7 @@ This is a crucial step to assign at each synergy a chronological meaning, other 
 
 ## Synergy analysis
 
-`musclesyneRgies` also includes useful functions to evaluate the characteristics of the extracted synergies using linear and nonlinear metrics. For instance, it is possible to measure the full width at half maximum or the centre of activity [@Martino2014] of the time-dependent activation coefficients by using the functions `FWHM` and `CoA`. Additionally, nonlinear metrics can be used to investigate further the time-related properties of coefficients. The three currently implemented possibilities include the local complexity or Higuchi's fractal dimension [@Higuchi1988, @Santuz2020a], the global complexity or Hurst exponent [@Hurst1951, @Santuz2020a] and the short-term maximum Lyapunov exponents [@Rosenstein1993, @Santuz2020b, @Kang2006], computable with the three functions `HFD`, `Hurst` and `sMLE`, respectively.
+`musclesyneRgies` also includes useful functions to evaluate the characteristics of the extracted synergies using linear and nonlinear metrics. For instance, it is possible to measure the full width at half maximum or the centre of activity [@Martino2014] of the time-dependent activation coefficients by using the functions `FWHM` and `CoA`. Additionally, nonlinear metrics can be used to investigate further the time-related properties of coefficients. The three currently implemented possibilities include the local complexity or Higuchi's fractal dimension [@Higuchi1988; @Santuz2020a], the global complexity or Hurst exponent [@Hurst1951; @Santuz2020a] and the short-term maximum Lyapunov exponents [@Rosenstein1993; @Santuz2020b; @Kang2006], computable with the three functions `HFD`, `Hurst` and `sMLE`, respectively.
 
 ## Plots
 
