@@ -69,6 +69,9 @@ rawdata <- function(path_cycles = NA,
       path_cycles <- tcltk::tk_choose.dir(caption = "Select cycle data folder")
       path_emg <- tcltk::tk_choose.dir(caption = "Select EMG data folder")
     }
+  } else {
+    path_cycles <- paste0(gsub("\\\\", .Platform$file.sep, path_cycles), .Platform$file.sep)
+    path_emg <- paste0(gsub("\\\\", .Platform$file.sep, path_emg), .Platform$file.sep)
   }
 
   if (path_cycles == "NA/" || path_emg == "NA/") {
