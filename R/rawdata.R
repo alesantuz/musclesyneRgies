@@ -1,14 +1,17 @@
-#' Import ASCII data into R
+#' Import RData or ASCII data into R
 #'
 #' @param path_cycles Optional, path where cycle timing files are located
 #' @param path_emg Optional, path where raw EMG files are located
-#' @param header_cycles Logical, are the cycle-ASCII files containing a named header (the header is optional)?
-#' @param header_emg Logical, are the raw EMG-ASCII files containing a named header (they should)?
+#' @param header_cycles Logical, are the cycle files containing a named header (the header is optional)?
+#' @param header_emg Logical, are the raw EMG files containing a named header (they should)?
 #'
 #' @details
-#' Supported are tab- or comma-separated files readable through `read.table()` or `read.csv()`.
+#' Supported are R lists saved as RData files or tab- or comma-separated files
+#' readable through `read.table()` or `read.csv()`.
 #' The first column of each raw emg file must be time in the same units as those used for the
 #' cycle timings (e.g., \[s\] or \[ms\]).
+#' If reading from RData files, please call cycles `CYCLE_TIMES.RData` and raw EMG `RAW_EMG.RData`. Lists
+#' must be saved with `save()`.
 #'
 #' @return
 #' List of objects of class `EMG`, each with elements:\cr
@@ -69,7 +72,7 @@ rawdata <- function(path_cycles = NA,
   }
 
   if (path_cycles == "NA/" || path_emg == "NA/") {
-    stop("Please specify the folders containing raw data in ASCII format")
+    stop("Please specify the folders containing raw data in RData or ASCII format")
   }
 
   cycle_files <- list.files(path_cycles)
@@ -90,27 +93,46 @@ rawdata <- function(path_cycles = NA,
 
   RAW_DATA <- list()
 
+  # Read cycle times
   files <- cycle_files
   data_path <- path_cycles
-  for (file in files) {
-    trial <- gsub(filetype, "", file)
-    if (filetype == ".txt") {
-      RAW_DATA[[trial]]$cycles <- utils::read.table(paste0(data_path, file), header_cycles)
-    } else if (emg_filetype == ".csv") {
-      RAW_DATA[[trial]]$cycles <- utils::read.csv(paste0(data_path, file), header_cycles)
+
+  if (filetype == ".txt" || filetype == ".csv") {
+    for (file in files) {
+      trial <- gsub(filetype, "", file)
+      if (filetype == ".txt") {
+        RAW_DATA[[trial]]$cycles <- utils::read.table(paste0(data_path, file), header_cycles)
+      } else if (filetype == ".csv") {
+        RAW_DATA[[trial]]$cycles <- utils::read.csv(paste0(data_path, file), header_cycles)
+      }
     }
+  } else if (filetype == ".RData") {
+    CYCLE_TIMES <- NULL
+    RAW_EMG <- NULL
+    load(paste0(data_path, "CYCLE_TIMES.RData"))
   }
 
+  # Read raw EMG
   files <- emg_files
   data_path <- path_emg
-  for (file in files) {
-    trial <- gsub(filetype, "", file)
-    if (filetype == ".txt") {
-      RAW_DATA[[trial]]$emg <- utils::read.table(paste0(data_path, file), header_emg)
-    } else if (emg_filetype == ".csv") {
-      RAW_DATA[[trial]]$emg <- utils::read.csv(paste0(data_path, file), header_emg)
+
+  if (filetype == ".txt" || filetype == ".csv") {
+    for (file in files) {
+      trial <- gsub(filetype, "", file)
+      if (filetype == ".txt") {
+        RAW_DATA[[trial]]$emg <- utils::read.table(paste0(data_path, file), header_emg)
+      } else if (filetype == ".csv") {
+        RAW_DATA[[trial]]$emg <- utils::read.csv(paste0(data_path, file), header_emg)
+      }
+      class(RAW_DATA[[trial]]) <- "EMG"
     }
-    class(RAW_DATA[[trial]]) <- "EMG"
+  } else if (filetype == ".RData") {
+    load(paste0(data_path, "RAW_EMG.RData"))
+    for (trial in names(CYCLE_TIMES)) {
+      RAW_DATA[[trial]]$cycles <- CYCLE_TIMES[[trial]]
+      RAW_DATA[[trial]]$emg <- RAW_EMG[[trial]]
+      class(RAW_DATA[[trial]]) <- "EMG"
+    }
   }
   return(RAW_DATA)
 }

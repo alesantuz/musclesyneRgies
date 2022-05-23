@@ -10,7 +10,8 @@ README and vignettes are available both on [CRAN](https://CRAN.R-project.org/pac
 
 ### What's changed
 - Removed `emg` data frame row names in `RAW_DATA` list
-- Updated JOSS paper draft.
+- Updated JOSS paper draft
+- `rawdata` can now handle RData files saved with `save()`.
 
 # musclesyneRgies 1.1.3.9001 (development version)
 ### How to install
