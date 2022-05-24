@@ -10,7 +10,6 @@ README and vignettes are available both on [CRAN](https://CRAN.R-project.org/pac
 ### What's changed
 - Improved robustness of EMG pre-processing functions for one-column cycle times.
 
-
 # musclesyneRgies 1.1.3.9002 (development version)
 ### How to install
 ```
