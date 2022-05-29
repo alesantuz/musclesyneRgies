@@ -36,12 +36,14 @@ The great amount of muscles and joints in the body of vertebrate animals makes t
 
 The typical workflow when using `musclesyneRgies` consists of six main steps:
 
-1. Data preparation
-2. Raw data processing
-3. Synergy extraction
-4. Synergy classification
+1. Data preparation (to read raw data sets and covert them into the needed format)
+2. Raw data processing (e.g. rectification, filtering, time-normalisation, etc.)
+3. Synergy extraction (via NMF)
+4. Synergy classification (via k-means)
 5. Synergy analysis
-6. Plots (available at each of the previous steps).
+    i. Linear methods: full width at half maximum and centre of activity [@Martino2014]
+    ii. Non-linear methods: local complexity or Higuchi's fractal dimension [@Higuchi1988; @Santuz2020a], global complexity or Hurst exponent [@Hurst1951; @Santuz2020a], short-term maximum Lyapunov exponents [@Rosenstein1993; @Santuz2020b; @Kang2006]
+6. Plots (available at each of the previous steps, see \autoref{fig:syns} for an example).
 
 Using the native pipe operator (R >= `4.1.0` is required), a typical analysis pipeline can be synthetically written as follows:
 
@@ -52,137 +54,8 @@ SYNS_classified <- lapply(RAW_DATA, filtEMG) |>       # Filter raw data
   classify_kmeans()                                   # Synergy classification
 ```
 
-Extensive documentation is available on [GitHub](https://github.com/alesantuz/musclesyneRgies) and the [Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies). Below, a typical analysis workflow is provided as an example.
+Defaults are specifically targeted at the analysis of human and mouse locomotion, but they can be flexibly overridden by specifying the arguments of the relevant functions. Extensive documentation is available on [GitHub](https://github.com/alesantuz/musclesyneRgies) and the [Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies).
 
-## Data preparation
-
-The data set must be a list of objects of class `EMG`, each of which is a list with two elements:
-
-- `cycles` data frame containing cycle timings, with as many columns as many cycle subdivisions are wanted (column names are not needed but can be present)
-- `emg` data frame containing raw EMG data in columns, with the first column being time information in the same units as in `cycles` (column names must be present and reflect the muscle names).
-
-Those two elements should look similar to the following:
-
-```r
-library(musclesyneRgies)
-data("RAW_DATA")
-head(RAW_DATA[[1]]$cycles)
-```
-
-```
-##      V1    V2
-## 1 1.414 2.074
-## 2 2.448 3.115
-## 3 3.488 4.141
-## 4 4.515 5.168
-## 5 5.549 6.216
-## 6 6.596 7.249
-```
-
-```r
-head(RAW_DATA[[1]]$emg[, 1:6])
-```
-
-```
-##    time         ME        MA       FL        RF        VM
-## 1 0.014   0.201416 -6.445313 22.65930 -0.100708 -0.906372
-## 2 0.015  -2.316284 -0.100708 24.16992  1.812744 -1.913452
-## 3 0.016  -7.351685 -7.150269 23.46497  0.704956 -5.337524
-## 4 0.017  -5.538940 -3.222656 27.49329  5.236816 -4.330444
-## 5 0.018 -10.675049 -5.740356 23.16284 -0.704956  2.014160
-## 6 0.019 -12.487793 -3.927612 19.94019  2.014160 -5.136108
-```
-
-It is also possible to read directly from ASCII files such as tab-separated txt or comma-separated csv and then, using the function `rawdata`, automatically create the list of objects of class `EMG` needed for the subsequent steps.
-
-## Raw data processing
-
-Raw EMG is commonly rectified and filtered before factorization. If the length of the data set needs reduction, the function `subsetEMG` can help to remove unnecessary data points. If no subsetting is needed, raw data can be filtered as follows:
-
-
-```r
-filtered_EMG <- lapply(
-  RAW_DATA,
-  function(x) {
-    filtEMG(x)
-  }
-)
-```
-
-Defaults can be overridden by specifying the arguments as in the following example:
-
-
-```r
-another_filtered_EMG <- lapply(
-  RAW_DATA,
-  function(x) {
-    filtEMG(x,
-      demean = FALSE,
-      rectif = "halfwave",
-      HPf = 30,
-      HPo = 2,
-      LPf = 10,
-      LPo = 2,
-      min_sub = FALSE,
-      ampl_norm = FALSE
-    )
-  }
-)
-```
-The filtered EMG can be then time-normalized. In the following example, the filtered EMG time series are time-normalized including only three cycles and trimming first and last to remove unwanted filtering effects. Here, each cycle is divided into two parts, each normalised to a length of 100 points:
-
-```r
-norm_EMG <- lapply(
-  filtered_EMG,
-  function(x) {
-    normEMG(x,
-      trim = TRUE,
-      cy_max = 3,
-      cycle_div = c(100, 100)
-    )
-  }
-)
-```
-
-## Synergy extraction
-
-Muscle synergies can then be extracted via NMF using:
-
-```r
-SYNS <- lapply(norm_EMG, synsNMF)
-```
-As all other functions, also `synsNMF` can be tweaked at need by specifying the relevant parameters in the arguments, such as the maximum number of iterations or the total number of runs for each rank.
-
-## Synergy classification
-
-Since NMF does not return muscle synergies in any specific functional order, a reordering is needed after factorization:
-
-```r
-SYNS_classified <- classify_kmeans(SYNS)
-```
-This is a crucial step to assign at each synergy a chronological meaning, other than a functional one. A common example is locomotion, where events such as touchdown, propulsion and leg swing must be in a specific order to create meaningful movement.
-
-## Synergy analysis
-
-`musclesyneRgies` also includes useful functions to evaluate the characteristics of the extracted synergies using linear and nonlinear metrics. For instance, it is possible to measure the full width at half maximum or the centre of activity [@Martino2014] of the time-dependent activation coefficients by using the functions `FWHM` and `CoA`. Additionally, nonlinear metrics can be used to investigate further the time-related properties of coefficients. The three currently implemented possibilities include the local complexity or Higuchi's fractal dimension [@Higuchi1988; @Santuz2020a], the global complexity or Hurst exponent [@Hurst1951; @Santuz2020a] and the short-term maximum Lyapunov exponents [@Rosenstein1993; @Santuz2020b; @Kang2006], computable with the three functions `HFD`, `Hurst` and `sMLE`, respectively.
-
-## Plots
-
-At all stages, it is possible to obtain plots of the considered data sets, from the raw EMG and until the classified synergies (see \autoref{fig:syns} for an example of the latter). Plots are used in the beginning to inspect the quality of raw or filtered EMG data and to explore the synergy extraction outcomes. All plots can be exported in publication-ready quality as vector files by changing the relevant parameter, such as in the following:
-
-```r
-pp <- plot_classified_syns(
-  SYNS_classified,
-  line_col = "tomato1",
-  sd_col = "tomato4",
-  condition = "Walking"
-)
-
-ggplot2::ggsave(
-  filename = "muscle_synergies.pdf",
-  plot = pp
-)
-```
 ![Four muscle synergies for human walking extracted from 13 leg-muscles after functional classification. Muscle abbreviations: ME = gluteus medius, MA = gluteus maximus, FL = tensor fasciæ latæ, RF = rectus femoris, VM = vastus medialis, VL = vastus lateralis, ST = semitendinosus, BF = biceps femoris, TA = tibialis anterior, PL = peroneus longus, GM = gastrocnemius medialis, GL = gastrocnemius lateralis, SO = soleus. The image was generated using `musclesyneRgies` v1.1.3.\label{fig:syns}](muscle_synergies.pdf)
 
 # Availability
