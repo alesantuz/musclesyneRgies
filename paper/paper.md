@@ -49,7 +49,7 @@ Using the native pipe operator (R >= `4.1.0` is required), a typical analysis pi
 
 ```r
 SYNS_classified <- lapply(RAW_DATA, filtEMG) |>       # Filter raw data
-  lapply(function(x) normEMG(x, cycle_div = 100)) |>  # Time-normalization to 100 points
+  lapply(function(x) normEMG(x, cycle_div = 100)) |>  # Time-normalization
   lapply(synsNMF) |>                                  # Synergy extraction
   classify_kmeans()                                   # Synergy classification
 ```
