@@ -9,7 +9,8 @@ README and vignettes are available both on [CRAN](https://CRAN.R-project.org/pac
 
 ### What's changed
 - Added to README the possibility to download a full data set from Zenodo
-- Added definition of muscle synergies to README.
+- Added definition of muscle synergies to README
+- Added definition of motor modules and motor primitives to README.
 
 # musclesyneRgies 1.1.3.9004 (development version)
 ### How to install
