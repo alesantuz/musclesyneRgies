@@ -8,7 +8,8 @@ remotes::install_github("alesantuz/musclesyneRgies")
 README and vignettes are available both on [CRAN](https://CRAN.R-project.org/package=musclesyneRgies) and on [GitHub](https://github.com/alesantuz/musclesyneRgies).
 
 ### What's changed
-- Added to README the possibility to download a full data set from Zenodo.
+- Added to README the possibility to download a full data set from Zenodo
+- Added definition of muscle synergies to README.
 
 # musclesyneRgies 1.1.3.9004 (development version)
 ### How to install
