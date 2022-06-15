@@ -1,3 +1,15 @@
+# musclesyneRgies 1.1.3.9005 (development version)
+### How to install
+```
+install.packages("remotes")
+remotes::install_github("alesantuz/musclesyneRgies")
+```
+### How to use
+README and vignettes are available both on [CRAN](https://CRAN.R-project.org/package=musclesyneRgies) and on [GitHub](https://github.com/alesantuz/musclesyneRgies).
+
+### What's changed
+- Added to README the possibility to download a full data set from Zenodo.
+
 # musclesyneRgies 1.1.3.9004 (development version)
 ### How to install
 ```

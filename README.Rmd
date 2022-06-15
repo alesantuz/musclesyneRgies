@@ -45,6 +45,17 @@ SYNS_classified <- lapply(RAW_DATA, filtEMG) |>
   classify_kmeans()
 ```
 Compact, isn't it? You can of course tweak and tune all the above to fit your scientific needs and more is explained below and in the [vignettes](https://github.com/alesantuz/musclesyneRgies/tree/master/vignettes).
+To try the above code with real data, it is possible to download the test data set from Zenodo as follows:
+```{r eval = FALSE}
+# Download test data set containing EMG from human locomotion
+url <- "https://zenodo.org/record/6645483/files/RAW_DATA.RData"
+download.file(url, destfile = "RAW_DATA.RData", mode = "wb")
+# Load test data set
+load("RAW_DATA.RData")
+# Subset data to allow for correct classification (TW = treadmill walking, TR = treadmill running)
+RAW_DATA <- RAW_DATA[grep("_TW_", names(RAW_DATA))]
+
+```
 
 ## How to prepare your data set
 The data set must be in a specific format to fit the analysis framework. However, if you worked with versions <= `0.8.7-alpha` you will find that requirements are now much less stringent, to the benefit of usability. What you need (see also `?rawdata`) is a list of objects of class `EMG`, each of which is a list with two elements:

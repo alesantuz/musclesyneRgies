@@ -35,6 +35,17 @@ SYNS_classified <- lapply(RAW_DATA, filtEMG) |>
   classify_kmeans()
 ```
 Compact, isn't it? You can of course tweak and tune all the above to fit your scientific needs and more is explained below and in the [vignettes](https://github.com/alesantuz/musclesyneRgies/tree/master/vignettes).
+To try the above code with real data, it is possible to download the test data set from Zenodo as follows:
+
+```r
+# Download test data set containing EMG from human locomotion
+url <- "https://zenodo.org/record/6645483/files/RAW_DATA.RData"
+download.file(url, destfile = "RAW_DATA.RData", mode = "wb")
+# Load test data set
+load("RAW_DATA.RData")
+# Subset data to allow for correct classification (TW = treadmill walking, TR = treadmill running)
+RAW_DATA <- RAW_DATA[grep("_TW_", names(RAW_DATA))]
+```
 
 ## How to prepare your data set
 The data set must be in a specific format to fit the analysis framework. However, if you worked with versions <= `0.8.7-alpha` you will find that requirements are now much less stringent, to the benefit of usability. What you need (see also `?rawdata`) is a list of objects of class `EMG`, each of which is a list with two elements:
@@ -164,7 +175,7 @@ pp <- plot_rawEMG(RAW_DATA[[1]],
 )
 ```
 
-![](README_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+![](README_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
 ```r
 # The raw EMG data set then needs to be filtered
@@ -238,7 +249,7 @@ pp <- plot_meanEMG(
 )
 ```
 
-![](README_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+![](README_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
 ```r
 # At this stage, synergies can be extracted
@@ -257,7 +268,7 @@ pp <- plot_syn_trials(
 )
 ```
 
-![](README_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+![](README_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
 ```r
 # Now synergies don't have a functional order and need classification
@@ -284,7 +295,7 @@ pp <- plot_classified_syns(
 ) # "TW" = Treadmill Walking, change with your own
 ```
 
-![](README_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+![](README_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
 ```r
 # A 2D UMAP plot of the classified synergies can be obtained with
@@ -294,7 +305,7 @@ pp <- plot_classified_syns_UMAP(
 )
 ```
 
-![](README_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+![](README_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
 ```r
 # From now on, it's all about the analysis
@@ -323,7 +334,7 @@ lines(hm_plot, lwd = 3, col = 2) # FWHM (horizontal, in red)
 graphics::abline(v = prim_sub_CoA, lwd = 3, col = 4) # CoA (vertical, in blue)
 ```
 
-![](README_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+![](README_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
 ```r
 # Or perhaps one might want to investigate the nonlinear behaviour of a long primitive
