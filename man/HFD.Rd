@@ -22,6 +22,11 @@ A list with elements:\cr
 Higuchi's fractal dimension
 }
 \details{
+The Higuchi’s fractal dimension is a measure of local complexity and it increases together
+with the “roughness” of the time series at a single cycle level (thus the term “local”).
+Higuchi’s fractal dimension values range from 1 to 2, with increasing values correlating to
+increasingly complex data and Higuchi’s fractal dimension = 1.5 indicating random
+Gaussian noise (Higuchi, 1988; Anmuth et al., 1994; Kesić & Spasić, 2016)
 For motor primitives, only the most linear part of the log-log plot should be used,
 as reported in Santuz, Akay (2020).
 }
@@ -42,6 +47,15 @@ message("Higuchi's fractal dimension: ", round(fractal_dimension, 3))
 Higuchi, T.
 Approach to an irregular time series on the basis of the fractal theory.
 Phys. D Nonlinear Phenom. 31, 277–283 (1988).\cr
+
+Anmuth C. J., Goldberg G. & Mayer N. H.
+Fractal dimension of electromyographic signals recorded with surface electrodes during
+isometric contractions is linearly correlated with muscle activation.
+Muscle Nerve 17, 953–954 (1994).\cr
+
+Kesić S. & Spasić S. Z.
+Application of Higuchi’s fractal dimension from basic to clinical neurophysiology: A review.
+Comput Methods Programs Biomed 133, 55–70 (2016).\cr
 
 Santuz, A. & Akay, T.
 Fractal analysis of muscle activity patterns during locomotion: pitfalls and how to avoid them.
