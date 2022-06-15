@@ -35,8 +35,17 @@ Muscle synergy classification with k-means
 \details{
 This function must be applied to a list with a sufficient amount of trials, otherwise the
 classification will not work. Typically, at least 10 trials for the same condition are needed
-for satisfactory classification. If \code{show_plot} is TRUE (default) plots are also shown in the active graphic device.
+for satisfactory classification. If \code{show_plot} is TRUE (default) plots are also shown in the
+active graphic device.
 Plots can then be saved with the preferred export method, such as \code{ggplot2::ggsave}.
+The algorithm used is the default for stats::kmeans (Hartigan and Wong, 1979), which is known
+for its robustness to local minima. Nonetheless, the stochastic nature of the algorithm
+should prompt the user to attempt a few classifications and analyse their stability,
+before drawing conclusions on e.g. the number of fundamental synergies and/or their function.
+While the default parameters are optimised for human locomotion, it is suggested to test the
+function with different mean squared error thresholds, which is a crucial quantity to
+determine the number of clusters. Inspection and plotting are as well highly recommended
+to gain more insight into the classification process.
 }
 \examples{
 # Load some data

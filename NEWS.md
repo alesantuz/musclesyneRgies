@@ -11,7 +11,7 @@ README and vignettes are available both on [CRAN](https://CRAN.R-project.org/pac
 - Added to README the possibility to download a full data set from Zenodo
 - Added definition of muscle synergies to README
 - Added definition of motor modules and motor primitives to README
-- Improved documentation of `classify_kmeans`.
+- Improved documentation of `classify_kmeans`, `HFD`, `Hurst`.
 
 # musclesyneRgies 1.1.3.9004 (development version)
 ### How to install
