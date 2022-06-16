@@ -9,7 +9,7 @@ README and vignettes are available both on [CRAN](https://CRAN.R-project.org/pac
 
 ### What's changed
 - Cleaned and adjusted code according to `goodpractice::gp()` suggestions (thanks @fabian_s for the hint!)
-- Added tests for `classify_kmeans`.
+- Added more tests for `classify_kmeans`, `synsNMF`, `subsetEMG`, `sMLE`, `normEMG`, `Hurst`, `HFD`, `filtEMG`, `plot_classified_syns_UMAP`, `plot_meanEMG`, `plot_rawEMG`.
 
 # musclesyneRgies 1.1.3.9005 (development version)
 ### How to install

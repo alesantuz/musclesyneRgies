@@ -2,30 +2,35 @@ test_that("Plot function return gtable objects", {
   data("RAW_DATA")
   data("FILT_EMG")
   data("SYNS")
-  SYNS_classified <- classify_kmeans(SYNS)
+  SYNS_classified <- musclesyneRgies::classify_kmeans(SYNS)
 
-  p1 <- plot_rawEMG(
+  expect_error(musclesyneRgies::plot_rawEMG(SYNS))
+  expect_error(musclesyneRgies::plot_meanEMG(SYNS))
+  expect_error(musclesyneRgies::plot_syn_trials(FILT_EMG))
+  expect_error(musclesyneRgies::plot_classified_syns_UMAP(SYNS))
+
+  p1 <- musclesyneRgies::plot_rawEMG(
     RAW_DATA[[1]],
     trial = names(RAW_DATA)[1],
     show_plot = FALSE
   )
-  p2 <- plot_meanEMG(
+  p2 <-musclesyneRgies:: plot_meanEMG(
     FILT_EMG[[1]],
     trial = names(FILT_EMG)[1],
     show_plot = FALSE
   )
-  p3 <- plot_syn_trials(
+  p3 <- musclesyneRgies::plot_syn_trials(
     SYNS[[1]],
     max_syns = max(unlist(lapply(SYNS, function(x) x$syns))),
     trial = names(SYNS)[1],
     show_plot = FALSE
   )
-  p4 <- plot_classified_syns(
+  p4 <- musclesyneRgies::plot_classified_syns(
     SYNS_classified,
     condition = "TW",
     show_plot = FALSE
   )
-  p5 <- plot_classified_syns_UMAP(
+  p5 <- musclesyneRgies::plot_classified_syns_UMAP(
     SYNS_classified,
     condition = "TW",
     show_plot = FALSE
