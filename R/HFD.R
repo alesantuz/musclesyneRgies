@@ -62,7 +62,7 @@ HFD <- function(P,
   N <- length(P)
   L <- numeric()
 
-  k_seq <- seq(2, k_max, 2)
+  k_seq <- seq(from = 2, to = k_max, by = 2)
 
   index <- 0
 

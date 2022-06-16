@@ -62,13 +62,13 @@ filtEMG <- function(x,
   time <- x[, 1]
 
   # EMG system acquisition frequency [Hz]
-  freq <- round(1 / (mean(diff(time), na.rm = T)), 0)
+  freq <- round(1 / (mean(diff(time), na.rm = TRUE)), 0)
 
   # Remove time column
   x <- x[, -1]
 
   if (isTRUE(demean)) {
-    x <- apply(x, 2, function(y) y - mean(y, na.rm = T))
+    x <- apply(x, 2, function(y) y - mean(y, na.rm = TRUE))
   }
 
   if (HPf != 0) {
@@ -97,7 +97,7 @@ filtEMG <- function(x,
   }
 
   # Replace values <= 0 with the smallest non-zero value
-  x[x <= 0] <- min(x[x > 0], na.rm=T)
+  x[x <= 0] <- min(x[x > 0], na.rm = TRUE)
 
   if (isTRUE(min_sub)) {
     # Subtract the minimum

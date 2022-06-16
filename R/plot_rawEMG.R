@@ -51,7 +51,7 @@ plot_rawEMG <- function(x,
   signal <- NULL
 
   # EMG system acquisition frequency [Hz]
-  freq <- round(1 / (mean(diff(x[, 1]), na.rm = T)), 0)
+  freq <- round(1 / (mean(diff(x[, 1]), na.rm = TRUE)), 0)
 
   # Calculate starting and stopping point for the subset
   stop <- freq * plot_time + start - 1

@@ -1,3 +1,15 @@
+# musclesyneRgies 1.1.3.9006 (development version)
+### How to install
+```
+install.packages("remotes")
+remotes::install_github("alesantuz/musclesyneRgies")
+```
+### How to use
+README and vignettes are available both on [CRAN](https://CRAN.R-project.org/package=musclesyneRgies) and on [GitHub](https://github.com/alesantuz/musclesyneRgies).
+
+### What's changed
+- Cleaned and adjusted code according to `goodpractice::gp()` suggestions (thanks @fabian_s for the hint!).
+
 # musclesyneRgies 1.1.3.9005 (development version)
 ### How to install
 ```

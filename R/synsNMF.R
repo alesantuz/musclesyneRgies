@@ -71,7 +71,7 @@ synsNMF <- function(V,
     as.matrix()
 
   # Replace values <= 0 with the smallest non-zero value
-  V[V <= 0] <- min(V[V > 0], na.rm = T)
+  V[V <= 0] <- min(V[V > 0], na.rm = TRUE)
 
   m <- nrow(V) # Number of muscles
   n <- ncol(V) # Number of time points
@@ -159,7 +159,7 @@ synsNMF <- function(V,
         break
       }
       R2_interp <- data.frame(
-        synergies = c(1:(r - iter + 1)),
+        synergies = 1:(r - iter + 1),
         R2_values = R2_cross[iter:r]
       )
 
@@ -172,9 +172,9 @@ synsNMF <- function(V,
   }
 
   P_choice <- data.frame(time, t(P_list[[syns_R2]]))
-  colnames(P_choice) <- c("time", paste0("Syn", 1:(ncol(P_choice) - 1)))
+  colnames(P_choice) <- c("time", paste0("Syn", seq_len(ncol(P_choice) - 1)))
   rownames(P_choice) <- NULL
-  colnames(M_list[[syns_R2]]) <- paste0("Syn", 1:ncol(M_list[[syns_R2]]))
+  colnames(M_list[[syns_R2]]) <- paste0("Syn", seq_len(ncol(M_list[[syns_R2]])))
 
   SYNS <- list(
     syns = as.numeric(syns_R2),

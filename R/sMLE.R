@@ -78,7 +78,7 @@ sMLE <- function(synergies, mean_period, future_pts, norm, pts, R2_threshold = 0
   temp <- FNN::get.knn(P[1:upper_limit, ], k = mean_period)$nn.index
   neighbours <- numeric()
 
-  for (rr in 1:nrow(temp)) {
+  for (rr in seq_len(nrow(temp))) {
     test_sup <- rr + mean_period
     test_inf <- rr - mean_period
     if (test_inf <= 0) test_inf <- 1
@@ -90,7 +90,7 @@ sMLE <- function(synergies, mean_period, future_pts, norm, pts, R2_threshold = 0
 
   # Calculate distances (and their divergence) between neighbouring trajectories
   dist_logs <- matrix(NA, length(neighbours), future_pts)
-  for (tt in 1:length(neighbours)) {
+  for (tt in seq_len(length(neighbours))) {
     # Identify the two (initially) neighbouring trajectories
     traj2 <- as.matrix(P[neighbours[tt]:(neighbours[tt] + future_pts - 1), ])
     traj1 <- as.matrix(P[tt:(tt + future_pts - 1), ])
@@ -107,7 +107,7 @@ sMLE <- function(synergies, mean_period, future_pts, norm, pts, R2_threshold = 0
 
   # Calculate short-term maximum Lyapunov exponent (sMLE)
   # Linear part
-  x <- c(1:pts)
+  x <- 1:pts
   y <- dist_logs_av[x]
 
   if (sum(y) == -Inf) {

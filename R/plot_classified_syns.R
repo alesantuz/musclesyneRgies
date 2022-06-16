@@ -138,11 +138,11 @@ plot_classified_syns <- function(x,
       )
 
       data_P_av <- data.frame(
-        time = c(1:(ncol(data_P) - 1)),
+        time = 1:(ncol(data_P) - 1),
         value = colMeans(data_P[, -1])
       )
       data_P_sd <- data.frame(
-        time = c(1:(ncol(data_P) - 1)),
+        time = 1:(ncol(data_P) - 1),
         ymin = data_P_av$value - apply(data_P[, -1], 2, stats::sd),
         ymax = data_P_av$value + apply(data_P[, -1], 2, stats::sd)
       )
@@ -219,7 +219,7 @@ plot_classified_syns <- function(x,
         )
     } else {
       data_P_av <- data.frame(
-        time = c(1:points),
+        time = 1:points,
         value = -0.2
       )
       data_M_av <- data.frame(

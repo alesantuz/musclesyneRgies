@@ -57,7 +57,7 @@ normEMG <- function(x,
 
   if (isTRUE(trim)) {
     # Trim first and last cycle to remove filtering effects
-    cycles <- as.data.frame(cycles[2:(nrow(cycles) - 1), ])
+    cycles <- as.data.frame(cycles[seq.int(from = 2, length.out = nrow(cycles) - 1), ])
   }
   cycs <- nrow(cycles) - 1
 
@@ -67,7 +67,7 @@ normEMG <- function(x,
   # Isolate cycles and normalise time to "points" points
   # (first half stance, second half swing)
   for (jj in 1:cycs) {
-    for (segment in 1:length(cycle_div)) {
+    for (segment in seq_len(length(cycle_div))) {
 
       # Define start of segment
       if (segment == 1) {
@@ -90,7 +90,7 @@ normEMG <- function(x,
       # Interpolate each channel to wanted number of points
       if (jj == 1 && segment == 1) {
         emg_interp <- data.frame(
-          time = c(1:cycle_div[segment]),
+          time = 1:cycle_div[segment],
           apply(x[t1:t2, ], 2, function(x) {
             stats::approx(x, method = "linear", n = cycle_div[segment])$y
           })
@@ -99,7 +99,7 @@ normEMG <- function(x,
         emg_interp <- rbind(
           emg_interp,
           data.frame(
-            time = c(1:cycle_div[segment]),
+            time = 1:cycle_div[segment],
             apply(x[t1:t2, ], 2, function(x) {
               stats::approx(x, method = "linear", n = cycle_div[segment])$y
             })
@@ -110,7 +110,7 @@ normEMG <- function(x,
   }
 
   # Re-write time column
-  emg_interp$time <- c(1:sum(cycle_div))
+  emg_interp$time <- 1:sum(cycle_div)
 
   return(emg_interp)
 }
