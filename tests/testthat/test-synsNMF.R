@@ -1,9 +1,11 @@
 test_that("NMF produces correct class and output", {
   data(FILT_EMG)
 
-  expect_s3_class(FILT_EMG[[1]], "data.frame")
+  SYNS_fixed <- lapply(FILT_EMG, musclesyneRgies::synsNMF, fixed_syns = 2)
 
-  SYNS_fixed <- lapply(FILT_EMG, synsNMF, fixed_syns = 2)
+  class(FILT_EMG[[1]]) <- "badclass"
+
+  expect_error(musclesyneRgies::synsNMF(FILT_EMG[[1]]))
 
   # Class
   expect_s3_class(SYNS_fixed$ID0012_TW_01, "musclesyneRgies")

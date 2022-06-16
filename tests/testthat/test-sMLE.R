@@ -1,8 +1,6 @@
 test_that("sMLE works", {
   data(primitives)
 
-  expect_s3_class(primitives, class = "musclesyneRgies")
-
   expect_equal(
     musclesyneRgies::sMLE(primitives,
       mean_period = 100,
@@ -13,4 +11,8 @@ test_that("sMLE works", {
     expected = 0.26,
     tolerance = 0.02
   )
+
+  class(primitives) <- "badclass"
+  expect_error(musclesyneRgies::sMLE(primitives))
+
 })

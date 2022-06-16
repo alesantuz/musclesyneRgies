@@ -9,9 +9,18 @@ test_that("normEMG works", {
 
   expect_error(
     musclesyneRgies::normEMG(
-      filtered_EMG,
+      filtered_EMG[[1]],
       cy_max = 3,
       cycle_div = c(100, 100, 100)
+    )
+  )
+
+  class(filtered_EMG[[1]]) <- "badclass"
+
+  expect_error(
+    musclesyneRgies::normEMG(
+      filtered_EMG[[1]],
+      cycle_div = c(100, 100)
     )
   )
 })

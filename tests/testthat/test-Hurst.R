@@ -7,8 +7,8 @@ test_that("Hurst works", {
     tolerance = 0.02
   )
 
-  expect_error(musclesyneRgies::Hurst(primitive, k = "a"))
+  expect_error(musclesyneRgies::Hurst(primitive$signal, k = "a"))
 
   primitive$signal[5] <- "A"
-  expect_error(musclesyneRgies::Hurst(primitive))
+  expect_error(musclesyneRgies::Hurst(primitive$signal))
 })
