@@ -1,6 +1,8 @@
 test_that("sMLE works", {
   data(primitives)
 
+  expect_s3_class(primitives, class = "musclesyneRgies")
+
   expect_equal(
     musclesyneRgies::sMLE(primitives,
       mean_period = 100,

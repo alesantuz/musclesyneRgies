@@ -1,5 +1,8 @@
 test_that("NMF produces correct class and output", {
   data(FILT_EMG)
+
+  expect_s3_class(FILT_EMG[[1]], "data.frame")
+
   SYNS_fixed <- lapply(FILT_EMG, synsNMF, fixed_syns = 2)
 
   # Class

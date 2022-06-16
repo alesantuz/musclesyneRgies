@@ -64,7 +64,7 @@ Hurst <- function(P,
                   min_win = 2) {
 
   # Stop if data is not in the right form
-  if (!is.numeric(P) && !is.numeric(min_win)) {
+  if (!is.numeric(P) || !is.numeric(min_win)) {
     stop("Please check that time series and min_win are numeric")
   }
 

@@ -53,7 +53,7 @@ HFD <- function(P,
                 k_max = 10) {
 
   # Stop if data is not in the right form
-  if (!is.numeric(P) && !is.numeric(k_max)) {
+  if (!is.numeric(P) || !is.numeric(k_max)) {
     stop("Please check that time series and k_max are numeric")
   }
 
