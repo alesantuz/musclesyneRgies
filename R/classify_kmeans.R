@@ -96,12 +96,7 @@ classify_kmeans <- function(x,
   data_M <- plyr::ldply(M, function(y) t(data.frame(y)))
   if (interactive()) message("...done!")
 
-  # Check if names are the same for primitives and modules
-  if (identical(data_P$.id, data_M$.id)) {
-    trials <- data_M$.id
-  } else {
-    stop("The names of primitives and modules are not the same!!!")
-  }
+  trials <- data_M$.id
 
   # Give names to trials (start from synergy zero because
   # the function "make.unique" works like that)
@@ -261,7 +256,6 @@ classify_kmeans <- function(x,
         "\nModule-based classification will be discarded!"
       )
     }
-
     orders$clusters_M <- orders$clusters_P
   }
 

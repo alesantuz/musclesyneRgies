@@ -8,7 +8,8 @@ remotes::install_github("alesantuz/musclesyneRgies")
 README and vignettes are available both on [CRAN](https://CRAN.R-project.org/package=musclesyneRgies) and on [GitHub](https://github.com/alesantuz/musclesyneRgies).
 
 ### What's changed
-- Cleaned and adjusted code according to `goodpractice::gp()` suggestions (thanks @fabian_s for the hint!).
+- Cleaned and adjusted code according to `goodpractice::gp()` suggestions (thanks @fabian_s for the hint!)
+- Added tests for `classify_kmeans`.
 
 # musclesyneRgies 1.1.3.9005 (development version)
 ### How to install
