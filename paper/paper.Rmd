@@ -36,15 +36,19 @@ The great amount of muscles and joints in the body of vertebrate animals makes t
 
 # Typical workflow
 
-The typical workflow when using `musclesyneRgies` consists of five main steps:
+The typical workflow when using `musclesyneRgies` consists of six main steps:
 
-1. Data preparation
-2. Raw data processing
-3. Synergy extraction
-4. Synergy classification
-5. Plots (available at each of the previous steps).
+1. Data preparation (to read raw data sets and covert them into the needed format)
+2. Raw data processing (e.g. rectification, filtering, time-normalization, etc.)
+3. Synergy extraction (via NMF)
+4. Synergy classification (via k-means)
+5. Synergy analysis
+    i. Linear methods: full width at half maximum and center of activity [@Martino2014]
+    ii. Non-linear methods: local complexity or Higuchi's fractal dimension [@Higuchi1988; @Santuz2020a], global complexity or Hurst exponent [@Hurst1951; @Santuz2020a], short-term maximum Lyapunov exponents [@Rosenstein1993; @Santuz2020b; @Kang2006]
+6. Plots (available at each of the previous steps, see \autoref{fig:syns} for an example).
 
 Using the native pipe operator (R >= `4.1.0` is required), a typical analysis pipeline can be synthetically written as follows:
+
 ```{r eval = FALSE}
 SYNS_classified <- lapply(RAW_DATA, filtEMG) |>       # Filter raw data
   lapply(function(x) normEMG(x, cycle_div = 100)) |>  # Time-normalization to 100 points
@@ -52,111 +56,16 @@ SYNS_classified <- lapply(RAW_DATA, filtEMG) |>       # Filter raw data
   classify_kmeans()                                   # Synergy classification
 ```
 
-Extensive documentation is available on [GitHub](https://github.com/alesantuz/musclesyneRgies) and the [Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies). Below, a typical analysis workflow is provided as an example.
+Defaults are specifically targeted at the analysis of human and mouse locomotion, but they can be flexibly overridden by specifying the arguments of the relevant functions. Extensive documentation is available on [GitHub](https://github.com/alesantuz/musclesyneRgies) and the [Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies).
 
-## Data preparation
-
-The data set must be a list of objects of class `EMG`, each of which is a list with two elements:
-
-- `cycles` data frame containing cycle timings, with as many columns as many cycle subdivisions are wanted (column names are not needed but can be present)
-- `emg` data frame containing raw EMG data in columns, with the first column being time information in the same units as in `cycles` (column names must be present and reflect the muscle names).
-
-Those two elements should look similar to the following:
-```{r}
-library(musclesyneRgies)
-data("RAW_DATA")
-head(RAW_DATA[[1]]$cycles)
-head(RAW_DATA[[1]]$emg[, 1:6])
-```
-
-It is also possible to read directly from ASCII files such as tab-separated txt or comma-separated csv and then, using the function `rawdata`, automatically create the list of objects of class `EMG` needed for the subsequent steps.
-
-## Raw data processing
-
-Raw EMG is commonly rectified and filtered before factorization. If the length of the data set needs reduction, the function `subsetEMG` can help to remove unnecessary data points. If no subsetting is needed, raw data can be filtered as follows:
-
-```{r eval = FALSE}
-filtered_EMG <- lapply(
-  RAW_DATA,
-  function(x) {
-    filtEMG(x)
-  }
-)
-```
-
-Defaults can be overridden by specifying the arguments as in the following example:
-
-```{r eval = FALSE}
-another_filtered_EMG <- lapply(
-  RAW_DATA,
-  function(x) {
-    filtEMG(x,
-      demean = FALSE,
-      rectif = "halfwave",
-      HPf = 30,
-      HPo = 2,
-      LPf = 10,
-      LPo = 2,
-      min_sub = FALSE,
-      ampl_norm = FALSE
-    )
-  }
-)
-```
-The filtered EMG can be then time-normalized. In the following example, the filtered EMG time series are time-normalized including only three cycles and trimming first and last to remove unwanted filtering effects. Here, each cycle is divided into two parts, each normalised to a length of 100 points:
-```{r eval = FALSE}
-norm_EMG <- lapply(
-  filtered_EMG,
-  function(x) {
-    normEMG(x,
-      trim = TRUE,
-      cy_max = 3,
-      cycle_div = c(100, 100)
-    )
-  }
-)
-```
-
-## Synergy extraction
-
-Muscle synergies can then be extracted via NMF using:
-```{r eval = FALSE}
-SYNS <- lapply(norm_EMG, synsNMF)
-```
-As all other functions, also `synsNMF` can be tweaked at need by specifying the relevant parameters in the arguments, such as the maximum number of iterations or the total number of runs for each rank.
-
-## Synergy classification
-
-Since NMF does not return muscle synergies in any specific functional order, a reordering is needed after factorization:
-```{r eval = FALSE}
-SYNS_classified <- classify_kmeans(SYNS)
-```
-This is a crucial step to assign at each synergy a chronological meaning, other than a functional one. A common example is locomotion, where events such as touchdown, propulsion and leg swing must be in a specific order to create meaningful movement.
-
-## Plots
-
-At all stages, it is possible to obtain plots of the considered data sets, from the raw EMG and until the classified synergies. Plots are used in the beginning to inspect the quality of raw or filtered EMG data and to explore the synergy extraction outcomes. All plots can be exported in publication-ready quality as vector files by changing the relevant parameter, such as in the following:
-```{r eval = FALSE, message = FALSE, results = "hide"}
-pp <- plot_classified_syns(
-  SYNS_classified,
-  line_col = "tomato1",
-  sd_col = "tomato4",
-  condition = "Walking"
-)
-
-ggplot2::ggsave(
-  filename = "muscle_synergies.pdf",
-  plot = pp
-)
-```
+![Four muscle synergies for human walking extracted from 13 leg-muscles after functional classification. Muscle abbreviations: ME = gluteus medius, MA = gluteus maximus, FL = tensor fasciæ latæ, RF = rectus femoris, VM = vastus medialis, VL = vastus lateralis, ST = semitendinosus, BF = biceps femoris, TA = tibialis anterior, PL = peroneus longus, GM = gastrocnemius medialis, GL = gastrocnemius lateralis, SO = soleus. The image was generated using `musclesyneRgies` v1.1.3.\label{fig:syns}](muscle_synergies.pdf)
 
 # Availability
 The latest development version of `musclesyneRgies` is freely available on [GitHub](https://github.com/alesantuz/musclesyneRgies). A stable release is freely available via the [Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies). Documentation and examples
 are contained in each version's manual pages, vignettes and readme file. To install the latest development version, `devtools` needs to be installed beforehand and then `musclesyneRgies` can be installed directly from GitHub with the following:
 ```r
-install.packages("devtools")
-library(devtools)
-install_github("alesantuz/musclesyneRgies")
+install.packages("remotes")
+remotes::install_github("alesantuz/musclesyneRgies")
 ```
 The latest stable release appearing on CRAN can be installed with:
 ```r

@@ -26,7 +26,7 @@ output:
 
 # Summary
 
-Coordinated movements such as walking or playing a musical instrument are the result of accurately timed muscle activations produced by the central nervous system. Mathematical tools can help scientists to visualize which muscle is active during a specific phase of the considered movement and how important is the contribution of each muscle to the overall task. `musclesyneRgies` is an R package [@Rstats] that implements one of the existing mathematical models of motor coordination. From the raw data and until the final factorization of electromyographic activities, the package offers a complete analysis framework with sensible defaults that can be flexibly modified at need. `musclesyneRgies` is addressed to scientists of any programming skill level working in fields such as neuroscience, biomechanics, biomedical engineering, robotics or sport science. 
+Coordinated movements such as walking or playing a musical instrument are the result of accurately timed muscle activations produced by the central nervous system. Mathematical tools can help scientists to visualize which muscle is active during a specific phase of the considered movement and how important is the contribution of each muscle to the overall task. `musclesyneRgies` is an R package [@Rstats] that implements one of the existing mathematical models of motor coordination. From the raw data and until the final factorization of electromyographic activities, the package offers a complete analysis framework with sensible defaults that can be flexibly modified at need. `musclesyneRgies` is addressed to scientists of any programming skill level working in fields such as neuroscience, biomechanics, biomedical engineering, robotics or sport science.
 
 # Statement of need
 
@@ -37,11 +37,11 @@ The great amount of muscles and joints in the body of vertebrate animals makes t
 The typical workflow when using `musclesyneRgies` consists of six main steps:
 
 1. Data preparation (to read raw data sets and covert them into the needed format)
-2. Raw data processing (e.g. rectification, filtering, time-normalisation, etc.)
+2. Raw data processing (e.g. rectification, filtering, time-normalization, etc.)
 3. Synergy extraction (via NMF)
 4. Synergy classification (via k-means)
 5. Synergy analysis
-    i. Linear methods: full width at half maximum and centre of activity [@Martino2014]
+    i. Linear methods: full width at half maximum and center of activity [@Martino2014]
     ii. Non-linear methods: local complexity or Higuchi's fractal dimension [@Higuchi1988; @Santuz2020a], global complexity or Hurst exponent [@Hurst1951; @Santuz2020a], short-term maximum Lyapunov exponents [@Rosenstein1993; @Santuz2020b; @Kang2006]
 6. Plots (available at each of the previous steps, see \autoref{fig:syns} for an example).
 
@@ -62,9 +62,8 @@ Defaults are specifically targeted at the analysis of human and mouse locomotion
 The latest development version of `musclesyneRgies` is freely available on [GitHub](https://github.com/alesantuz/musclesyneRgies). A stable release is freely available via the [Comprehensive `R` Archive Network](https://CRAN.R-project.org/package=musclesyneRgies). Documentation and examples
 are contained in each version's manual pages, vignettes and readme file. To install the latest development version, `devtools` needs to be installed beforehand and then `musclesyneRgies` can be installed directly from GitHub with the following:
 ```r
-install.packages("devtools")
-library(devtools)
-install_github("alesantuz/musclesyneRgies")
+install.packages("remotes")
+remotes::install_github("alesantuz/musclesyneRgies")
 ```
 The latest stable release appearing on CRAN can be installed with:
 ```r
