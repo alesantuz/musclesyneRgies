@@ -1,3 +1,5 @@
+# musclesyneRgies 1.2.0
+
 # musclesyneRgies 1.1.3.9006 (development version)
 ### How to install
 ```
