@@ -2,13 +2,13 @@
 # CITATION file created with {cffr} R package, v0.2.1
 # See also: https://docs.ropensci.org/cffr/
 # -----------------------------------------------------------
- 
+
 cff-version: 1.2.0
 message: 'To cite package "musclesyneRgies" in publications use:'
 type: software
 license: MIT
 title: 'musclesyneRgies: Extract Muscle Synergies from EMG'
-version: 1.1.0
+version: 1.2.3
 abstract: This package extracts muscle synergies from EMG and gives some analysis
   tools, all with sensible defaults.
 authors:
