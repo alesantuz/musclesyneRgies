@@ -36,27 +36,38 @@
 #'     )
 #'   }
 #' )
-subsetEMG <- function (x, cy_max, cy_start = 1) 
-{
+subsetEMG <- function(x,
+                      cy_max,
+                      cy_start = 1) {
   if (!inherits(x, "EMG")) {
     stop("Object is not of class EMG, please create objects in the right format with \"rawdata\"")
   } else {
     cycles <- data.frame(x$cycles)
     x <- x$emg
   }
-  start <- as.numeric(cycles[cy_start, 1])
-  stop <- as.numeric(cycles[cy_start + cy_max, 1])
-  start_emg <- tail(which(x[, 1] <= start), 1)
-  stop_emg <- head(which(x[, 1] > stop), 1)
+
+  # Determine the first and last time points
+  first <- as.numeric(cycles[cy_start, 1])
+  last <- as.numeric(cycles[cy_start + cy_max, 1])
+  # Determine the first and last useful rows in EMG data set
+  start_emg <- tail(which(x[, 1] <= first), 1)
+  stop_emg <- head(which(x[, 1] > last), 1)
+
+  # Subset data
   if (length(start_emg) == 1 && length(stop_emg) == 1) {
-    RAW_DATA <- list(cycles = cycles[cy_start:(cy_max + cy_start), ],
-                     emg = x[start_emg:stop_emg, ])
+    RAW_DATA <- list(
+      cycles = cycles[cy_start:(cy_max + cy_start), ],
+      emg = x[start_emg:stop_emg, ]
+    )
   } else if (length(start_emg) == 1 && length(stop_emg) == 0) {
-    RAW_DATA <- list(cycles = cycles[cy_start:nrow(cycles), ],
-                     emg = x[start_emg:nrow(x), ])
+    RAW_DATA <- list(
+      cycles = cycles[cy_start:nrow(cycles), ],
+      emg = x[start_emg:nrow(x), ]
+    )
   } else if (length(start_emg) == 0) {
     stop("Cycle times do not match time column in the EMG data!")
   }
+
   class(RAW_DATA) <- "EMG"
   return(RAW_DATA)
 }
