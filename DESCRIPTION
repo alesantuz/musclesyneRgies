@@ -1,6 +1,6 @@
 Package: musclesyneRgies
 Title: Extract Muscle Synergies from Electromyography
-Version: 1.2.4
+Version: 1.2.5
 Authors@R: 
     person("Alessandro", "Santuz", , "alessandro.santuz@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-6577-5101"))
@@ -22,7 +22,6 @@ Imports:
     graphics,
     grDevices,
     gridExtra,
-    gtools,
     plyr,
     proxy,
     reshape2,
@@ -40,4 +39,4 @@ Encoding: UTF-8
 Language: en-GB
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
