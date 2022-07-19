@@ -1,3 +1,11 @@
+## R CMD check results on 19 Jul 2022
+Local using `devtools::check()`: 0 errors | 0 warnings | 0 notes\cr
+Remote using github workflows (workflow derived from https://github.com/r-lib/actions/tree/master/examples):
+- macOS-latest (release) 0 errors | 0 warnings | 0 notes\cr
+- windows-latest (release) 0 errors | 0 warnings | 0 notes\cr
+- ubuntu-latest (devel) 0 errors | 0 warnings | 0 notes\cr
+- ubuntu-latest (release) 0 errors | 0 warnings | 0 notes\cr
+
 ## After checks on 10 Feb 2022 (v1.1.2 resubmitted as v1.1.3)
 - Improved speed of slow tests and examples, `rhub::check_for_cran()` returned no notes
 

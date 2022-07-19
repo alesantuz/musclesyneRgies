@@ -216,7 +216,7 @@ classify_kmeans <- function(x,
   )
 
   # Calculate mutual score squared residuals and find minimum
-  perms <- gtools::permutations(nrow(geoms_P), r = 2, repeats.allowed = TRUE)
+  perms <- expand.grid(geoms_P$clust_P, geoms_P$clust_P)
   resids <- numeric()
   for (perm in seq_len(nrow(perms))) {
     resids[perm] <- (geoms_P$score[perms[perm, 1]] - geoms_M$score[perms[perm, 2]])^2

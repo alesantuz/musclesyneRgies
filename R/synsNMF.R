@@ -131,7 +131,7 @@ synsNMF <- function(V,
         # Check if the increase of R2 in the last "last_iter" iterations
         # is less than the target
         if (iter > last_iter &&
-            R2[iter] - R2[iter - last_iter] < R2[iter] * R2_target / 100) {
+          R2[iter] - R2[iter - last_iter] < R2[iter] * R2_target / 100) {
           break
         }
       }
@@ -169,22 +169,33 @@ synsNMF <- function(V,
       MSE <- sum((lin - R2_interp$R2_values)^2) / nrow(R2_interp)
     }
     syns_R2 <- iter
-  } else if (is.numeric(fixed_syns)) {
-    syns_R2 <- syn_index
-  }
 
-  P_choice <- data.frame(time, t(P_list[[syns_R2]]))
-  colnames(P_choice) <- c("time", paste0("Syn", seq_len(ncol(P_choice) - 1)))
-  rownames(P_choice) <- NULL
-  colnames(M_list[[syns_R2]]) <- paste0("Syn", seq_len(ncol(M_list[[syns_R2]])))
+    P_choice <- data.frame(time, t(P_list[[syns_R2]]))
+    colnames(P_choice) <- c("time", paste0("Syn", seq_len(ncol(P_choice) - 1)))
+    rownames(P_choice) <- NULL
+    colnames(M_list[[syns_R2]]) <- paste0("Syn", seq_len(ncol(M_list[[syns_R2]])))
+    M_choice <- M_list[[syns_R2]]
+    Vr_choice <- Vr_list[[syns_R2]]
+    iters <- as.numeric(iters[syns_R2])
+  } else if (is.numeric(fixed_syns)) {
+    syns_R2 <- fixed_syns
+
+    P_choice <- data.frame(time, t(P_list[[1]]))
+    colnames(P_choice) <- c("time", paste0("Syn", seq_len(ncol(P_choice) - 1)))
+    rownames(P_choice) <- NULL
+    colnames(M_list[[1]]) <- paste0("Syn", seq_len(ncol(M_list[[1]])))
+    M_choice <- M_list[[1]]
+    Vr_choice <- Vr_list[[1]]
+    iters <- as.numeric(iters[1])
+  }
 
   SYNS <- list(
     syns = as.numeric(syns_R2),
-    M = M_list[[syns_R2]],
+    M = M_choice,
     P = P_choice,
     V = V,
-    Vr = Vr_list[[syns_R2]],
-    iterations = as.numeric(iters[syns_R2]),
+    Vr = Vr_choice,
+    iterations = iters,
     R2 = data.frame(
       synergies = min_syns:max_syns,
       R2 = R2_cross

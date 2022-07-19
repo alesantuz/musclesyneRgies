@@ -50,8 +50,8 @@ subsetEMG <- function(x,
   first <- as.numeric(cycles[cy_start, 1])
   last <- as.numeric(cycles[cy_start + cy_max, 1])
   # Determine the first and last useful rows in EMG data set
-  start_emg <- tail(which(x[, 1] <= first), 1)
-  stop_emg <- head(which(x[, 1] > last), 1)
+  start_emg <- utils::tail(which(x[, 1] <= first), 1)
+  stop_emg <- utils::head(which(x[, 1] > last), 1)
 
   # Subset data
   if (length(start_emg) == 1 && length(stop_emg) == 1) {
