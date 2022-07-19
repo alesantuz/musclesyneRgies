@@ -8,7 +8,8 @@ remotes::install_github("alesantuz/musclesyneRgies")
 README and vignettes are available both on [CRAN](https://CRAN.R-project.org/package=musclesyneRgies) and on [GitHub](https://github.com/alesantuz/musclesyneRgies).
 
 ### What's changed
-- Removed dependency from `gtools`.
+- Removed dependency from `gtools`
+- Removed JOSS paper folder.
 
 # musclesyneRgies 1.2.4
 ### How to install
