@@ -85,7 +85,9 @@ synsNMF <- function(V,
     rank_type <- "fixed"
   }
 
+  syn_index <- 0
   for (r in min_syns:max_syns) { # Run NMF with different initial conditions
+    syn_index <- syn_index + 1
     R2_choice <- numeric() # Collect the R2 values for each syn and choose the max
 
     # Preallocate to then choose those with highest R2
@@ -129,7 +131,7 @@ synsNMF <- function(V,
         # Check if the increase of R2 in the last "last_iter" iterations
         # is less than the target
         if (iter > last_iter &&
-          R2[iter] - R2[iter - last_iter] < R2[iter] * R2_target / 100) {
+            R2[iter] - R2[iter - last_iter] < R2[iter] * R2_target / 100) {
           break
         }
       }
@@ -142,11 +144,11 @@ synsNMF <- function(V,
 
     choice <- which.max(R2_choice)
 
-    R2_cross[r] <- R2_choice[choice]
-    M_list[[r]] <- M_temp[[choice]]
-    P_list[[r]] <- P_temp[[choice]]
-    Vr_list[[r]] <- Vr_temp[[choice]]
-    iters[r] <- iter
+    R2_cross[syn_index] <- R2_choice[choice]
+    M_list[[syn_index]] <- M_temp[[choice]]
+    P_list[[syn_index]] <- P_temp[[choice]]
+    Vr_list[[syn_index]] <- Vr_temp[[choice]]
+    iters[syn_index] <- iter
   }
 
   if (is.na(fixed_syns)) {
@@ -168,7 +170,7 @@ synsNMF <- function(V,
     }
     syns_R2 <- iter
   } else if (is.numeric(fixed_syns)) {
-    syns_R2 <- fixed_syns
+    syns_R2 <- syn_index
   }
 
   P_choice <- data.frame(time, t(P_list[[syns_R2]]))
@@ -183,7 +185,10 @@ synsNMF <- function(V,
     V = V,
     Vr = Vr_list[[syns_R2]],
     iterations = as.numeric(iters[syns_R2]),
-    R2 = as.numeric(R2_cross[syns_R2]),
+    R2 = data.frame(
+      synergies = min_syns:max_syns,
+      R2 = R2_cross
+    ),
     classification = "none",
     rank_type = rank_type
   )

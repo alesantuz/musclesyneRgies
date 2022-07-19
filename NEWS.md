@@ -10,7 +10,8 @@ README and vignettes are available both on [CRAN](https://CRAN.R-project.org/pac
 ### What's changed
 - Increased robustness of `subsetEMG`
 - Added tests for `subsetEMG`
-- Updated `CITATION` files.
+- Updated `CITATION` files
+- `synsNMF` now saves the synergy-vs-quality data.
 
 # musclesyneRgies 1.2.3
 ### How to install
