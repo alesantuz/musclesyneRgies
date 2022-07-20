@@ -9,7 +9,8 @@ README and vignettes are available both on [CRAN](https://CRAN.R-project.org/pac
 
 ### What's changed
 - Removed dependency from `gtools`
-- Removed JOSS paper folder.
+- Removed JOSS paper folder
+- CRAN release.
 
 # musclesyneRgies 1.2.4
 ### How to install
