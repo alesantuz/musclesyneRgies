@@ -14,9 +14,9 @@
 #' The mean period is intended to exclude temporally close points. In gait, values are usually
 #' plus/minus half gait cycle. Future points usually correspond in gait to one to two gait cycles.
 #' Please consider that a sufficient amount of cycles in order to compute meaningful sMLE.
-#' For locomotor primitives, 30 gait cycles have been shown to be sensitive to perturbations
-#' (Santuz et al. 2020). However, in the more classical and widespread use on kinematic data,
-#' more are usually needed (Kang and Dingwell, 2006).
+#' For locomotor activation patterns, 30 gait cycles have been shown to be sensitive to
+#' perturbations (Santuz et al. 2020). However, in the more classical and widespread use on
+#' kinematic data, more are usually needed (Kang and Dingwell, 2006).
 #'
 #' @return
 #' A list with elements:\cr
@@ -40,10 +40,10 @@
 #' Gait Posture. 24(3) 386-390.
 #'
 #' @examples
-#' # Load some primitives
-#' data("primitives")
-#' # Calculate sMLE of motor primitives in the muscle synergy space
-#' short_term_MLE <- sMLE(primitives,
+#' # Load some activation patterns
+#' data("act_patterns")
+#' # Calculate sMLE of activation patterns in the muscle synergy space
+#' short_term_MLE <- sMLE(act_patterns,
 #'   mean_period = 80,
 #'   future_pts = 200,
 #'   norm = "z",
@@ -53,7 +53,7 @@ sMLE <- function(synergies, mean_period, future_pts, norm, pts, R2_threshold = 0
   if (!inherits(synergies, "musclesyneRgies")) {
     stop("Object is not of class musclesynergies, please create objects in the right format with \"synsNMF\"")
   } else {
-    # Get motor primitives
+    # Get activation patterns
     # To include cases with only one synergy and keep the format, time series is forced to be a matrix
     # Matrices are faster than data frames (in this case around twice as fast)
     P <- as.matrix(synergies$P[, -1])
@@ -73,8 +73,8 @@ sMLE <- function(synergies, mean_period, future_pts, norm, pts, R2_threshold = 0
   # Nearest neighbour location
   # This method is around 1000 times faster than for loops with 3D data of around 6000 rows
   upper_limit <- nrow(P) - future_pts
-  # For primitives with cycles of 200 data points, the maximum number of NN to search (k) can be 50
-  # but ideally not less (in case of 200-point cycles, 100 can be a good choice)
+  # For activation patterns with cycles of 200 data points, the maximum number of NN to search (k)
+  # can be 50 but ideally not less (in case of 200-point cycles, 100 can be a good choice)
   temp <- FNN::get.knn(P[1:upper_limit, ], k = mean_period)$nn.index
   neighbours <- numeric()
 

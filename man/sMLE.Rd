@@ -37,15 +37,15 @@ Short-term maximum Lyapunov exponents
 The mean period is intended to exclude temporally close points. In gait, values are usually
 plus/minus half gait cycle. Future points usually correspond in gait to one to two gait cycles.
 Please consider that a sufficient amount of cycles in order to compute meaningful sMLE.
-For locomotor primitives, 30 gait cycles have been shown to be sensitive to perturbations
-(Santuz et al. 2020). However, in the more classical and widespread use on kinematic data,
-more are usually needed (Kang and Dingwell, 2006).
+For locomotor activation patterns, 30 gait cycles have been shown to be sensitive to
+perturbations (Santuz et al. 2020). However, in the more classical and widespread use on
+kinematic data, more are usually needed (Kang and Dingwell, 2006).
 }
 \examples{
-# Load some primitives
-data("primitives")
-# Calculate sMLE of motor primitives in the muscle synergy space
-short_term_MLE <- sMLE(primitives,
+# Load some activation patterns
+data("act_patterns")
+# Calculate sMLE of activation patterns in the muscle synergy space
+short_term_MLE <- sMLE(act_patterns,
   mean_period = 80,
   future_pts = 200,
   norm = "z",

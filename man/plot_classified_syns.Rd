@@ -22,7 +22,7 @@ plot_classified_syns(
 
 \item{line_size}{Line thickness}
 
-\item{dot_size}{Dot size on motor modules}
+\item{dot_size}{Dot size on muscle weights}
 
 \item{line_col}{Line colour}
 
@@ -34,7 +34,7 @@ plot_classified_syns(
 }
 \value{
 Global plot containing the average classified muscle synergies and individual trials
-(motor modules) or standard deviations (motor primitives)
+(muscle weights) or standard deviations (activation patterns)
 }
 \description{
 Plot muscle synergies

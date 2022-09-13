@@ -3,7 +3,7 @@
 #' @param x List of objects of class `musclesyneRgies` (must be classified)
 #' @param dark_mode To enable dark mode
 #' @param line_size Line thickness
-#' @param dot_size Dot size on motor modules
+#' @param dot_size Dot size on muscle weights
 #' @param line_col Line colour
 #' @param sd_col Standard deviation ribbon colour
 #' @param condition Character: the condition that is being analysed, for archiving purposes
@@ -14,7 +14,7 @@
 #' Plots can then be saved with the preferred export method, such as `ggplot2::ggsave`.
 #'
 #' @return Global plot containing the average classified muscle synergies and individual trials
-#' (motor modules) or standard deviations (motor primitives)
+#' (muscle weights) or standard deviations (activation patterns)
 #'
 #' @export
 #'
@@ -43,7 +43,7 @@ plot_classified_syns <- function(x,
                                  show_plot = TRUE) {
   if (interactive()) message("\nCreating synergy plots for condition ", condition, "...")
 
-  module <- muscle <- time <- value <- variable <- ymax <- ymin <- NULL
+  muscle <- time <- value <- variable <- ymax <- ymin <- NULL
 
   # Get classification method
   class_method <- unique(unlist(lapply(x, function(y) y$classification)))
@@ -51,7 +51,7 @@ plot_classified_syns <- function(x,
   if (class_method == "none" || length(class_method) > 1) {
     stop("Synergies must be classified")
   } else {
-    # Get motor modules and concatenated motor primitives
+    # Get muscle weights and concatenated activation patterns
     SYNS_M <- lapply(x, function(y) y$M)
     SYNS_P <- lapply(x, function(y) y$P)
   }
@@ -63,7 +63,7 @@ plot_classified_syns <- function(x,
     return(ncol(y))
   })))
 
-  # Calculate mean motor primitives
+  # Calculate mean activation patterns
   SYNS_P <- lapply(SYNS_P, function(y) {
     points <- max(y$time)
     y$time <- NULL
@@ -126,9 +126,9 @@ plot_classified_syns <- function(x,
     data_P <- data_P[lapply(data_P, length) > 0]
 
     if (length(data_P) > 0) {
-      # Put modules in a single data frame
+      # Put muscle weights in a single data frame
       data_M <- plyr::ldply(data_M, data.frame, .id = "trial")
-      # Put primitives in a single data frame
+      # Put activation patterns in a single data frame
       data_P <- plyr::ldply(data_P, data.frame, .id = "trial")
 
       data_M_av <- data.frame(value = colMeans(data_M[, -1]))
@@ -167,7 +167,7 @@ plot_classified_syns <- function(x,
           size = dot_size
         ) +
         ggplot2::labs(
-          title = paste0("Motor module ", syn),
+          title = paste0("Muscle weights ", syn),
           x = "Muscle",
           y = "Contribution"
         ) +
@@ -199,7 +199,7 @@ plot_classified_syns <- function(x,
           colour = line_col, size = line_size
         ) +
         ggplot2::labs(
-          title = paste0("Motor primitive ", syn),
+          title = paste0("Activation pattern ", syn),
           x = "Time",
           y = "Amplitude"
         ) +
@@ -237,7 +237,7 @@ plot_classified_syns <- function(x,
         ) +
         ggplot2::scale_x_discrete(limits = data_M_av$muscle) +
         ggplot2::labs(
-          title = paste0("Motor module ", syn),
+          title = paste0("Muscle weights ", syn),
           x = "Muscle",
           y = "Contribution"
         ) +
@@ -264,7 +264,7 @@ plot_classified_syns <- function(x,
           colour = "transparent", size = line_size
         ) +
         ggplot2::labs(
-          title = paste0("Motor primitive ", syn),
+          title = paste0("Activation pattern ", syn),
           x = "Time",
           y = "Amplitude"
         ) +

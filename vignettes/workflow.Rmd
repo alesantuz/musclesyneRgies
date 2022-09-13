@@ -209,7 +209,7 @@ data("SYNS")
 # Classify with k-means# and producing a plot that shows how the clustering went with:
 # - Full width at half maximum on the x-axis
 # - Centre of activity on the y-axis
-# (both referred to the motor primitives of the classified muscle synergies)
+# (both referred to the activation patterns of the classified muscle synergies)
 SYNS_classified <- classify_kmeans(SYNS)
 ```
 Done! Now the analysis of extracted synergies can start.

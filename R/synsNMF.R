@@ -15,8 +15,8 @@
 #' @return
 #' Object of class `musclesyneRgies` with elements:\cr
 #' - `syns` factorisation rank or minimum number of synergies\cr
-#' - `M` motor modules (time-invariant coefficients)\cr
-#' - `P` motor primitives (time-dependent coefficients)\cr
+#' - `M` muscle weights (time-invariant coefficients)\cr
+#' - `P` activation patterns (time-dependent coefficients)\cr
 #' - `V` original data\cr
 #' - `Vr` reconstructed data\cr
 #' - `iterations` number of iterations to convergence\cr
@@ -60,8 +60,8 @@ synsNMF <- function(V,
   time <- V$time
 
   R2_cross <- numeric() # R2 values for cross validation and syn number assessment
-  M_list <- list() # To save factorisation M matrices (synergies)
-  P_list <- list() # To save factorisation P matrices (primitives)
+  M_list <- list() # To save factorisation M matrices (muscle weights)
+  P_list <- list() # To save factorisation P matrices (activation patterns)
   Vr_list <- list() # To save factorisation Vr matrices (reconstructed signals)
   iters <- numeric() # To save the iterations number
 

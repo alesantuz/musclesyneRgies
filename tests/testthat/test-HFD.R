@@ -1,14 +1,14 @@
 test_that("HFD works", {
-  data(primitive)
+  data(act_pattern)
 
   expect_equal(
-    musclesyneRgies::HFD(primitive$signal)$Higuchi[[1]],
+    musclesyneRgies::HFD(act_pattern$signal)$Higuchi[[1]],
     expected = 1.05,
     tolerance = 0.02
   )
 
-  expect_error(musclesyneRgies::HFD(primitive, k = "a"))
+  expect_error(musclesyneRgies::HFD(act_pattern, k = "a"))
 
-  primitive$signal[5] <- "A"
-  expect_error(musclesyneRgies::HFD(primitive))
+  act_pattern$signal[5] <- "A"
+  expect_error(musclesyneRgies::HFD(act_pattern))
 })

@@ -1,14 +1,14 @@
 test_that("Hurst works", {
-  data(primitive)
+  data(act_pattern)
 
   expect_equal(
-    musclesyneRgies::Hurst(primitive$signal)$Hurst[[1]],
+    musclesyneRgies::Hurst(act_pattern$signal)$Hurst[[1]],
     expected = 0.72,
     tolerance = 0.02
   )
 
-  expect_error(musclesyneRgies::Hurst(primitive$signal, k = "a"))
+  expect_error(musclesyneRgies::Hurst(act_pattern$signal, k = "a"))
 
-  primitive$signal[5] <- "A"
-  expect_error(musclesyneRgies::Hurst(primitive$signal))
+  act_pattern$signal[5] <- "A"
+  expect_error(musclesyneRgies::Hurst(act_pattern$signal))
 })

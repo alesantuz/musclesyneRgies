@@ -80,8 +80,8 @@
 #'   `ID0014_TW_01`\cr
 #'   `ID0015_TW_01`\cr}{Objects of class `musclesyneRgies` containing the following items:}
 #'   \item{`syns`}{Factorisation rank or minimum number of synergies.}
-#'   \item{`M`}{Motor modules (time-invariant coefficients)}
-#'   \item{`P`}{Motor primitives (time-dependent coefficients)}
+#'   \item{`M`}{Muscle weights (time-invariant coefficients)}
+#'   \item{`P`}{Activation patterns (time-dependent coefficients)}
 #'   \item{`V`}{Original data, muscles named as:\cr\cr
 #'          ME=gluteus medius\cr
 #'          MA=gluteus maximus\cr
@@ -104,32 +104,32 @@
 #' @source \doi{10.1016/j.isci.2019.100796}
 "SYNS"
 
-#' Single motor primitive example (30 cycles)
+#' Single activation pattern example (30 cycles)
 #'
-#' A data frame containing one motor primitive extracted from one wild type mouse
+#' A data frame containing one activation pattern extracted from one wild type mouse
 #' walking on a treadmill.
 #'
 #' @format A data frame of two columns:
 #'
 #' \describe{
 #'   \item{`time`}{Normalised time in points.}\cr
-#'   \item{`signal`}{Motor primitive}
+#'   \item{`signal`}{Activation pattern}
 #' }
 #' @source \doi{10.1152/jn.00360.2020}
-"primitive"
+"act_pattern"
 
-#' All motor primitives of one synergy example (30 cycles)
+#' All activation patterns of one synergy example (30 cycles)
 #'
-#' A demo and incomplete `musclesyneRgies` object containing time info and three motor primitives
+#' A demo and incomplete `musclesyneRgies` object containing time info and three activation patterns
 #' extracted from one wild type mouse walking on a treadmill.
 #'
 #' @format A data frame of four columns:
 #'
 #' \describe{
 #'   \item{`time`}{Normalised time in points.}\cr
-#'   \item{`Syn1`}{Motor primitive of synergy 1}\cr
-#'   \item{`Syn2`}{Motor primitive of synergy 2}\cr
-#'   \item{`Syn3`}{Motor primitive of synergy 3}
+#'   \item{`Syn1`}{Activation pattern of synergy 1}\cr
+#'   \item{`Syn2`}{Activation pattern 2}\cr
+#'   \item{`Syn3`}{Activation pattern of synergy 3}
 #' }
 #' @source \doi{10.1152/jn.00360.2020}
-"primitives"
+"act_patterns"

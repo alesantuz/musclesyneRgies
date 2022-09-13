@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ![](./images/musclesyneRgies_logo.png)
 
 The package `musclesyneRgies` allows to extract muscle synergies from electromyographic (EMG) data through linear decomposition based on unsupervised machine learning. Specifically, here we adopted the non-negative matrix factorization (NMF) framework, due to the non-negative nature of EMG biosignals. However, this method can be applied to any other kind of data sets, from time series to images.
-Muscle synergies are orchestrated activations of functionally-similar muscle groups. The theory stems from original thoughts by the neurophysiologist Nikolai Bernstein and it suggests that the central nervous system might take advantage of such a strategy to simplify the production and control of movement. Instead of commanding each muscle individually for executing a particular task, the central nervous system might send common (but individually weighted) commands to several muscles at the same time. An idea that can be modelled by linear decomposition algorithms such as NMF, the output of which consists of a set of time-independent (or weightings, also called motor modules) and a set of time dependent coefficients (also called motor primitives).
+Muscle synergies are orchestrated activations of functionally-similar muscle groups. The theory stems from original thoughts by the neurophysiologist Nikolai Bernstein and it suggests that the central nervous system might take advantage of such a strategy to simplify the production and control of movement. Instead of commanding each muscle individually for executing a particular task, the central nervous system might send common (but individually weighted) commands to several muscles at the same time. An idea that can be modelled by linear decomposition algorithms such as NMF, the output of which consists of a set of time-independent (also called muscle weights) and a set of time dependent coefficients (also called activation patterns).
 If you use this R package, please cite [Santuz, 2022](https://joss.theoj.org/papers/10.21105/joss.04439).
 
 ## Installation
@@ -252,7 +252,7 @@ data("SYNS")
 # Classify with k-means and produce a plot that shows how the clustering went with:
 # - Full width at half maximum on the x-axis
 # - Centre of activity on the y-axis
-# (both referred to the motor primitives of the classified muscle synergies)
+# (both referred to the activation patterns of the classified muscle synergies)
 SYNS_classified <- classify_kmeans(SYNS)
 ```
 ```{r message = FALSE, results = "hide", fig.width = 6, fig.asp = 1}
@@ -275,36 +275,36 @@ pp <- plot_classified_syns_UMAP(
 ```{r results = "hide", fig.width = 4, fig.asp = 1}
 # From now on, it's all about the analysis
 # For example, one can measure the full width at half maximum (FWHM)
-# of the motor primitives or their centre of activity (CoA)
-# Load a typical motor primitive of 30 cycles (from locomotion)
-data("primitive")
+# of the activation patterns or their centre of activity (CoA)
+# Load a typical activation pattern of 30 cycles (from locomotion)
+data("act_pattern")
 
-# Reduce primitive to the first cycle
-prim_sub <- primitive$signal[1:which(primitive$time == max(primitive$time))[1]]
+# Reduce activation pattern to the first cycle
+act_sub <- act_pattern$signal[1:which(act_pattern$time == max(act_pattern$time))[1]]
 
 # Calculate FWHM of the first cycle
-prim_sub_FWHM <- FWHM(prim_sub)
+act_sub_FWHM <- FWHM(act_sub)
 # Calculate CoA of the first cycle
-prim_sub_CoA <- CoA(prim_sub)
+act_sub_CoA <- CoA(act_sub)
 
 # Half maximum (for the plots)
-hm <- min(prim_sub) + (max(prim_sub) - min(prim_sub)) / 2
-hm_plot <- prim_sub
+hm <- min(act_sub) + (max(act_sub) - min(act_sub)) / 2
+hm_plot <- act_sub
 hm_plot[which(hm_plot > hm)] <- hm
 hm_plot[which(hm_plot < hm)] <- NA
 
 # Plots
-plot(prim_sub, ty = "l", xlab = "Time", ylab = "Amplitude")
+plot(act_sub, ty = "l", xlab = "Time", ylab = "Amplitude")
 lines(hm_plot, lwd = 3, col = 2) # FWHM (horizontal, in red)
-graphics::abline(v = prim_sub_CoA, lwd = 3, col = 4) # CoA (vertical, in blue)
+graphics::abline(v = act_sub_CoA, lwd = 3, col = 4) # CoA (vertical, in blue)
 
-# Or perhaps one might want to investigate the nonlinear behaviour of a long primitive
-prim <- primitive$signal
+# Or perhaps one might want to investigate the nonlinear behaviour of a long activation pattern
+act <- act_pattern$signal
 
 # Calculate the local complexity or Higuchi's fractal dimension (HFD)
-nonlin_HFD <- HFD(prim)$Higuchi
+nonlin_HFD <- HFD(act)$Higuchi
 # Calculate the global complexity or Hurst exponent (H)
-nonlin_H <- Hurst(prim, min_win = max(primitive$time))$Hurst
+nonlin_H <- Hurst(act, min_win = max(act_pattern$time))$Hurst
 
 message("Higuchi's fractal dimension: ", round(nonlin_HFD, 3))
 message("Hurst exponent: ", round(nonlin_H, 3))

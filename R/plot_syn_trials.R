@@ -46,17 +46,17 @@ plot_syn_trials <- function(x,
   if (!inherits(x, "musclesyneRgies")) {
     stop("Object is not of class musclesynergies, please create objects in the right format with \"synsNMF\"")
   } else {
-    # Get motor modules and concatenated motor primitives
+    # Get muscle weights and concatenated activation patterns
     M <- x$M
     P <- x$P
   }
 
-  Group.1 <- ymin <- ymax <- primitive <- muscle <- module <- NULL
+  Group.1 <- ymin <- ymax <- act_pattern <- muscle <- weights <- NULL
 
   time <- P$time
   P$time <- NULL
 
-  # Normalise and calculate mean primitives, removing Group and time columns
+  # Normalise and calculate mean activation patterns, removing Group and time columns
   P_av <- apply(P, 2, function(y) y / max(y)) |>
     stats::aggregate(by = list(time), FUN = mean) |>
     subset(select = -Group.1)
@@ -79,12 +79,12 @@ plot_syn_trials <- function(x,
   }
 
   # Create plots
-  # Motor modules
+  # Muscle weights
   varlist_M <- lapply(colnames(M), function(y) {
-    # Gather motor modules
+    # Gather muscle weights
     M_data <- data.frame(
       muscle = rownames(M),
-      module = M[, y]
+      weights = M[, y]
     )
 
     # To write axis titles
@@ -97,13 +97,13 @@ plot_syn_trials <- function(x,
     mm <- ggplot2::ggplot(M_data) +
       ggplot2::ylim(0, 1) +
       ggplot2::geom_bar(
-        ggplot2::aes(x = muscle, y = module),
+        ggplot2::aes(x = muscle, y = weights),
         fill = line_col, alpha = 0.75,
         stat = "identity"
       ) +
       ggplot2::scale_x_discrete(limits = M_data$muscle) +
       ggplot2::labs(
-        title = paste0("Motor module ", gsub("Syn", "", y)),
+        title = paste0("Muscle weights ", gsub("Syn", "", y)),
         x = "Muscle",
         y = "Contribution"
       ) +
@@ -124,12 +124,12 @@ plot_syn_trials <- function(x,
     return(mm)
   })
 
-  # Motor primitives
+  # Activation patterns
   varlist_P <- lapply(colnames(P), function(y) {
-    # Gather mean motor primitive and standard deviation
+    # Gather mean activation pattern and standard deviation
     P_data <- data.frame(
       time,
-      primitive = P_av[, y],
+      act_pattern = P_av[, y],
       ymin = P_av[, y] - P_sd[, y],
       ymax = P_av[, y] + P_sd[, y],
       row.names = NULL
@@ -149,11 +149,11 @@ plot_syn_trials <- function(x,
         fill = sd_col
       ) +
       ggplot2::geom_line(
-        ggplot2::aes(x = time, y = primitive),
+        ggplot2::aes(x = time, y = act_pattern),
         colour = line_col, size = line_size
       ) +
       ggplot2::labs(
-        title = paste0("Motor primitive ", gsub("Syn", "", y)),
+        title = paste0("Activation pattern ", gsub("Syn", "", y)),
         x = "Time",
         y = "Amplitude"
       ) +

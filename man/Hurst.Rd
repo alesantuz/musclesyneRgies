@@ -26,7 +26,7 @@ Hurst exponent
 The Hurst exponent is a measure of global complexity and it increases if the “accuracy” of
 the time series decreases across several cycles (thus the term “global”).
 The Hurst exponent can vary between 0 and 1. For 0.5 < Hurst exponent < 1, in the long-term high
-values in the time series (the motor primitive in our case) will be probably followed by other high
+values in the time series (the activation pattern in our case) will be probably followed by other high
 values and a positive or negative trend is visible (Mandelbrot, 1983; Gneiting & Schlather, 2004).
 For 0 < Hurst exponent < 0.5, in the long term high values in the series will be probably followed
 by low values, with a frequent switch between high and low values
@@ -34,7 +34,7 @@ by low values, with a frequent switch between high and low values
 random series (Mandelbrot, 1983; Qian & Rasheed, 2004). In other words, values of Hurst
 exponent approaching 0.5 from both ends indicate more complex (or random) behaviour of the
 time series (Hurst, 1951).
-For motor primitives, the minimum window length should be bigger than the period
+For locomotor activation patterns, the minimum window length should be bigger than the period
 (i.e. the length of each cycle), as reported in Santuz, Akay (2020).
 }
 \examples{
@@ -45,9 +45,9 @@ flow <- datasets::Nile
 H <- Hurst(flow)$Hurst
 message("Hurst exponent: ", round(H, 3))
 
-# Thirty-cycle locomotor primitive from Santuz & Akay (2020)
-data(primitive)
-H <- Hurst(primitive$signal, min_win = max(primitive$time))$Hurst
+# Thirty-cycle activation pattern from Santuz & Akay (2020)
+data(act_pattern)
+H <- Hurst(act_pattern$signal, min_win = max(act_pattern$time))$Hurst
 message("Hurst exponent: ", round(H, 3))
 }
 \references{

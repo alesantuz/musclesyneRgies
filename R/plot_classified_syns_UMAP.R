@@ -37,7 +37,7 @@ plot_classified_syns_UMAP <- function(x,
   if (class_method == "none" || length(class_method) > 1) {
     stop("Synergies must be classified")
   } else {
-    # Get motor modules and concatenated motor primitives
+    # Get muscle weights and concatenated activation patterns
     SYNS_M <- lapply(x, function(y) y$M)
     SYNS_P <- lapply(x, function(y) y$P)
   }
@@ -49,7 +49,7 @@ plot_classified_syns_UMAP <- function(x,
     return(ncol(y))
   })))
 
-  # Calculate mean motor primitives
+  # Calculate mean activation patterns
   SYNS_P <- lapply(SYNS_P, function(y) {
     points <- max(y$time)
     y$time <- NULL
@@ -106,7 +106,7 @@ plot_classified_syns_UMAP <- function(x,
     )
   ) +
     ggplot2::geom_point(size = 4, alpha = 0.5) +
-    ggplot2::ggtitle(paste0(condition, " - UMAP (motor modules)")) +
+    ggplot2::ggtitle(paste0(condition, " - UMAP (muscle weights)")) +
     ggplot2::theme(legend.title = ggplot2::element_blank())
 
   ggumap_P <- ggplot2::ggplot(
@@ -117,7 +117,7 @@ plot_classified_syns_UMAP <- function(x,
     )
   ) +
     ggplot2::geom_point(size = 4, alpha = 0.5) +
-    ggplot2::ggtitle(paste0(condition, " - UMAP (motor primitives)")) +
+    ggplot2::ggtitle(paste0(condition, " - UMAP (activation patterns)")) +
     ggplot2::theme(legend.title = ggplot2::element_blank())
 
   # Arrange plots nicely and return as gtable

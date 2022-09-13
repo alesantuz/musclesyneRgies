@@ -1,8 +1,8 @@
 test_that("sMLE works", {
-  data(primitives)
+  data(act_patterns)
 
   expect_equal(
-    musclesyneRgies::sMLE(primitives,
+    musclesyneRgies::sMLE(act_patterns,
       mean_period = 100,
       future_pts = 300,
       norm = "z",
@@ -12,7 +12,7 @@ test_that("sMLE works", {
     tolerance = 0.02
   )
 
-  class(primitives) <- "badclass"
-  expect_error(musclesyneRgies::sMLE(primitives))
+  class(act_patterns) <- "badclass"
+  expect_error(musclesyneRgies::sMLE(act_patterns))
 
 })

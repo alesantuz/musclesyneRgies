@@ -19,8 +19,8 @@ classify_kmeans(x, MSE_lim = 0.001, inspect = FALSE, show_plot = FALSE)
 List of \code{musclesyneRgies} objects, each with elements:\cr
 \itemize{
 \item \code{syns} factorisation rank or minimum number of synergies\cr
-\item \code{M} motor modules (time-invariant coefficients)\cr
-\item \code{P} motor primitives (time-dependent coefficients)\cr
+\item \code{M} muscle weights (time-invariant coefficients)\cr
+\item \code{P} activation patterns (time-dependent coefficients)\cr
 \item \code{V} original data\cr
 \item \code{Vr} reconstructed data\cr
 \item \code{iterations} number of iterations to convergence\cr

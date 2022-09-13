@@ -41,17 +41,17 @@ SYNS <- pbapply::pblapply(FILT_EMG, musclesyneRgies::synsNMF, cl = cl)
 parallel::stopCluster(cl)
 ```
 ### Fractal analysis
-When conducting fractal analysis of motor primitives for cyclic activities, the Higuchi's fractal dimension (HFD) and the Hurst exponent (H) need to be calculated with care, as reported in [Santuz & Akay (2020)](https://journals.physiology.org/doi/full/10.1152/jn.00360.2020). In particular, HFD should be calculated by using only the most linear part of the log-log plot, while H should be calculated by using a minimum window length >= than the period. In the built-in example, the motor primitive has 30 cycles of 200 points each and a proper fractal analysis could be as follows.
+When conducting fractal analysis of activation patterns for cyclic activities, the Higuchi's fractal dimension (HFD) and the Hurst exponent (H) need to be calculated with care, as reported in [Santuz & Akay (2020)](https://journals.physiology.org/doi/full/10.1152/jn.00360.2020). In particular, HFD should be calculated by using only the most linear part of the log-log plot, while H should be calculated by using a minimum window length >= than the period. In the built-in example, the activation pattern has 30 cycles of 200 points each and a proper fractal analysis could be as follows.
 ```{r}
-# Thirty-cycle locomotor primitive from Santuz & Akay (2020)
-data(primitive)
+# Thirty-cycle activation pattern from Santuz & Akay (2020)
+data(act_pattern)
 
 # HFD with k_max = 10 to consider only the most linear part of the log-log plot
 # (it's the default value for this function anyway)
-Higuchi_fd <- HFD(primitive$signal, k_max = 10)$Higuchi
+Higuchi_fd <- HFD(act_pattern$signal, k_max = 10)$Higuchi
 message("Higuchi's fractal dimension: ", round(Higuchi_fd, 3))
 
 # H with min_win = 200 points, which is the length of each cycle
-Hurst_exp <- Hurst(primitive$signal, min_win = max(primitive$time))$Hurst
+Hurst_exp <- Hurst(act_pattern$signal, min_win = max(act_pattern$time))$Hurst
 message("Hurst exponent: ", round(Hurst_exp, 3))
 ```

@@ -23,8 +23,8 @@
 #' @return
 #' List of `musclesyneRgies` objects, each with elements:\cr
 #' - `syns` factorisation rank or minimum number of synergies\cr
-#' - `M` motor modules (time-invariant coefficients)\cr
-#' - `P` motor primitives (time-dependent coefficients)\cr
+#' - `M` muscle weights (time-invariant coefficients)\cr
+#' - `P` activation patterns (time-dependent coefficients)\cr
 #' - `V` original data\cr
 #' - `Vr` reconstructed data\cr
 #' - `iterations` number of iterations to convergence\cr
@@ -45,16 +45,16 @@ classify_kmeans <- function(x,
                             show_plot = FALSE) {
   FWHM_P <- CoA_P <- clusters_M <- clusters_P <- NULL
 
-  # Get motor modules and concatenated motor primitives
+  # Get muscle weights and concatenated activation patterns
   M <- lapply(x, function(y) y$M)
   P <- lapply(x, function(y) y$P)
 
-  # Make sure that all motor primitives are normalised to the same amount of points
+  # Make sure that all activation patterns are normalised to the same amount of points
   points <- unlist(lapply(P, function(y) max(y$time)))
 
   if (stats::sd(points) != 0) {
     stop(
-      "\nNot all motor primitives are normalised to the same amount of points!",
+      "\nNot all activation patterns are normalised to the same amount of points!",
       "\nPlease re-check your data\n"
     )
   } else {
@@ -88,11 +88,11 @@ classify_kmeans <- function(x,
   })
   if (interactive()) message("...done!")
 
-  if (interactive()) message("\nPutting primitives into a single data frame...")
+  if (interactive()) message("\nPutting activation patterns into a single data frame...")
   data_P <- plyr::ldply(P, function(y) data.frame(y))
   if (interactive()) message("...done!")
 
-  if (interactive()) message("\nPutting modules into a single data frame...")
+  if (interactive()) message("\nPutting muscle weights into a single data frame...")
   data_M <- plyr::ldply(M, function(y) t(data.frame(y)))
   if (interactive()) message("...done!")
 
@@ -116,7 +116,7 @@ classify_kmeans <- function(x,
   data_P$.id <- NULL
   data_M$.id <- NULL
 
-  # Filter primitives to improve classification
+  # Filter activation patterns to improve classification
   data_P <- t(apply(data_P, 1, function(y) {
 
     # Build filter
@@ -178,7 +178,7 @@ classify_kmeans <- function(x,
   # Write number of clusters in a simple way
   clust_num_P <- max(clust_P$cluster)
 
-  # Apply k-means to motor modules
+  # Apply k-means to muscle weights
   # Use previously-determined number of clusters
   clust_M <- stats::kmeans(data_M,
     centers = clust_num_P,
@@ -195,7 +195,7 @@ classify_kmeans <- function(x,
 
   clust_num <- clust_num_P
 
-  # Arrange primitive- and module-based clusters in the same order
+  # Arrange activation patterns and muscle weight-based clusters in the same order
   temp_P <- subset(orders, select = -c(clusters_M))
   temp_M <- subset(orders, select = -c(clusters_P))
   # Take average FWHM and CoA based on cluster
@@ -240,8 +240,8 @@ classify_kmeans <- function(x,
     if (length(clust_test) < clust_num) {
       if (interactive()) {
         message(
-          "\nATTENTION: primitive- and module-based classification don't match!",
-          "\nModule-based classification will be discarded!"
+          "\nATTENTION: activation pattern- and muscle weight-based classification don't match!",
+          "\nMuscle weight-based classification will be discarded!"
         )
       }
       orders$clusters_M <- orders$clusters_P
@@ -252,14 +252,14 @@ classify_kmeans <- function(x,
   } else if (all(!duplicated(perms$old)) && any(!duplicated(perms$new))) {
     if (interactive()) {
       message(
-        "\nATTENTION: primitive- and module-based classification don't match!",
-        "\nModule-based classification will be discarded!"
+        "\nATTENTION: activation pattern- and muscle weight-based classification don't match!",
+        "\nMuscle weight-based classification will be discarded!"
       )
     }
     orders$clusters_M <- orders$clusters_P
   }
 
-  # Calculate mean primitives and then order using CoA
+  # Calculate mean activation patterns and then order using CoA
   mean_P <- matrix(0, nrow = clust_num, ncol = points)
   mean_M <- matrix(0, nrow = clust_num, ncol = muscle_num)
   temp_P <- data_P
@@ -340,9 +340,9 @@ classify_kmeans <- function(x,
     )
 
     for (syn in 1:clust_num) {
-      # Plot motor modules
+      # Plot muscle weights
       graphics::barplot(mean_M[syn, ])
-      # Plot motor primitives
+      # Plot activation patterns
       plot(
         x = seq_len(ncol(mean_P)), y = mean_P[syn, ],
         ty = "l", main = paste0("Synergy ", syn),
@@ -412,9 +412,9 @@ classify_kmeans <- function(x,
         )
 
         for (syn in 1:clust_num) {
-          # Plot motor modules
+          # Plot muscle weights
           graphics::barplot(mean_M_temp[syn, ])
-          # Plot motor primitives
+          # Plot activation patterns
           plot(
             x = seq_len(ncol(mean_P_temp)), y = mean_P_temp[syn, ],
             ty = "l", main = paste0("Synergy ", syn),
@@ -429,9 +429,9 @@ classify_kmeans <- function(x,
 
         if (rep == "n" || rep == "no") {
           for (syn in 1:clust_num) {
-            # Plot motor modules
+            # Plot muscle weights
             graphics::barplot(mean_M[syn, ])
-            # Plot motor primitives
+            # Plot activation patterns
             plot(
               x = seq_len(ncol(mean_P)), y = mean_P[syn, ],
               ty = "l", main = paste0("Synergy ", syn),
@@ -476,7 +476,7 @@ classify_kmeans <- function(x,
           P2 <- as.numeric(mean_P[syn, ])
           for (dd in seq_len(length(dupl))) {
             trial_syn <- rownames(trial)[dupl[dd]]
-            # Calculate R2 between each duplicated primitive and the mean
+            # Calculate R2 between each duplicated activation pattern and the mean
             P1 <- as.numeric(data_P[grep(trial_syn, rownames(data_P)), ])
             RSS <- sum((P1 - P2)^2)
             SST <- sum((P1 - mean(P1))^2)

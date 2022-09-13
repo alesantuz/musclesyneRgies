@@ -9,7 +9,7 @@
 #' Higuchi’s fractal dimension values range from 1 to 2, with increasing values correlating to
 #' increasingly complex data and Higuchi’s fractal dimension = 1.5 indicating random
 #' Gaussian noise (Higuchi, 1988; Anmuth et al., 1994; Kesić & Spasić, 2016)
-#' For motor primitives, only the most linear part of the log-log plot should be used,
+#' For locomotor activation patterns, only the most linear part of the log-log plot should be used,
 #' as reported in Santuz, Akay (2020).
 #'
 #' @return
@@ -45,9 +45,9 @@
 #' fractal_dimension <- HFD(flow)$Higuchi
 #' message("Higuchi's fractal dimension: ", round(fractal_dimension, 3))
 #'
-#' # Thirty-cycle locomotor primitive from Santuz & Akay (2020)
-#' data(primitive)
-#' fractal_dimension <- HFD(primitive$signal)$Higuchi
+#' # Thirty-cycle activation pattern from Santuz & Akay (2020)
+#' data(act_pattern)
+#' fractal_dimension <- HFD(act_pattern$signal)$Higuchi
 #' message("Higuchi's fractal dimension: ", round(fractal_dimension, 3))
 HFD <- function(P,
                 k_max = 10) {
