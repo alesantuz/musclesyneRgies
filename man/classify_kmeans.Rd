@@ -4,10 +4,18 @@
 \alias{classify_kmeans}
 \title{Muscle synergy classification with k-means}
 \usage{
-classify_kmeans(x, MSE_lim = 0.001, inspect = FALSE, show_plot = FALSE)
+classify_kmeans(
+  x,
+  clusters = NA,
+  MSE_lim = 0.001,
+  inspect = FALSE,
+  show_plot = FALSE
+)
 }
 \arguments{
 \item{x}{A list of \code{musclesyneRgies} objects}
+
+\item{clusters}{The number of clusters can be specified a priori if needed}
 
 \item{MSE_lim}{Mean squared error threshold for determining the minimum number of clusters}
 

@@ -1,6 +1,7 @@
 #' Muscle synergy classification with k-means
 #'
 #' @param x A list of `musclesyneRgies` objects
+#' @param clusters The number of clusters can be specified a priori if needed
 #' @param MSE_lim Mean squared error threshold for determining the minimum number of clusters
 #' @param inspect Logical, ask for interactive re-ordering or go fully automated?
 #' @param show_plot Logical, to decide whether plots should be plotted in the active graphic device
@@ -40,6 +41,7 @@
 #' # Classify synergies
 #' SYNS_classified <- classify_kmeans(SYNS)
 classify_kmeans <- function(x,
+                            clusters = NA,
                             MSE_lim = 1e-03,
                             inspect = FALSE,
                             show_plot = FALSE) {
@@ -139,44 +141,56 @@ classify_kmeans <- function(x,
   }))
   data_M <- as.matrix(data_M)
 
-  # Determine number of clusters by computing the within-group sum of squares
-  # for an increasing number of clusters and then searching for an elbow in the
-  # clusters vs. withinss curve
-  # nstart is set >1 due to instabilities found (of course this slows down computation)
-  kmeans_all <- list()
-  for (clust in 1:muscle_num) {
-    kmeans_all[[clust]] <- stats::kmeans(data_P,
-      centers = clust,
+  if (is.na(clusters)) {
+    # Determine number of clusters by computing the within-group sum of squares
+    # for an increasing number of clusters and then searching for an elbow in the
+    # clusters vs. withinss curve
+    # nstart is set >1 due to instabilities found (of course this slows down computation)
+    kmeans_all <- list()
+    for (clust in 1:muscle_num) {
+      kmeans_all[[clust]] <- stats::kmeans(
+        data_P,
+        centers = clust,
+        nstart = 20,
+        algorithm = "Hartigan-Wong"
+      )
+    }
+
+    withinss <- unlist(lapply(kmeans_all, function(y) sum(y$withinss)))
+    withinss <- withinss - min(withinss)
+    withinss <- withinss / max(withinss)
+
+    # Find the elbow in the clusters vs. withinss curve
+    MSE <- 100 # Initialise the Mean Squared Error (MSE)
+    iter <- 0 # Initialise iterations
+    while (MSE > MSE_lim) {
+      iter <- iter + 1
+      if (iter == muscle_num - 1) {
+        break
+      }
+      withinss_interp <- data.frame(
+        xx = 1:(muscle_num - iter + 1),
+        yy = withinss[iter:(muscle_num)]
+      )
+
+      linear <- stats::lm(yy ~ xx, withinss_interp)$fitted.values
+      MSE <- sum((linear - withinss_interp$yy)^2) / nrow(withinss_interp)
+    }
+    clust <- iter
+    clust_P <- kmeans_all[[clust]]
+
+    # Write number of clusters in a simple way
+    clust_num_P <- max(clust_P$cluster)
+  } else {
+    # If the user specified the number of clusters a priori
+    clust_P <- stats::kmeans(
+      data_P,
+      centers = clusters,
       nstart = 20,
       algorithm = "Hartigan-Wong"
     )
+    clust_num_P <- clusters
   }
-
-  withinss <- unlist(lapply(kmeans_all, function(y) sum(y$withinss)))
-  withinss <- withinss - min(withinss)
-  withinss <- withinss / max(withinss)
-
-  # Find the elbow in the clusters vs. withinss curve
-  MSE <- 100 # Initialise the Mean Squared Error (MSE)
-  iter <- 0 # Initialise iterations
-  while (MSE > MSE_lim) {
-    iter <- iter + 1
-    if (iter == muscle_num - 1) {
-      break
-    }
-    withinss_interp <- data.frame(
-      xx = 1:(muscle_num - iter + 1),
-      yy = withinss[iter:(muscle_num)]
-    )
-
-    linear <- stats::lm(yy ~ xx, withinss_interp)$fitted.values
-    MSE <- sum((linear - withinss_interp$yy)^2) / nrow(withinss_interp)
-  }
-  clust <- iter
-  clust_P <- kmeans_all[[clust]]
-
-  # Write number of clusters in a simple way
-  clust_num_P <- max(clust_P$cluster)
 
   # Apply k-means to muscle weights
   # Use previously-determined number of clusters
