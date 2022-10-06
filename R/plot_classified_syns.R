@@ -6,6 +6,10 @@
 #' @param dot_size Dot size on muscle weights
 #' @param line_col Line colour
 #' @param sd_col Standard deviation ribbon colour
+#' @param ylim_min_M y-axis lower limit for muscle weights
+#' @param ylim_max_M y-axis upper limit for muscle weights
+#' @param ylim_min_P y-axis lower limit for activation patterns
+#' @param ylim_max_P y-axis upper limit for activation patterns
 #' @param condition Character: the condition that is being analysed, for archiving purposes
 #' @param show_plot Logical, to decide whether plots should be plotted in the active graphic device
 #'
@@ -39,6 +43,10 @@ plot_classified_syns <- function(x,
                                  dot_size = 0.1,
                                  line_col = "black",
                                  sd_col = "grey80",
+                                 ylim_min_M = 0,
+                                 ylim_max_M = 1,
+                                 ylim_min_P = -0.2,
+                                 ylim_max_P = 1.2,
                                  condition = NA,
                                  show_plot = TRUE) {
   if (interactive()) message("\nCreating synergy plots for condition ", condition, "...")
@@ -151,7 +159,7 @@ plot_classified_syns <- function(x,
       data_P <- reshape2::melt(data_P, id = "trial")
 
       temp_M <- ggplot2::ggplot() +
-        ggplot2::ylim(0, 1) +
+        ggplot2::ylim(ylim_min_M, ylim_max_M) +
         ggplot2::geom_bar(
           data = data_M_av,
           ggplot2::aes(x = muscle, y = value),
@@ -187,7 +195,7 @@ plot_classified_syns <- function(x,
         )
 
       temp_P <- ggplot2::ggplot() +
-        ggplot2::ylim(-0.2, 1.2) +
+        ggplot2::ylim(ylim_min_P, ylim_max_P) +
         ggplot2::geom_ribbon(
           data = data_P_sd,
           ggplot2::aes(x = time, ymin = ymin, ymax = ymax),
@@ -228,7 +236,7 @@ plot_classified_syns <- function(x,
       )
 
       temp_M <- ggplot2::ggplot() +
-        ggplot2::ylim(0, 1) +
+        ggplot2::ylim(ylim_min_M, ylim_max_M) +
         ggplot2::geom_bar(
           data = data_M_av,
           ggplot2::aes(x = muscle, y = value),
@@ -257,7 +265,7 @@ plot_classified_syns <- function(x,
         )
 
       temp_P <- ggplot2::ggplot() +
-        ggplot2::ylim(-0.2, 1.2) +
+        ggplot2::ylim(ylim_min_P, ylim_max_P) +
         ggplot2::geom_line(
           data = data_P_av,
           ggplot2::aes(x = time, y = value),
