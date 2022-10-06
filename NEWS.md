@@ -1,3 +1,17 @@
+# musclesyneRgies 1.2.5.9000 (development version)
+### How to install
+```
+install.packages("remotes")
+remotes::install_github("alesantuz/musclesyneRgies")
+```
+### How to use
+README and vignettes are available both on [CRAN](https://CRAN.R-project.org/package=musclesyneRgies) and on [GitHub](https://github.com/alesantuz/musclesyneRgies).
+
+### What's changed
+- Customisable y-axis limits in `plot_classified_syns`
+- Number of clusters can be imposed in `classify_kmeans`
+- Modules and primitives are now called muscle weights and activation patterns, respectively.
+
 # musclesyneRgies 1.2.5
 ### How to install
 ```
