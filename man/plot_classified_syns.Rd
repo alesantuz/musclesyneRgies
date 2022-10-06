@@ -11,6 +11,10 @@ plot_classified_syns(
   dot_size = 0.1,
   line_col = "black",
   sd_col = "grey80",
+  ylim_min_M = 0,
+  ylim_max_M = 1,
+  ylim_min_P = -0.2,
+  ylim_max_P = 1.2,
   condition = NA,
   show_plot = TRUE
 )
@@ -27,6 +31,14 @@ plot_classified_syns(
 \item{line_col}{Line colour}
 
 \item{sd_col}{Standard deviation ribbon colour}
+
+\item{ylim_min_M}{y-axis lower limit for muscle weights}
+
+\item{ylim_max_M}{y-axis upper limit for muscle weights}
+
+\item{ylim_min_P}{y-axis lower limit for activation patterns}
+
+\item{ylim_max_P}{y-axis upper limit for activation patterns}
 
 \item{condition}{Character: the condition that is being analysed, for archiving purposes}
 
