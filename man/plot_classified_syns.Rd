@@ -26,11 +26,11 @@ plot_classified_syns(
 
 \item{line_size}{Line thickness}
 
-\item{dot_size}{Dot size on muscle weights}
+\item{dot_size}{Dot size on muscle weights (NA to remove dots)}
 
 \item{line_col}{Line colour}
 
-\item{sd_col}{Standard deviation ribbon colour}
+\item{sd_col}{Standard deviation ribbon colour (NA to remove ribbon)}
 
 \item{ylim_min_M}{y-axis lower limit for muscle weights}
 
@@ -63,7 +63,8 @@ data(SYNS)
 SYNS_classified <- classify_kmeans(SYNS)
 
 # Save plot of classified synergies
-pp <- plot_classified_syns(SYNS_classified,
+pp <- plot_classified_syns(
+  SYNS_classified,
   dark_mode = TRUE,
   line_col = "tomato1",
   sd_col = "tomato4",

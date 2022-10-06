@@ -3,9 +3,9 @@
 #' @param x List of objects of class `musclesyneRgies` (must be classified)
 #' @param dark_mode To enable dark mode
 #' @param line_size Line thickness
-#' @param dot_size Dot size on muscle weights
+#' @param dot_size Dot size on muscle weights (NA to remove dots)
 #' @param line_col Line colour
-#' @param sd_col Standard deviation ribbon colour
+#' @param sd_col Standard deviation ribbon colour (NA to remove ribbon)
 #' @param ylim_min_M y-axis lower limit for muscle weights
 #' @param ylim_max_M y-axis upper limit for muscle weights
 #' @param ylim_min_P y-axis lower limit for activation patterns
@@ -30,7 +30,8 @@
 #' SYNS_classified <- classify_kmeans(SYNS)
 #'
 #' # Save plot of classified synergies
-#' pp <- plot_classified_syns(SYNS_classified,
+#' pp <- plot_classified_syns(
+#'   SYNS_classified,
 #'   dark_mode = TRUE,
 #'   line_col = "tomato1",
 #'   sd_col = "tomato4",
@@ -167,13 +168,17 @@ plot_classified_syns <- function(x,
           stat = "identity"
         ) +
         ggplot2::scale_x_discrete(limits = data_M_av$muscle) +
-        ggplot2::geom_jitter(
-          data = data_M,
-          colour = line_col,
-          ggplot2::aes(x = variable, y = value),
-          width = dot_size,
-          size = dot_size
-        ) +
+        {
+          if (!is.na(dot_size)) {
+            ggplot2::geom_jitter(
+              data = data_M,
+              colour = line_col,
+              ggplot2::aes(x = variable, y = value),
+              width = dot_size,
+              size = dot_size
+            )
+          }
+        } +
         ggplot2::labs(
           title = paste0("Muscle weights ", syn),
           x = "Muscle",
@@ -196,11 +201,15 @@ plot_classified_syns <- function(x,
 
       temp_P <- ggplot2::ggplot() +
         ggplot2::ylim(ylim_min_P, ylim_max_P) +
-        ggplot2::geom_ribbon(
-          data = data_P_sd,
-          ggplot2::aes(x = time, ymin = ymin, ymax = ymax),
-          fill = sd_col
-        ) +
+        {
+          if (!is.na(sd_col)) {
+            ggplot2::geom_ribbon(
+              data = data_P_sd,
+              ggplot2::aes(x = time, ymin = ymin, ymax = ymax),
+              fill = sd_col
+            )
+          }
+        } +
         ggplot2::geom_line(
           data = data_P_av,
           ggplot2::aes(x = time, y = value),
