@@ -48,7 +48,7 @@ act <- act_pattern$signal
 
 # Calculate the local complexity or Higuchi's fractal dimension (HFD)
 nonlin_HFD <- HFD(act)$Higuchi
-# Calculate the local complexity or Hurst exponent (H)
+# Calculate the global complexity or Hurst exponent (H)
 nonlin_H <- Hurst(act, min_win = max(act_pattern$time))$Hurst
 
 message("Higuchi's fractal dimension: ", round(nonlin_HFD, 3))
