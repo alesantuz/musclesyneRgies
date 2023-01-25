@@ -1,11 +1,3 @@
----
-title:
-output:
-  html_document:
-    keep_md: yes
----
-
-
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.04439/status.svg)](https://doi.org/10.21105/joss.04439)
 [![Twitter Follow](https://img.shields.io/twitter/follow/musclesyneRgies?style=social)](https://twitter.com/musclesyneRgies)
 
