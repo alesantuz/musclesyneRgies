@@ -97,7 +97,7 @@ head(RAW_DATA[[1]]$emg)
 ## 6 -3.524780 -43.807983   6.546021 10.574341  -0.100708   0.302124
 ```
 
-As you might have noticed, column names do not matter for the `cycles` data frame, but they do for `emg`: this is convenient for the subsequent analysis, since you don't want to loose track of which columns refer to which muscle. Also, the first column must always contain time information, in the same format as in the `cycles` data frame (preferably in seconds).
+In this example, cycle times are saved as foot touchdown (first column) and lift-off (second column) times, as the dataset describes locomotion. As you might have noticed, column names do not matter for the `cycles` data frame, but they do for `emg`: this is convenient for the subsequent analysis, since you don't want to loose track of which columns refer to which muscle. Also, the first column must always contain time information, in the same format as in the `cycles` data frame (preferably in seconds).
 
 If you feel like this is too convoluted or you prefer to work directly with ASCII files such as tab-separated txt or comma-separated csv, you can proceed as follows:
 
