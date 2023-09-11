@@ -5,7 +5,7 @@ Thank you for taking the time to read this. We are always happy of receiving con
 Bugs are tracked as [GitHub issues](https://guides.github.com/features/issues/). Whenever you report an issue, please make sure to:
 - Use a concise and descriptive title
 - Report the OS you tested the code on and its version, obtainable through the function Sys.info()["sysname"], Sys.info()["release"] and Sys.info()["version"]
-- Report the R version obtainable through the function R.version()
+- Report the R version obtainable through the function R.Version()
 - Report whether the code ran successfully on the test data, see for instance a test routine in the [README](https://github.com/alesantuz/musclesyneRgies/blob/master/README.md).
 
 ## Contributing with code
