@@ -7,7 +7,7 @@
 CoA(x)
 }
 \arguments{
-\item{x}{A time series  (numeric)}
+\item{x}{A time series (numeric)}
 }
 \value{
 The centre of activity of the time series, calculated with

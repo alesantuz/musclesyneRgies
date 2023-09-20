@@ -1,6 +1,6 @@
 #' Centre of activity
 #'
-#' @param x A time series  (numeric)
+#' @param x A time series (numeric)
 #'
 #' @return The centre of activity of the time series, calculated with
 #' circular statistics
