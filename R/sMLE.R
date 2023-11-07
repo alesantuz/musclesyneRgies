@@ -89,19 +89,22 @@ sMLE <- function(synergies, mean_period, future_pts, norm, pts, R2_threshold = 0
   }
 
   # Calculate distances (and their divergence) between neighbouring trajectories
-  dist_logs <- matrix(NA, length(neighbours), future_pts)
-  for (tt in seq_len(length(neighbours))) {
-    # Identify the two (initially) neighbouring trajectories
-    traj2 <- as.matrix(P[neighbours[tt]:(neighbours[tt] + future_pts - 1), ])
-    traj1 <- as.matrix(P[tt:(tt + future_pts - 1), ])
-
+  dist_logs <- sapply(seq_along(neighbours), function(nn) {
     # This is around 100 times faster than a for loop
     # See how it works here: https://goo.gl/iDGgP3
-    dists <- proxy::dist(traj1, traj2, pairwise = TRUE)
+    logs <- proxy::dist(
+      # Neighbouring trajectory
+      x = P[neighbours[nn]:(neighbours[nn] + future_pts - 1), ],
+      # Reference trajectory
+      y = P[nn:(nn + future_pts - 1), ],
+      pairwise = TRUE
+    ) |>
+      log()
 
-    # Calculate the natural logarithm of the distances
-    dist_logs[tt, ] <- log(dists)
-  }
+    return(logs)
+  }) |>
+    t()
+
   dist_logs[dist_logs == -Inf] <- NA
   dist_logs_av <- apply(dist_logs, 2, function(x) mean(x, na.rm = TRUE))
 
