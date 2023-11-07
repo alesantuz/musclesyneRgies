@@ -61,10 +61,9 @@ sMLE <- function(synergies, mean_period, future_pts, norm, pts, R2_threshold = 0
 
   # Normalise time series
   if (norm == "u") {
-    # Subtract the minimum
-    P <- apply(P, 2, function(x) x - min(x))
-    # Amplitude normalisation to the maximum of the trial
-    P <- apply(P, 2, function(x) x / max(x))
+    # Subtract the minimum and normalise the amplitude to the maximum value
+    P <- apply(P, 2, function(x) x - min(x)) |>
+      apply(2, function(x) x / max(x))
   } else if (norm == "z") {
     # Subtract the mean and divide by the standard deviation
     P <- apply(P, 2, function(x) (x - mean(x)) / stats::sd(x))
@@ -72,20 +71,23 @@ sMLE <- function(synergies, mean_period, future_pts, norm, pts, R2_threshold = 0
 
   # Nearest neighbour location
   # This method is around 1000 times faster than for loops with 3D data of around 6000 rows
-  upper_limit <- nrow(P) - future_pts
   # For activation patterns with cycles of 200 data points, the maximum number of NN to search (k)
   # can be 50 but ideally not less (in case of 200-point cycles, 100 can be a good choice)
-  temp <- FNN::get.knn(P[1:upper_limit, ], k = mean_period)$nn.index
-  neighbours <- numeric()
+  upper_limit <- nrow(P) - future_pts
+  nearest_n <- FNN::get.knn(
+    data = P[1:(nrow(P) - future_pts), ],
+    k = mean_period
+  )$nn.index
 
-  for (rr in seq_len(nrow(temp))) {
+  neighbours <- numeric()
+  for (rr in seq_len(nrow(nearest_n))) {
     test_sup <- rr + mean_period
     test_inf <- rr - mean_period
     if (test_inf <= 0) test_inf <- 1
-    temp_sup <- which(temp[rr, ] > test_sup)[1]
-    temp_inf <- which(temp[rr, ] < test_inf)[1]
+    temp_sup <- which(nearest_n[rr, ] > test_sup)[1]
+    temp_inf <- which(nearest_n[rr, ] < test_inf)[1]
 
-    neighbours[rr] <- temp[rr, min(temp_sup, temp_inf, na.rm = TRUE)]
+    neighbours[rr] <- nearest_n[rr, min(temp_sup, temp_inf, na.rm = TRUE)]
   }
 
   # Calculate distances (and their divergence) between neighbouring trajectories
