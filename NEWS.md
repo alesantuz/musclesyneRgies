@@ -9,6 +9,8 @@ README and vignettes are available both on [CRAN](https://CRAN.R-project.org/pac
 
 ### What's changed
 - Faster `sMLE` function.
+- Faster `CoA` function
+- Improved l2-norm in function `synsNMF`.
 
 # musclesyneRgies 1.2.5.9001 (development version)
 ### How to install
