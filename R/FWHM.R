@@ -30,11 +30,9 @@
 #' lines(hm_plot, lwd = 3, col = 2)
 FWHM <- function(x, sub_minimum = TRUE) {
   if (sub_minimum) {
-    # Subtract minimum
     x <- x - min(x)
   }
 
-  # Normalise to maximum
   x <- x / max(x)
 
   return(length(which(x > 0.5)))
