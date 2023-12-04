@@ -112,6 +112,7 @@ synsNMF <- function(V,
       # See Févotte, C., Idier, J. (2011)
       l2_norms <- apply(M, 2, function(nn) sqrt(sum(nn^2)))
       M <- sweep(M, 2, l2_norms, FUN = "/")
+      P <- sweep(P, 1, l2_norms, FUN = "*")
 
       # Start iterations for NMF convergence
       for (iter in 2:max_iter) {
@@ -123,6 +124,7 @@ synsNMF <- function(V,
         # l2-norm normalisation
         l2_norms <- apply(M, 2, function(nn) sqrt(sum(nn^2)))
         M <- sweep(M, 2, l2_norms, FUN = "/")
+        P <- sweep(P, 1, l2_norms, FUN = "*")
 
         # Check if the increase of R2 in the last "last_iter" iterations
         # is less than the target
