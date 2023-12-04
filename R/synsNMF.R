@@ -110,12 +110,8 @@ synsNMF <- function(V,
 
       # l2-norm normalisation which eliminates trivial scale indeterminacies
       # See Févotte, C., Idier, J. (2011)
-      # The cost function doesn't change. Impose ||M||2=1 and normalise P accordingly.
-      # ||M||2, also called L2,1 norm or l2-norm, is a sum of Euclidean norm of columns.
-      l2_norms_M <- apply(M, 2, function(nn) sqrt(sum(nn^2)))
-      l2_norms_P <- apply(P, 1, function(nn) sqrt(sum(nn^2)))
-      M <- sweep(M, 2, l2_norms_M, FUN = "/")
-      P <- sweep(P, 1, l2_norms_P, FUN = "/")
+      l2_norms <- apply(M, 2, function(nn) sqrt(sum(nn^2)))
+      M <- sweep(M, 2, l2_norms, FUN = "/")
 
       # Start iterations for NMF convergence
       for (iter in 2:max_iter) {
@@ -125,10 +121,8 @@ synsNMF <- function(V,
         R2[iter] <- 1 - (sum((V - Vr)^2) / sum((V - mean(V))^2))
 
         # l2-norm normalisation
-        l2_norms_M <- apply(M, 2, function(nn) sqrt(sum(nn^2)))
-        l2_norms_P <- apply(P, 1, function(nn) sqrt(sum(nn^2)))
-        M <- sweep(M, 2, l2_norms_M, FUN = "/")
-        P <- sweep(P, 1, l2_norms_P, FUN = "/")
+        l2_norms <- apply(M, 2, function(nn) sqrt(sum(nn^2)))
+        M <- sweep(M, 2, l2_norms, FUN = "/")
 
         # Check if the increase of R2 in the last "last_iter" iterations
         # is less than the target

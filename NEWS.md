@@ -1,3 +1,15 @@
+# musclesyneRgies 1.2.5.9003 (development version)
+### How to install
+```
+install.packages("remotes")
+remotes::install_github("alesantuz/musclesyneRgies")
+```
+### How to use
+README and vignettes are available both on [CRAN](https://CRAN.R-project.org/package=musclesyneRgies) and on [GitHub](https://github.com/alesantuz/musclesyneRgies).
+
+### What's changed
+- Faster `synsNMF` function, l2-norm is applied only to weights M.
+
 # musclesyneRgies 1.2.5.9002 (development version)
 ### How to install
 ```
