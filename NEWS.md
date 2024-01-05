@@ -1,3 +1,16 @@
+# musclesyneRgies 1.2.5.9006 (development version)
+### How to install
+```
+install.packages("remotes")
+remotes::install_github("alesantuz/musclesyneRgies")
+```
+### How to use
+README and vignettes are available both on [CRAN](https://CRAN.R-project.org/package=musclesyneRgies) and on [GitHub](https://github.com/alesantuz/musclesyneRgies).
+
+### What's changed
+- Performance improvement in function `classify_kmeans`
+- Use of previously unused variable in function `sMLE`.
+
 # musclesyneRgies 1.2.5.9005 (development version)
 ### How to install
 ```

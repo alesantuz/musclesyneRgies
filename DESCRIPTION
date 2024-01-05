@@ -1,6 +1,6 @@
 Package: musclesyneRgies
 Title: Extract Muscle Synergies from Electromyography
-Version: 1.2.5.9005
+Version: 1.2.5.9006
 Authors@R: 
     person("Alessandro", "Santuz", , "alessandro.santuz@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-6577-5101"))
