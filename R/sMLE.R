@@ -75,7 +75,7 @@ sMLE <- function(synergies, mean_period, future_pts, norm, pts, R2_threshold = 0
   # can be 50 but ideally not less (in case of 200-point cycles, 100 can be a good choice)
   upper_limit <- nrow(P) - future_pts
   nearest_n <- FNN::get.knn(
-    data = P[1:(nrow(P) - future_pts), ],
+    data = P[1:upper_limit, ],
     k = mean_period
   )$nn.index
 
