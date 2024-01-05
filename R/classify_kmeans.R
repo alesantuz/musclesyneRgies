@@ -156,7 +156,7 @@ classify_kmeans <- function(x,
       )
     }
 
-    withinss <- unlist(lapply(kmeans_all, function(y) sum(y$withinss)))
+    withinss <- vapply(kmeans_all, function(y) sum(y$withinss), FUN.VALUE = numeric(1))
     withinss <- withinss - min(withinss)
     withinss <- withinss / max(withinss)
 
