@@ -40,7 +40,7 @@ subsetEMG <- function(x,
                       cy_max,
                       cy_start = 1) {
   if (!inherits(x, "EMG")) {
-    stop("Object is not of class EMG, please create objects in the right format with \"rawdata\"")
+    stop("Object is not of class EMG, please create objects in correct format with \"rawdata\"")
   } else {
     cycles <- data.frame(x$cycles)
     x <- x$emg
