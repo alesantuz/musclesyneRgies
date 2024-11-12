@@ -111,7 +111,7 @@ filtEMG <- function(x,
 
   FILT_EMG <- list(
     cycles = cycles,
-    emg = cbind(time, x)
+    emg = data.frame(time, x)
   )
 
   class(FILT_EMG) <- "EMG"
