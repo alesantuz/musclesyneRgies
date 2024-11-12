@@ -1,3 +1,15 @@
+# musclesyneRgies 1.2.5.9007 (development version)
+### How to install
+```
+install.packages("remotes")
+remotes::install_github("alesantuz/musclesyneRgies")
+```
+### How to use
+README and vignettes are available both on [CRAN](https://CRAN.R-project.org/package=musclesyneRgies) and on [GitHub](https://github.com/alesantuz/musclesyneRgies).
+
+### What's changed
+- Improved robustness of function `filtEMG`.
+
 # musclesyneRgies 1.2.5.9006 (development version)
 ### How to install
 ```
