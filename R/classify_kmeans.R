@@ -106,8 +106,17 @@ classify_kmeans <- function(x,
   syn0 <- which(!duplicated(trials))
   trials <- make.unique(trials)
   trials[syn0] <- paste0(trials[syn0], "_Syn0")
-  # Assign incremental Syn number to other names
-  trials <- gsub("\\.", "_Syn", trials)
+  # Assign incremental Syn number to other names.
+  # The following is written like that to consider trial names
+  # that might contain dots. The Perl-style positive lookahead
+  # ensures that the dot is followed by zero or more characters
+  # that are not dots ([^.]), all the way to the end of the string ($).
+  # The conditional element excludes trials ending with "_Syn0".
+  trials <- ifelse(
+    grepl("_Syn0$", trials),
+    trials,
+    gsub("\\.(?=[^.]*$)", "_Syn", trials, perl = TRUE)
+  )
   # Start from Syn1 instead that from Syn0
   temp1 <- gsub("[0-9]$", "", trials)
   temp2 <- as.numeric(gsub(".*_Syn", "", trials)) + 1
