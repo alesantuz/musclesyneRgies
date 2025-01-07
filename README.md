@@ -1,5 +1,5 @@
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.04439/status.svg)](https://doi.org/10.21105/joss.04439)
-[![Twitter Follow](https://img.shields.io/twitter/follow/musclesyneRgies?style=social)](https://twitter.com/musclesyneRgies)
+[![Bluesky](https://img.shields.io/badge/Bluesky-0285FF?style=for-the-badge&logo=Bluesky&logoColor=white)](https://bsky.app/profile/musclesynergies.bsky.social)
 
 # musclesyneRgies
 ![](./images/musclesyneRgies_logo.png)
@@ -10,7 +10,7 @@ If you use this R package, please cite [Santuz, 2022](https://joss.theoj.org/pap
 
 ## Installation
 - [Download R](https://cran.r-project.org/mirrors.html) and install (please have R >= `4.1.0`)
-- [Download RStudio](https://www.rstudio.com/products/rstudio/download/) and install
+- [Download RStudio](https://posit.co/download/rstudio-desktop/) and install
 - Open RStudio and install the package with `install.packages("musclesyneRgies")`.
 
 Done! Now the package is installed on your computer.
