@@ -4,14 +4,18 @@
 \alias{CoA}
 \title{Centre of activity}
 \usage{
-CoA(x)
+CoA(x, tol_rel = 1e-06)
 }
 \arguments{
-\item{x}{A time series (numeric)}
+\item{x}{A numeric time series of length n (samples represent bin centres at 1..n).}
+
+\item{tol_rel}{Relative tolerance (0–1). If the mean resultant length
+is less than this value, the CoA is considered undefined and \code{NA} is returned.
+Default is 1e-6.}
 }
 \value{
 The centre of activity of the time series, calculated with
-circular statistics
+circular statistics: a numeric scalar in (0, n] giving the centre of activity on the 1..n axis.
 }
 \description{
 Centre of activity
