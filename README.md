@@ -1,37 +1,45 @@
+---
+title:
+output:
+  html_document:
+    keep_md: yes
+---
+
+
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.04439/status.svg)](https://doi.org/10.21105/joss.04439)
 [![Bluesky](https://img.shields.io/badge/Bluesky-0285FF?style=for-the-badge&logo=Bluesky&logoColor=white)](https://bsky.app/profile/musclesynergies.bsky.social)
 
 # musclesyneRgies
 ![](./images/musclesyneRgies_logo.png)
 
-The package `musclesyneRgies` allows to extract muscle synergies from electromyographic (EMG) data through linear decomposition based on unsupervised machine learning. Specifically, here we adopted the non-negative matrix factorization (NMF) framework, due to the non-negative nature of EMG biosignals. However, this method can be applied to any other kind of data sets, from time series to images.
-Muscle synergies are orchestrated activations of functionally-similar muscle groups. The theory stems from original thoughts by the neurophysiologist Nikolai Bernstein and it suggests that the central nervous system might take advantage of such a strategy to simplify the production and control of movement. Instead of commanding each muscle individually for executing a particular task, the central nervous system might send common (but individually weighted) commands to several muscles at the same time. An idea that can be modelled by linear decomposition algorithms such as NMF, the output of which consists of a set of time-independent (also called muscle weights) and a set of time dependent coefficients (also called activation patterns).
+The `musclesyneRgies` package enables the extraction of muscle synergies from electromyographic (EMG) data via a linear decomposition approach based on unsupervised machine learning. Specifically, we adopted the non-negative matrix factorisation (NMF) framework due to the non-negative nature of EMG biosignals. However, this method can be applied to any kind of dataset, from time series to images.
+Muscle synergies are orchestrated activations of functionally similar muscle groups. This theory stems from the work of the neurophysiologist Nikolai Bernstein, who suggested that the central nervous system might use such a strategy to simplify the production and control of movement. Rather than commanding each muscle individually to execute a particular task, the central nervous system may send common (but individually weighted) commands to several muscles simultaneously. This idea can be modelled using linear decomposition algorithms such as NMF. The output consists of two sets: one of time-independent coefficients (also called muscle weights), and one of time-dependent coefficients (also called activation patterns).
 If you use this R package, please cite [Santuz, 2022](https://joss.theoj.org/papers/10.21105/joss.04439).
 
 ## Installation
 - [Download R](https://cran.r-project.org/mirrors.html) and install (please have R >= `4.1.0`)
-- [Download RStudio](https://posit.co/download/rstudio-desktop/) and install
+- [Download RStudio](https://docs.posit.co/ide/user/#rstudio-ide-oss-downloads) and install
 - Open RStudio and install the package with `install.packages("musclesyneRgies")`.
 
-Done! Now the package is installed on your computer.
+Done! The package is now installed on your computer.
 
 ## What this package does:
-- Help you to prepare the raw data sets in the correct format
-- Filter and normalise raw EMG
-- Extract muscle synergies
-- Classify the extracted muscle synergies
-- Analyse muscle synergies with linear and nonlinear metrics
-- Plot any data set involved in the process
-- All the above tweakable, but with sensible defaults.
+- helps you prepare raw data sets in the correct format
+- filters and normalises raw EMG
+- extract muscle synergies
+- classifies the extracted muscle synergies
+- analyse muscle synergies using linear and nonlinear metrics
+- plot any dataset involved in the process.
+All of the above can be tweaked, but sensible defaults are provided, which are particularly useful for locomotion datasets.
 
 ## What this package does not do:
-- Run the statistics for you
-- All that is not specified in the list above.
+- run the statistics for you
+- anything not specified in the list above.
 
 ## A simple workflow
-The most simplified workflow for synergy extraction could look as follows (please note that the next chunk of code does not refer to real data and is only intended as a mock example to help you write your own scripts).
+The simplest workflow for synergy extraction could look as follows. Please note that the next chunk of code does not refer to real data and is only intended to help you write your own scripts.
 
-```r
+``` r
 # The simplest formulation, using the native (R >= `4.1.0`) pipe operator
 # Here, the raw data set is already in the correct format and named `RAW_DATA`
 SYNS_classified <- lapply(RAW_DATA, filtEMG) |>
@@ -39,10 +47,10 @@ SYNS_classified <- lapply(RAW_DATA, filtEMG) |>
   lapply(synsNMF) |>
   classify_kmeans()
 ```
-Compact, isn't it? You can of course tweak and tune all the above to fit your scientific needs and more is explained below and in the [vignettes](https://github.com/alesantuz/musclesyneRgies/tree/master/vignettes).
-To try the above code with real data, it is possible to download the test data set from Zenodo as follows:
+You can, of course, tweak and tune all of the above to suit your scientific requirements, and further information can be found below and in the [vignettes](https://github.com/alesantuz/musclesyneRgies/tree/master/vignettes).
+To try out the above code with real data, you can download the test dataset from Zenodo:
 
-```r
+``` r
 # Download test data set containing EMG from human locomotion
 url <- "https://zenodo.org/record/6645483/files/RAW_DATA.RData"
 download.file(url, destfile = "RAW_DATA.RData", mode = "wb")
@@ -52,15 +60,15 @@ load("RAW_DATA.RData")
 RAW_DATA <- RAW_DATA[grep("_TW_", names(RAW_DATA))]
 ```
 
-## How to prepare your data set
-The data set must be in a specific format to fit the analysis framework. However, if you worked with versions <= `0.8.7-alpha` you will find that requirements are now much less stringent, to the benefit of usability. What you need (see also `?rawdata`) is a list of objects of class `EMG`, each of which is a list with two elements:
+## How to prepare your dataset
+Your dataset must be in a specific format to fit the analysis framework. However, if you have worked with versions <= `0.8.7-alpha`, you will find that the requirements are now much less stringent for the sake of usability. What you need (see also `?rawdata`) is a list of objects of class 'EMG', each of which is a list containing two elements:
 
-- `cycles` data frame containing cycle timings, with as many columns as many cycle subdivisions are wanted
-- `emg` data frame containing raw EMG data in columns, first column must be time in the same units as in the cycle timings.
+- a 'cycles' data frame containing cycle timings with as many columns as there are cycle subdivisions
+- an 'emg' data frame containing raw EMG data in columns; the first column must contain time in the same units as the cycle timings.
 
-Here is an example of how those two elements should look like:
+Here is an example of what these two elements should look like:
 
-```r
+``` r
 library(musclesyneRgies)
 data("RAW_DATA")
 head(RAW_DATA[[1]]$cycles)
@@ -76,7 +84,7 @@ head(RAW_DATA[[1]]$cycles)
 ## 6 6.596 7.249
 ```
 
-```r
+``` r
 head(RAW_DATA[[1]]$emg)
 ```
 
@@ -97,17 +105,17 @@ head(RAW_DATA[[1]]$emg)
 ## 6 -3.524780 -43.807983   6.546021 10.574341  -0.100708   0.302124
 ```
 
-In this example, cycle times are saved as foot touchdown (first column) and lift-off (second column) times, as the dataset describes locomotion. As you might have noticed, column names do not matter for the `cycles` data frame, but they do for `emg`: this is convenient for the subsequent analysis, since you don't want to loose track of which columns refer to which muscle. Also, the first column must always contain time information, in the same format as in the `cycles` data frame (preferably in seconds).
 
-If you feel like this is too convoluted or you prefer to work directly with ASCII files such as tab-separated txt or comma-separated csv, you can proceed as follows:
+In this example, cycle times are recorded as foot touchdown times (first column) and lift-off times (second column), as the dataset describes locomotion. As you may have noticed, the order of the column names does not matter for the 'cycles' data frame, but it does matter for 'emg': this is useful for subsequent analysis, as it helps to avoid confusion over which columns refer to which muscle. Also, the first column must always contain time information in the same format as in the 'cycles' data frame (ideally in seconds).
 
-- Put your cycle-timings and raw emg ASCII files in two separate folders; please note that the file names **must** be the same (ideally containing the trial codes but this is up to you)
-- Run the function `rawdata` which will ask you where your files are and will build the R list in the correct format for you.
+If you find this too complicated or would prefer to work directly with ASCII files, such as tab-separated TXT or comma-separated CSV, you can proceed as follows:
 
-Here is an example of how to use the function `rawdata`, no data is needed since the code uses the package's built-in data set to create ASCII files that will then be re-imported through the function:
+- put your cycle timings and raw EMG ASCII files in two separate folders; please note that the file names **must** be the same (ideally containing the trial codes, but this is up to you)
+- run the function 'rawdata', which will prompt you for the location of your files and build the R list in the correct format.
 
+Below is an example of how to use the function 'rawdata'. No data is required, as the code uses the package's built-in dataset to create ASCII files that will then be reimported through the function.
 
-```r
+``` r
 # Load the package
 library(musclesyneRgies)
 
@@ -150,7 +158,7 @@ unlink("emg", recursive = TRUE)
 ## Workflow example
 All the code in this section will work as in the example if you copy and paste it in R or RStudio.
 
-```r
+``` r
 # Load the package
 library(musclesyneRgies)
 
@@ -180,9 +188,20 @@ pp <- plot_rawEMG(RAW_DATA[[1]],
 )
 ```
 
+```
+## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+## ℹ Please use `linewidth` instead.
+## ℹ The deprecated feature was likely used in the musclesyneRgies package.
+##   Please report the issue at
+##   <https://github.com/alesantuz/musclesyneRgies/issues>.
+## This warning is displayed once per session.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.
+```
+
 ![](README_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
-```r
+``` r
 # The raw EMG data set then needs to be filtered
 # If you don't want to subset the data set, just filter it as it is
 # Here we filter the whole data set with the default parameters for locomotion:
@@ -256,7 +275,7 @@ pp <- plot_meanEMG(
 
 ![](README_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
-```r
+``` r
 # At this stage, synergies can be extracted
 # This is the core function to extract synergies via NMF
 SYNS <- lapply(norm_EMG, synsNMF)
@@ -275,7 +294,7 @@ pp <- plot_syn_trials(
 
 ![](README_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
-```r
+``` r
 # Now synergies don't have a functional order and need classification
 # Let's load the built-in data set to have some more trial to classify
 # (clustering cannot be done on only one trial and having just a few,
@@ -289,7 +308,7 @@ data("SYNS")
 SYNS_classified <- classify_kmeans(SYNS)
 ```
 
-```r
+``` r
 # Classified synergies can be finally plotted with
 pp <- plot_classified_syns(
   SYNS_classified,
@@ -302,7 +321,7 @@ pp <- plot_classified_syns(
 
 ![](README_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
-```r
+``` r
 # A 2D UMAP plot of the classified synergies can be obtained with
 pp <- plot_classified_syns_UMAP(
   SYNS_classified,
@@ -312,7 +331,7 @@ pp <- plot_classified_syns_UMAP(
 
 ![](README_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
 
-```r
+``` r
 # From now on, it's all about the analysis
 # For example, one can measure the full width at half maximum (FWHM)
 # of the activation patterns or their centre of activity (CoA)
@@ -341,7 +360,7 @@ graphics::abline(v = act_sub_CoA, lwd = 3, col = 4) # CoA (vertical, in blue)
 
 ![](README_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
-```r
+``` r
 # Or perhaps one might want to investigate the nonlinear behaviour of a long activation pattern
 act <- act_pattern$signal
 
@@ -357,7 +376,7 @@ message("Higuchi's fractal dimension: ", round(nonlin_HFD, 3))
 ## Higuchi's fractal dimension: 1.047
 ```
 
-```r
+``` r
 message("Hurst exponent: ", round(nonlin_H, 3))
 ```
 
@@ -365,4 +384,4 @@ message("Hurst exponent: ", round(nonlin_H, 3))
 ## Hurst exponent: 0.338
 ```
 ## How to contribute to `musclesyneRgies`
-Thank you for taking the time to read this. Please refer to the [CONTRIBUTING](https://github.com/alesantuz/musclesyneRgies/blob/master/CONTRIBUTING.md) section for a guide on how to contribute to this package.
+Thank you for taking the time to read this. Please refer to the [CONTRIBUTING](https://github.com/alesantuz/musclesyneRgies/blob/master/CONTRIBUTING.md) section for guidance on contributing to this package.
