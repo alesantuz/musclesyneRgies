@@ -1,11 +1,3 @@
----
-title:
-output:
-  html_document:
-    keep_md: yes
----
-
-
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.04439/status.svg)](https://doi.org/10.21105/joss.04439)
 [![Bluesky](https://img.shields.io/badge/Bluesky-0285FF?style=for-the-badge&logo=Bluesky&logoColor=white)](https://bsky.app/profile/musclesynergies.bsky.social)
 
@@ -385,3 +377,7 @@ message("Hurst exponent: ", round(nonlin_H, 3))
 ```
 ## How to contribute to `musclesyneRgies`
 Thank you for taking the time to read this. Please refer to the [CONTRIBUTING](https://github.com/alesantuz/musclesyneRgies/blob/master/CONTRIBUTING.md) section for guidance on contributing to this package.
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/alesantuz/musclesyneRgies/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/alesantuz/musclesyneRgies/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
