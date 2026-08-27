@@ -78,9 +78,9 @@ Last but not least, classified synergies from all trials can be put into a singl
 data("SYNS")
 
 # Classify with k-means
-# A plot of FWHM vs. CoA of the classified synergies appears by default
+# A plot of FWHM vs. CoA of the classified synergies can be called with `show_plot = TRUE`
 # This should help the user to identify potential malfunctions in the clustering
-SYNS_classified <- classify_kmeans(SYNS)
+SYNS_classified <- classify_kmeans(SYNS, show_plot = TRUE)
 ```
 ```{r, message = FALSE, results = "hide", fig.width = 6, fig.asp = 1}
 # Classified synergies can be finally plotted with

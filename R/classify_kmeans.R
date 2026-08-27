@@ -9,7 +9,7 @@
 #' @details
 #' This function must be applied to a list with a sufficient amount of trials, otherwise the
 #' classification will not work. Typically, at least 10 trials for the same condition are needed
-#' for satisfactory classification. If `show_plot` is TRUE (default) plots are also shown in the
+#' for satisfactory classification. If `show_plot` is TRUE plots are also shown in the
 #' active graphic device.
 #' Plots can then be saved with the preferred export method, such as `ggplot2::ggsave`.
 #' The algorithm used is the default for stats::kmeans (Hartigan and Wong, 1979), which is known
