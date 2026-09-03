@@ -1,3 +1,11 @@
+---
+title:
+output:
+  html_document:
+    keep_md: yes
+---
+
+
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.04439/status.svg)](https://doi.org/10.21105/joss.04439)
 [![Bluesky](https://img.shields.io/badge/Bluesky-0285FF?style=for-the-badge&logo=Bluesky&logoColor=white)](https://bsky.app/profile/musclesynergies.bsky.social)
 
@@ -331,23 +339,69 @@ pp <- plot_classified_syns_UMAP(
 data("act_pattern")
 
 # Reduce activation pattern to the first cycle
-act_sub <- act_pattern$signal[1:which(act_pattern$time == max(act_pattern$time))[1]]
+act_sub <- act_pattern$signal[
+  1:which(act_pattern$time == max(act_pattern$time))[1]
+]
 
-# Calculate FWHM of the first cycle
+# Calculate FWHM and CoA
 act_sub_FWHM <- FWHM(act_sub)
-# Calculate CoA of the first cycle
 act_sub_CoA <- CoA(act_sub)
 
-# Half maximum (for the plots)
-hm <- min(act_sub) + (max(act_sub) - min(act_sub)) / 2
-hm_plot <- act_sub
-hm_plot[which(hm_plot > hm)] <- hm
-hm_plot[which(hm_plot < hm)] <- NA
+# Express results relative to the cycle
+n <- length(act_sub)
+cycle <- 100 * (seq_len(n) - 1) / n
 
-# Plots
-plot(act_sub, ty = "l", xlab = "Time", ylab = "Amplitude")
-lines(hm_plot, lwd = 3, col = 2) # FWHM (horizontal, in red)
-graphics::abline(v = act_sub_CoA, lwd = 3, col = 4) # CoA (vertical, in blue)
+FWHM_percent <- 100 * act_sub_FWHM / n
+CoA_percent <- 100 * (act_sub_CoA - 1) / n
+
+# Half-maximum threshold
+hm <- min(act_sub) + (max(act_sub) - min(act_sub)) / 2
+
+# Keep the half-maximum line only where activation is above threshold
+hm_plot <- rep(NA_real_, n)
+hm_plot[act_sub > hm] <- hm
+
+# Plot activation pattern
+plot(
+  cycle,
+  act_sub,
+  type = "l",
+  xlab = "Cycle (%)",
+  ylab = "Amplitude",
+  xlim = c(0, 100)
+)
+
+# FWHM: portions above half maximum
+lines(
+  cycle,
+  hm_plot,
+  lwd = 3,
+  col = "red"
+)
+
+# CoA
+graphics::abline(
+  v = CoA_percent,
+  lwd = 2,
+  col = "blue"
+)
+
+# Labels
+text(
+  64,
+  max(act_sub) * 0.95,
+  paste0("FWHM = ", round(FWHM_percent, 1), "%"),
+  adj = 0,
+  col = "red"
+)
+
+text(
+  64,
+  max(act_sub) * 0.85,
+  paste0("CoA = ", round(CoA_percent, 1), "%"),
+  adj = 0,
+  col = "blue"
+)
 ```
 
 ![](README_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
