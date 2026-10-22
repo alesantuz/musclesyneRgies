@@ -24,7 +24,8 @@
 #' @return
 #' List of `musclesyneRgies` objects, each with elements:\cr
 #' - `syns` factorisation rank or minimum number of synergies\cr
-#' - `M` muscle weights (time-invariant coefficients)\cr
+#' - `W` muscle weights (time-invariant coefficients)\cr
+#' - `M` deprecated alias for `W`, retained for backward compatibility\cr
 #' - `P` activation patterns (time-dependent coefficients)\cr
 #' - `V` original data\cr
 #' - `Vr` reconstructed data\cr
@@ -45,10 +46,10 @@ classify_kmeans <- function(x,
                             MSE_lim = 1e-03,
                             inspect = FALSE,
                             show_plot = FALSE) {
-  FWHM_P <- CoA_P <- clusters_M <- clusters_P <- NULL
+  FWHM_P <- CoA_P <- clusters_W <- clusters_P <- NULL
 
   # Get muscle weights and concatenated activation patterns
-  M <- lapply(x, function(y) y$M)
+  W <- lapply(x, .get_W)
   P <- lapply(x, function(y) y$P)
 
   # Make sure that all activation patterns are normalised to the same amount of points
@@ -64,7 +65,7 @@ classify_kmeans <- function(x,
   }
 
   # Find number of muscles
-  muscle_num <- unique(unlist(lapply(M, function(y) nrow(y))))
+  muscle_num <- unique(unlist(lapply(W, function(y) nrow(y))))
   if (length(muscle_num) != 1) {
     stop("Not all trials have the same number of muscles!!!")
   }
@@ -95,10 +96,10 @@ classify_kmeans <- function(x,
   if (interactive()) message("...done!")
 
   if (interactive()) message("\nPutting muscle weights into a single data frame...")
-  data_M <- plyr::ldply(M, function(y) t(data.frame(y)))
+  data_W <- plyr::ldply(W, function(y) t(data.frame(y)))
   if (interactive()) message("...done!")
 
-  trials <- data_M$.id
+  trials <- data_W$.id
 
   # Give names to trials (start from synergy zero because
   # the function "make.unique" works like that)
@@ -123,13 +124,12 @@ classify_kmeans <- function(x,
   trials <- paste0(temp1, temp2)
   # Assign new names to row names and remove id column
   rownames(data_P) <- trials
-  rownames(data_M) <- trials
+  rownames(data_W) <- trials
   data_P$.id <- NULL
-  data_M$.id <- NULL
+  data_W$.id <- NULL
 
   # Filter activation patterns to improve classification
   data_P <- t(apply(data_P, 1, function(y) {
-
     # Build filter
     LP <- signal::butter(4, 10 / (points / 2), type = "low")
     # Apply filter
@@ -148,7 +148,7 @@ classify_kmeans <- function(x,
 
     return(y)
   }))
-  data_M <- as.matrix(data_M)
+  data_W <- as.matrix(data_W)
 
   if (is.na(clusters)) {
     # Determine number of clusters by computing the within-group sum of squares
@@ -203,7 +203,7 @@ classify_kmeans <- function(x,
 
   # Apply k-means to muscle weights
   # Use previously-determined number of clusters
-  clust_M <- stats::kmeans(data_M,
+  clust_W <- stats::kmeans(data_W,
     centers = clust_num_P,
     nstart = 20,
     algorithm = "Hartigan-Wong"
@@ -211,7 +211,7 @@ classify_kmeans <- function(x,
 
   orders <- data.frame(
     clusters_P = clust_P$cluster,
-    clusters_M = clust_M$cluster,
+    clusters_W = clust_W$cluster,
     FWHM_P = apply(data_P, 1, function(y) musclesyneRgies::FWHM(y)),
     CoA_P = apply(data_P, 1, function(z) musclesyneRgies::CoA(z))
   )
@@ -219,30 +219,30 @@ classify_kmeans <- function(x,
   clust_num <- clust_num_P
 
   # Arrange activation patterns and muscle weight-based clusters in the same order
-  temp_P <- subset(orders, select = -c(clusters_M))
-  temp_M <- subset(orders, select = -c(clusters_P))
+  temp_P <- subset(orders, select = -c(clusters_W))
+  temp_W <- subset(orders, select = -c(clusters_P))
   # Take average FWHM and CoA based on cluster
   geoms_P <- data.frame(stats::aggregate(FWHM_P ~ clusters_P, temp_P, mean),
     CoA_P = stats::aggregate(CoA_P ~ clusters_P, temp_P, mean)$CoA_P
   )
-  geoms_M <- data.frame(stats::aggregate(FWHM_P ~ clusters_M, temp_M, mean),
-    CoA_P = stats::aggregate(CoA_P ~ clusters_M, temp_M, mean)$CoA_P
+  geoms_W <- data.frame(stats::aggregate(FWHM_P ~ clusters_W, temp_W, mean),
+    CoA_P = stats::aggregate(CoA_P ~ clusters_W, temp_W, mean)$CoA_P
   )
   # Define score as sum of FWHM and CoA and normalise to number of points
   geoms_P <- data.frame(
     clust_P = geoms_P$clusters_P,
     score = geoms_P$FWHM_P * geoms_P$CoA_P
   )
-  geoms_M <- data.frame(
-    clust_M = geoms_M$clusters_M,
-    score = geoms_M$FWHM_P * geoms_M$CoA_P
+  geoms_W <- data.frame(
+    clust_W = geoms_W$clusters_W,
+    score = geoms_W$FWHM_P * geoms_W$CoA_P
   )
 
   # Calculate mutual score squared residuals and find minimum
   perms <- expand.grid(geoms_P$clust_P, geoms_P$clust_P)
   resids <- numeric()
   for (perm in seq_len(nrow(perms))) {
-    resids[perm] <- (geoms_P$score[perms[perm, 1]] - geoms_M$score[perms[perm, 2]])^2
+    resids[perm] <- (geoms_P$score[perms[perm, 1]] - geoms_W$score[perms[perm, 2]])^2
   }
   perms <- perms[sort(resids, decreasing = FALSE, index.return = TRUE)$ix, ]
   perms <- data.frame(perms[-which(duplicated(perms[, 1])), ])
@@ -250,12 +250,12 @@ classify_kmeans <- function(x,
 
   if (all(!duplicated(perms$old)) && all(!duplicated(perms$new))) {
     if (!identical(perms$old, perms$new)) {
-      temp_M <- orders$clusters_M
-      orders$clusters_M <- c(perms$old, temp_M)[match(temp_M, c(perms$new, temp_M))]
+      temp_W <- orders$clusters_W
+      orders$clusters_W <- c(perms$old, temp_W)[match(temp_W, c(perms$new, temp_W))]
     }
 
     # Find discordant classifications and label as "combined"
-    discordant <- which(orders$clusters_P != orders$clusters_M)
+    discordant <- which(orders$clusters_P != orders$clusters_W)
     # But first check if all clusters are there
     clust_test <- orders$clusters_P
     clust_test <- unique(clust_test[-discordant])
@@ -267,10 +267,10 @@ classify_kmeans <- function(x,
           "\nMuscle weight-based classification will be discarded!"
         )
       }
-      orders$clusters_M <- orders$clusters_P
+      orders$clusters_W <- orders$clusters_P
     } else {
       orders$clusters_P[discordant] <- "combined"
-      orders$clusters_M[discordant] <- "combined"
+      orders$clusters_W[discordant] <- "combined"
     }
   } else if (all(!duplicated(perms$old)) && any(!duplicated(perms$new))) {
     if (interactive()) {
@@ -279,31 +279,31 @@ classify_kmeans <- function(x,
         "\nMuscle weight-based classification will be discarded!"
       )
     }
-    orders$clusters_M <- orders$clusters_P
+    orders$clusters_W <- orders$clusters_P
   }
 
   # Calculate mean activation patterns and then order using CoA
   mean_P <- matrix(0, nrow = clust_num, ncol = points)
-  mean_M <- matrix(0, nrow = clust_num, ncol = muscle_num)
+  mean_W <- matrix(0, nrow = clust_num, ncol = muscle_num)
   temp_P <- data_P
-  temp_M <- data_M
+  temp_W <- data_W
 
   # Remove old row names and replace with new orders
   rownames(temp_P) <- gsub("[0-9]*$", "", rownames(temp_P))
-  rownames(temp_M) <- gsub("[0-9]*$", "", rownames(temp_M))
+  rownames(temp_W) <- gsub("[0-9]*$", "", rownames(temp_W))
   rownames(temp_P) <- paste0(rownames(temp_P), orders$clusters_P)
-  rownames(temp_M) <- paste0(rownames(temp_M), orders$clusters_M)
+  rownames(temp_W) <- paste0(rownames(temp_W), orders$clusters_W)
 
   # Remove combined, if present
   if (any(grepl("combined", rownames(temp_P)))) {
     temp_P <- temp_P[-grep("combined", rownames(temp_P)), ]
-    temp_M <- temp_M[-grep("combined", rownames(temp_M)), ]
+    temp_W <- temp_W[-grep("combined", rownames(temp_W)), ]
   }
 
   # Calculate means
   for (clust in 1:clust_num) {
     temp_clust_P <- temp_P[grep(paste0("Syn", clust, "$"), rownames(temp_P)), ]
-    temp_clust_M <- temp_M[grep(paste0("Syn", clust, "$"), rownames(temp_M)), ]
+    temp_clust_W <- temp_W[grep(paste0("Syn", clust, "$"), rownames(temp_W)), ]
 
     if (all(class(temp_clust_P) != "numeric")) {
       mean_P[clust, ] <- colSums(temp_clust_P)
@@ -311,16 +311,16 @@ classify_kmeans <- function(x,
       mean_P[clust, ] <- temp_clust_P
     }
 
-    if (all(class(temp_clust_M) != "numeric")) {
-      mean_M[clust, ] <- colSums(temp_clust_M)
+    if (all(class(temp_clust_W) != "numeric")) {
+      mean_W[clust, ] <- colSums(temp_clust_W)
     } else {
-      mean_M[clust, ] <- temp_clust_M
+      mean_W[clust, ] <- temp_clust_W
     }
 
     mean_P[clust, ] <- mean_P[clust, ] - min(mean_P[clust, ])
-    mean_M[clust, ] <- mean_M[clust, ] - min(mean_M[clust, ])
+    mean_W[clust, ] <- mean_W[clust, ] - min(mean_W[clust, ])
     mean_P[clust, ] <- mean_P[clust, ] / max(mean_P[clust, ])
-    mean_M[clust, ] <- mean_M[clust, ] / max(mean_M[clust, ])
+    mean_W[clust, ] <- mean_W[clust, ] / max(mean_W[clust, ])
   }
 
   # Create ordering rule
@@ -331,16 +331,16 @@ classify_kmeans <- function(x,
 
   # Apply new order to mean curves
   mean_P <- mean_P[order_rule$new, ]
-  mean_M <- mean_M[order_rule$new, ]
+  mean_W <- mean_W[order_rule$new, ]
   rownames(mean_P) <- paste0("Syn", seq_len(nrow(mean_P)))
-  rownames(mean_M) <- paste0("Syn", seq_len(nrow(mean_M)))
-  colnames(mean_M) <- colnames(temp_M)
+  rownames(mean_W) <- paste0("Syn", seq_len(nrow(mean_W)))
+  colnames(mean_W) <- colnames(temp_W)
 
   # Apply new order to all
   temp_P <- orders$clusters_P
-  temp_M <- orders$clusters_M
+  temp_W <- orders$clusters_W
   orders$clusters_P <- c(order_rule$old, temp_P)[match(temp_P, c(order_rule$new, temp_P))]
-  orders$clusters_M <- c(order_rule$old, temp_M)[match(temp_M, c(order_rule$new, temp_M))]
+  orders$clusters_W <- c(order_rule$old, temp_W)[match(temp_W, c(order_rule$new, temp_W))]
 
   if (inspect) {
     # Plot classified syns
@@ -364,7 +364,7 @@ classify_kmeans <- function(x,
 
     for (syn in 1:clust_num) {
       # Plot muscle weights
-      graphics::barplot(mean_M[syn, ])
+      graphics::barplot(mean_W[syn, ])
       # Plot activation patterns
       plot(
         x = seq_len(ncol(mean_P)), y = mean_P[syn, ],
@@ -385,7 +385,6 @@ classify_kmeans <- function(x,
     if (qq == "y" || qq == "yes") {
       rep <- "n"
       while (rep == "n" || rep == "no") {
-
         # Prompt for decision
         message("Press Esc to stop (classification will be interrupted)")
         orders_new <- numeric()
@@ -417,9 +416,9 @@ classify_kmeans <- function(x,
 
         # Make new plots for checking
         mean_P_temp <- mean_P[order_rule$new, ]
-        mean_M_temp <- mean_M[order_rule$new, ]
+        mean_W_temp <- mean_W[order_rule$new, ]
         rownames(mean_P_temp) <- paste0("Syn", seq_len(nrow(mean_P_temp)))
-        rownames(mean_M_temp) <- paste0("Syn", seq_len(nrow(mean_M_temp)))
+        rownames(mean_W_temp) <- paste0("Syn", seq_len(nrow(mean_W_temp)))
 
         # Re-plot classified synergies
         oldpar <- graphics::par(no.readonly = TRUE)
@@ -436,7 +435,7 @@ classify_kmeans <- function(x,
 
         for (syn in 1:clust_num) {
           # Plot muscle weights
-          graphics::barplot(mean_M_temp[syn, ])
+          graphics::barplot(mean_W_temp[syn, ])
           # Plot activation patterns
           plot(
             x = seq_len(ncol(mean_P_temp)), y = mean_P_temp[syn, ],
@@ -453,7 +452,7 @@ classify_kmeans <- function(x,
         if (rep == "n" || rep == "no") {
           for (syn in 1:clust_num) {
             # Plot muscle weights
-            graphics::barplot(mean_M[syn, ])
+            graphics::barplot(mean_W[syn, ])
             # Plot activation patterns
             plot(
               x = seq_len(ncol(mean_P)), y = mean_P[syn, ],
@@ -466,15 +465,15 @@ classify_kmeans <- function(x,
       }
       # Apply new order to mean curves
       mean_P <- mean_P[order_rule$new, ]
-      mean_M <- mean_M[order_rule$new, ]
+      mean_W <- mean_W[order_rule$new, ]
       rownames(mean_P) <- paste0("Syn", seq_len(nrow(mean_P)))
-      rownames(mean_M) <- paste0("Syn", seq_len(nrow(mean_M)))
+      rownames(mean_W) <- paste0("Syn", seq_len(nrow(mean_W)))
 
       # Apply new order to all
       temp_P <- orders$clusters_P
-      temp_M <- orders$clusters_M
+      temp_W <- orders$clusters_W
       orders$clusters_P <- c(order_rule$old, temp_P)[match(temp_P, c(order_rule$new, temp_P))]
-      orders$clusters_M <- c(order_rule$old, temp_M)[match(temp_M, c(order_rule$new, temp_M))]
+      orders$clusters_W <- c(order_rule$old, temp_W)[match(temp_W, c(order_rule$new, temp_W))]
     }
   }
 
@@ -483,7 +482,7 @@ classify_kmeans <- function(x,
 
   for (tt in trials) {
     trial <- orders[grep(paste0(tt, "_"), rownames(orders)), ]
-    trial$clusters_M <- NULL
+    trial$clusters_W <- NULL
 
     # Find duplicates
     dupl <- which(duplicated(trial$clusters_P))
@@ -575,12 +574,14 @@ classify_kmeans <- function(x,
 
   # Rename synergies in the correct order and save
   SYNS_classified <- x
+  SYNS_classified <- lapply(SYNS_classified, function(y) {
+    .set_W(y, .get_W(y))
+  })
 
   # Find unique trial names
   trials <- which(!duplicated(orders_new$trial))
 
   for (uu in seq_along(trials)) {
-
     # Read the classification
     if (uu < length(trials)) {
       classification <- orders_new$syn_classified[trials[uu]:(trials[uu + 1] - 1)]
@@ -591,7 +592,12 @@ classify_kmeans <- function(x,
     trial <- orders_new$trial[trials[uu]]
 
     colnames(SYNS_classified[[trial]]$P) <- c("time", paste0("Syn", classification))
-    colnames(SYNS_classified[[trial]]$M) <- paste0("Syn", classification)
+
+    weights <- .get_W(SYNS_classified[[trial]])
+    colnames(weights) <- paste0("Syn", classification)
+
+    SYNS_classified[[trial]] <- .set_W(SYNS_classified[[trial]], weights)
+
     SYNS_classified[[trial]]$classification <- "k-means"
   }
 

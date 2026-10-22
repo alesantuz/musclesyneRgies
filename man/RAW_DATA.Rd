@@ -11,19 +11,19 @@ with elements \code{cycles} and \code{emg}, both data frames.
 \item{\code{ID0012_TW_01}}{Object of class \code{EMG} containing the two following data frames:}
 \item{\code{cycles}}{Gait cycle-timings, in seconds.}
 \item{\code{emg}}{Raw EMG, first column is time in seconds, muscles named as:\cr\cr
-ME=gluteus medius\cr
-MA=gluteus maximus\cr
-FL=tensor fasciae latae\cr
-RF=rectus femoris\cr
-VM=vastus medialis\cr
-VL=vastus lateralis\cr
-ST=semitendinosus\cr
-BF=biceps femoris\cr
-TA=tibialis anterior\cr
-PL=peroneus longus\cr
-GM=gastrocnemius medialis\cr
-GL=gastrocnemius lateralis\cr
-SO=soleus}
+ME = gluteus medius\cr
+MA = gluteus maximus\cr
+FL = tensor fasciae latae\cr
+RF = rectus femoris\cr
+VM = vastus medialis\cr
+VL = vastus lateralis\cr
+ST = semitendinosus\cr
+BF = biceps femoris\cr
+TA = tibialis anterior\cr
+PL = peroneus longus\cr
+GM = gastrocnemius medialis\cr
+GL = gastrocnemius lateralis\cr
+SO = soleus}
 }
 }
 \source{

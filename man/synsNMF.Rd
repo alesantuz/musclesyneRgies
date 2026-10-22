@@ -34,7 +34,8 @@ minimum number of synergies}
 Object of class \code{musclesyneRgies} with elements:\cr
 \itemize{
 \item \code{syns} factorisation rank or minimum number of synergies\cr
-\item \code{M} muscle weights (time-invariant coefficients)\cr
+\item \code{W} muscle weights (time-invariant coefficients)\cr
+\item \code{M} deprecated alias for \code{W}, retained for backward compatibility\cr
 \item \code{P} activation patterns (time-dependent coefficients)\cr
 \item \code{V} original data\cr
 \item \code{Vr} reconstructed data\cr
@@ -49,6 +50,7 @@ Non-negative matrix factorisation
 }
 \details{
 The first column of \code{V} must always contain time information.
+The factorization is \verb{V ≈ WP}, where W are muscle weights and P activation patterns.
 }
 \examples{
 # Note that for bigger data sets one might want to run computation in parallel

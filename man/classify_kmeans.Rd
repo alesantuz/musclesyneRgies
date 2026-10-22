@@ -27,7 +27,8 @@ classify_kmeans(
 List of \code{musclesyneRgies} objects, each with elements:\cr
 \itemize{
 \item \code{syns} factorisation rank or minimum number of synergies\cr
-\item \code{M} muscle weights (time-invariant coefficients)\cr
+\item \code{W} muscle weights (time-invariant coefficients)\cr
+\item \code{M} deprecated alias for \code{W}, retained for backward compatibility\cr
 \item \code{P} activation patterns (time-dependent coefficients)\cr
 \item \code{V} original data\cr
 \item \code{Vr} reconstructed data\cr
@@ -43,7 +44,7 @@ Muscle synergy classification with k-means
 \details{
 This function must be applied to a list with a sufficient amount of trials, otherwise the
 classification will not work. Typically, at least 10 trials for the same condition are needed
-for satisfactory classification. If \code{show_plot} is TRUE (default) plots are also shown in the
+for satisfactory classification. If \code{show_plot} is TRUE plots are also shown in the
 active graphic device.
 Plots can then be saved with the preferred export method, such as \code{ggplot2::ggsave}.
 The algorithm used is the default for stats::kmeans (Hartigan and Wong, 1979), which is known

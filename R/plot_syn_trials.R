@@ -47,7 +47,7 @@ plot_syn_trials <- function(x,
     stop("Object is not of class musclesynergies, please create objects in the right format with \"synsNMF\"")
   } else {
     # Get muscle weights and concatenated activation patterns
-    M <- x$M
+    W <- .get_W(x)
     P <- x$P
   }
 
@@ -80,28 +80,28 @@ plot_syn_trials <- function(x,
 
   # Create plots
   # Muscle weights
-  varlist_M <- lapply(colnames(M), function(y) {
+  varlist_W <- lapply(colnames(W), function(y) {
     # Gather muscle weights
-    M_data <- data.frame(
-      muscle = rownames(M),
-      weights = M[, y]
+    W_data <- data.frame(
+      muscle = rownames(W),
+      weights = W[, y]
     )
 
     # To write axis titles
-    if (y == colnames(M)[length(colnames(M))]) {
+    if (y == colnames(W)[length(colnames(W))]) {
       axis_title_col <- ifelse(dark_mode, "white", "black")
     } else {
       axis_title_col <- "transparent"
     }
 
-    mm <- ggplot2::ggplot(M_data) +
+    mm <- ggplot2::ggplot(W_data) +
       ggplot2::ylim(0, 1) +
       ggplot2::geom_bar(
         ggplot2::aes(x = muscle, y = weights),
         fill = line_col, alpha = 0.75,
         stat = "identity"
       ) +
-      ggplot2::scale_x_discrete(limits = M_data$muscle) +
+      ggplot2::scale_x_discrete(limits = W_data$muscle) +
       ggplot2::labs(
         title = paste0("Muscle weights ", gsub("Syn", "", y)),
         x = "Muscle",
@@ -150,7 +150,8 @@ plot_syn_trials <- function(x,
       ) +
       ggplot2::geom_line(
         ggplot2::aes(x = time, y = act_pattern),
-        colour = line_col, size = line_size
+        colour = line_col,
+        linewidth = line_size
       ) +
       ggplot2::labs(
         title = paste0("Activation pattern ", gsub("Syn", "", y)),
@@ -175,9 +176,9 @@ plot_syn_trials <- function(x,
   })
 
   # Arrange plots nicely and return as gtable
-  names(varlist_M) <- seq(1, 2 * length(varlist_M), 2)
-  names(varlist_P) <- seq(2, 2 * length(varlist_M), 2)
-  varlist <- c(varlist_M, varlist_P)[order(names(c(varlist_M, varlist_P)))]
+  names(varlist_W) <- seq(1, 2 * length(varlist_W), 2)
+  names(varlist_P) <- seq(2, 2 * length(varlist_W), 2)
+  varlist <- c(varlist_W, varlist_P)[order(names(c(varlist_W, varlist_P)))]
 
   gg <- gridExtra::arrangeGrob(
     grobs = varlist,

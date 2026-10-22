@@ -38,12 +38,12 @@ plot_classified_syns_UMAP <- function(x,
     stop("Synergies must be classified")
   } else {
     # Get muscle weights and concatenated activation patterns
-    SYNS_M <- lapply(x, function(y) y$M)
+    SYNS_W <- lapply(x, .get_W)
     SYNS_P <- lapply(x, function(y) y$P)
   }
 
   # Find maximum number of synergies, combined excluded
-  max_syns <- max(unlist(lapply(SYNS_M, function(y) {
+  max_syns <- max(unlist(lapply(SYNS_W, function(y) {
     y <- data.frame(y)
     y[, grep("combined", colnames(y))] <- NULL
     return(ncol(y))
@@ -76,13 +76,13 @@ plot_classified_syns_UMAP <- function(x,
   })
 
   points <- unique(unlist(lapply(SYNS_P, function(y) nrow(y))))
-  muscles <- unique(unlist(lapply(SYNS_M, function(y) rownames(y))))
+  muscles <- unique(unlist(lapply(SYNS_W, function(y) rownames(y))))
 
   # UMAP of synergies
   data_P <- lapply(SYNS_P, function(y) data.frame(synergy = colnames(y), t(y)))
-  data_M <- lapply(SYNS_M, function(y) t(y))
+  data_W <- lapply(SYNS_W, function(y) t(y))
   data_P <- plyr::ldply(data_P, data.frame, .id = "synergy")
-  data_M <- plyr::ldply(data_M, data.frame, .id = "synergy")
+  data_W <- plyr::ldply(data_W, data.frame, .id = "synergy")
 
   data_syns <- data_P$synergy
   if (any(grepl("Syncombined\\.", data_syns))) {
@@ -90,16 +90,16 @@ plot_classified_syns_UMAP <- function(x,
   }
 
   data_P$synergy <- NULL
-  data_M$synergy <- NULL
+  data_W$synergy <- NULL
 
   umap_P <- data.frame(data_syns, umap::umap(data_P)$layout)
-  umap_M <- data.frame(data_syns, umap::umap(data_M)$layout)
+  umap_W <- data.frame(data_syns, umap::umap(data_W)$layout)
 
   colnames(umap_P) <- c("syn", "UMAP1", "UMAP2")
-  colnames(umap_M) <- colnames(umap_P)
+  colnames(umap_W) <- colnames(umap_P)
 
-  ggumap_M <- ggplot2::ggplot(
-    data = umap_M,
+  ggumap_W <- ggplot2::ggplot(
+    data = umap_W,
     ggplot2::aes(
       x = UMAP1, y = UMAP2,
       colour = factor(syn)
@@ -122,7 +122,7 @@ plot_classified_syns_UMAP <- function(x,
 
   # Arrange plots nicely and return as gtable
   gg <- gridExtra::arrangeGrob(
-    grobs = list(ggumap_M, ggumap_P),
+    grobs = list(ggumap_W, ggumap_P),
     nrow = 2,
     ncol = 1
   )

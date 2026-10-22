@@ -11,11 +11,13 @@
 #'
 #' @details
 #' The first column of `V` must always contain time information.
+#' The factorization is `V ≈ WP`, where W are muscle weights and P activation patterns.
 #'
 #' @return
 #' Object of class `musclesyneRgies` with elements:\cr
 #' - `syns` factorisation rank or minimum number of synergies\cr
-#' - `M` muscle weights (time-invariant coefficients)\cr
+#' - `W` muscle weights (time-invariant coefficients)\cr
+#' - `M` deprecated alias for `W`, retained for backward compatibility\cr
 #' - `P` activation patterns (time-dependent coefficients)\cr
 #' - `V` original data\cr
 #' - `Vr` reconstructed data\cr
@@ -60,7 +62,7 @@ synsNMF <- function(V,
   time <- V$time
 
   R2_cross <- numeric() # R2 values for cross validation and syn number assessment
-  M_list <- list() # To save factorisation M matrices (muscle weights)
+  W_list <- list() # To save factorisation W matrices (muscle weights)
   P_list <- list() # To save factorisation P matrices (activation patterns)
   Vr_list <- list() # To save factorisation Vr matrices (reconstructed signals)
   iterations <- numeric() # To save the iterations number
@@ -91,7 +93,7 @@ synsNMF <- function(V,
     R2_choice <- numeric() # Collect the R2 values for each syn and choose the max
 
     # Preallocate to then choose those with highest R2
-    M_temp <- list()
+    W_temp <- list()
     P_temp <- list()
     Vr_temp <- list()
     iters <- numeric()
@@ -99,25 +101,25 @@ synsNMF <- function(V,
     for (run in 1:runs) { # Run NMF multiple times for each syn and choose best run
       # Initialise the two factorisation matrices with random values (uniform distribution)
       P <- matrix(stats::runif(r * n, min = min(V), max = max(V)), nrow = r, ncol = n)
-      M <- matrix(stats::runif(m * r, min = min(V), max = max(V)), nrow = m, ncol = r)
+      W <- matrix(stats::runif(m * r, min = min(V), max = max(V)), nrow = m, ncol = r)
 
       # Iteration "zero" and first updates
-      MV <- crossprod(M, V)
-      MM <- crossprod(M, M)
-      P <- P * MV / MM %*% P
+      WV <- crossprod(W, V)
+      WW <- crossprod(W, W)
+      P <- P * WV / WW %*% P
       VP <- tcrossprod(V, P)
       PP <- tcrossprod(P, P)
-      M <- M * VP / tcrossprod(M, PP)
+      W <- W * VP / tcrossprod(W, PP)
       # Reconstruction
-      Vr <- M %*% P
+      Vr <- W %*% P
       # Reconstruction quality (coefficient of determination)
       R2 <- 1 - sum((V - Vr)^2) / sum((V - mean(V))^2)
 
       # l2-norm normalisation eliminates trivial scale indeterminacies
       # See Févotte, C., Idier, J. (2011)
-      # Calculate l2-norm of the columns of M and normalise M and P
-      l2_norms <- sqrt(colSums(M^2))
-      M <- M / matrix(l2_norms, nrow = nrow(M), ncol = ncol(M), byrow = TRUE)
+      # Calculate l2-norm of the columns of W and normalise W and P
+      l2_norms <- sqrt(colSums(W^2))
+      W <- W / matrix(l2_norms, nrow = nrow(W), ncol = ncol(W), byrow = TRUE)
       P <- P * l2_norms
 
       # Start iterations for NMF convergence
@@ -126,21 +128,21 @@ synsNMF <- function(V,
         iter <- iter + 1
 
         # Updates
-        MV <- crossprod(M, V)
-        MM <- crossprod(M, M)
-        P <- P * MV / MM %*% P
+        WV <- crossprod(W, V)
+        WW <- crossprod(W, W)
+        P <- P * WV / WW %*% P
         VP <- tcrossprod(V, P)
         PP <- tcrossprod(P, P)
-        M <- M * VP / tcrossprod(M, PP)
+        W <- W * VP / tcrossprod(W, PP)
 
         # Reconstruction
-        Vr <- M %*% P
+        Vr <- W %*% P
         # Reconstruction quality
         R2[iter] <- 1 - sum((V - Vr)^2) / sum((V - mean(V))^2)
 
         # l2-norm normalisation
-        l2_norms <- sqrt(colSums(M^2))
-        M <- M / matrix(l2_norms, nrow = nrow(M), ncol = ncol(M), byrow = TRUE)
+        l2_norms <- sqrt(colSums(W^2))
+        W <- W / matrix(l2_norms, nrow = nrow(W), ncol = ncol(W), byrow = TRUE)
         P <- P * l2_norms
 
         # Check if the increase of R2 in the last "last_iter" iterations
@@ -151,7 +153,7 @@ synsNMF <- function(V,
         }
       }
       R2_choice[run] <- R2[iter]
-      M_temp[[run]] <- M
+      W_temp[[run]] <- W
       P_temp[[run]] <- P
       Vr_temp[[run]] <- Vr
       iters[run] <- iter
@@ -160,7 +162,7 @@ synsNMF <- function(V,
     choice <- which.max(R2_choice)
 
     R2_cross[syn_index] <- R2_choice[choice]
-    M_list[[syn_index]] <- M_temp[[choice]]
+    W_list[[syn_index]] <- W_temp[[choice]]
     P_list[[syn_index]] <- P_temp[[choice]]
     Vr_list[[syn_index]] <- Vr_temp[[choice]]
     iterations[syn_index] <- iters[choice]
@@ -187,8 +189,8 @@ synsNMF <- function(V,
     P_choice <- data.frame(time, t(P_list[[syns_R2]]))
     colnames(P_choice) <- c("time", paste0("Syn", seq_len(ncol(P_choice) - 1)))
     rownames(P_choice) <- NULL
-    colnames(M_list[[syns_R2]]) <- paste0("Syn", seq_len(ncol(M_list[[syns_R2]])))
-    M_choice <- M_list[[syns_R2]]
+    colnames(W_list[[syns_R2]]) <- paste0("Syn", seq_len(ncol(W_list[[syns_R2]])))
+    W_choice <- W_list[[syns_R2]]
     Vr_choice <- Vr_list[[syns_R2]]
     iterations <- iterations[syns_R2]
   } else if (is.numeric(fixed_syns)) {
@@ -197,15 +199,16 @@ synsNMF <- function(V,
     P_choice <- data.frame(time, t(P_list[[1]]))
     colnames(P_choice) <- c("time", paste0("Syn", seq_len(ncol(P_choice) - 1)))
     rownames(P_choice) <- NULL
-    colnames(M_list[[1]]) <- paste0("Syn", seq_len(ncol(M_list[[1]])))
-    M_choice <- M_list[[1]]
+    colnames(W_list[[1]]) <- paste0("Syn", seq_len(ncol(W_list[[1]])))
+    W_choice <- W_list[[1]]
     Vr_choice <- Vr_list[[1]]
     iterations <- iterations[1]
   }
 
   SYNS <- list(
     syns = as.numeric(syns_R2),
-    M = M_choice,
+    W = W_choice,
+    M = W_choice, # Legacy alias; deprecated since 1.4.0
     P = P_choice,
     V = V,
     Vr = Vr_choice,

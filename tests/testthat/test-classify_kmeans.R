@@ -7,7 +7,7 @@ test_that("k-means classification is robust", {
       unlist(
         lapply(
           SYNS_classified, function(x) {
-            syns <- colnames(x$M)
+            syns <- colnames(x$W)
             if (any(grepl("Syncombined", syns))) syns <- syns[-grep("Syncombined", syns)]
             return(max(as.numeric(gsub("Syn", "", syns))))
           }
@@ -25,7 +25,7 @@ test_that("k-means classification is robust", {
   ) |>
     lapply(
       function(x) {
-        synergies <- colnames(x$M)[!grepl("Syncombined", colnames(x$M))] |>
+        synergies <- colnames(x$W)[!grepl("Syncombined", colnames(x$W))] |>
           gsub("Syn", "", x = _) |>
           as.numeric() |>
           max(na.rm = TRUE)
@@ -60,7 +60,7 @@ test_that("k-means classification is robust", {
   rnd_trial <- sample(seq_len(length(SYNS)), size = 1)
   SYNS_err <- SYNS
   SYNS_err[[rnd_trial]]$P$MA <- NULL
-  SYNS_err[[rnd_trial]]$M <- SYNS_err[[rnd_trial]]$M[-grep("MA", rownames(SYNS_err[[rnd_trial]]$M)), ]
+  SYNS_err[[rnd_trial]]$W <- SYNS_err[[rnd_trial]]$W[-grep("MA", rownames(SYNS_err[[rnd_trial]]$W)), ]
   expect_error(musclesyneRgies::classify_kmeans(SYNS_err))
 
 })

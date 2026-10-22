@@ -6,8 +6,10 @@
 #' @param dot_size Dot size on muscle weights (NA to remove dots)
 #' @param line_col Line colour
 #' @param sd_col Standard deviation ribbon colour (NA to remove ribbon)
-#' @param ylim_min_M y-axis lower limit for muscle weights
-#' @param ylim_max_M y-axis upper limit for muscle weights
+#' @param ylim_min_W y-axis lower limit for muscle weights
+#' @param ylim_max_W y-axis upper limit for muscle weights
+#' @param ylim_min_M Deprecated since 1.4.0; use `ylim_min_W` instead
+#' @param ylim_max_M Deprecated since 1.4.0; use `ylim_max_W` instead
 #' @param ylim_min_P y-axis lower limit for activation patterns
 #' @param ylim_max_P y-axis upper limit for activation patterns
 #' @param condition Character: the condition that is being analysed, for archiving purposes
@@ -44,13 +46,49 @@ plot_classified_syns <- function(x,
                                  dot_size = 0.1,
                                  line_col = "black",
                                  sd_col = "grey80",
-                                 ylim_min_M = 0,
-                                 ylim_max_M = 1,
+                                 ylim_min_W = 0,
+                                 ylim_max_W = 1,
                                  ylim_min_P = -0.2,
                                  ylim_max_P = 1.2,
                                  condition = NA,
-                                 show_plot = TRUE) {
+                                 show_plot = TRUE,
+                                 ylim_min_M = lifecycle::deprecated(),
+                                 ylim_max_M = lifecycle::deprecated()) {
   if (interactive()) message("\nCreating synergy plots for condition ", condition, "...")
+
+  if (lifecycle::is_present(ylim_min_M)) {
+    if (!missing(ylim_min_W)) {
+      stop(
+        "Specify only one of `ylim_min_W` and `ylim_min_M`.",
+        call. = FALSE
+      )
+    }
+
+    lifecycle::deprecate_warn(
+      "1.4.0",
+      "plot_classified_syns(ylim_min_M)",
+      "plot_classified_syns(ylim_min_W)"
+    )
+
+    ylim_min_W <- ylim_min_M
+  }
+
+  if (lifecycle::is_present(ylim_max_M)) {
+    if (!missing(ylim_max_W)) {
+      stop(
+        "Specify only one of `ylim_max_W` and `ylim_max_M`.",
+        call. = FALSE
+      )
+    }
+
+    lifecycle::deprecate_warn(
+      "1.4.0",
+      "plot_classified_syns(ylim_max_M)",
+      "plot_classified_syns(ylim_max_W)"
+    )
+
+    ylim_max_W <- ylim_max_M
+  }
 
   muscle <- time <- value <- variable <- ymax <- ymin <- NULL
 
@@ -61,12 +99,12 @@ plot_classified_syns <- function(x,
     stop("Synergies must be classified")
   } else {
     # Get muscle weights and concatenated activation patterns
-    SYNS_M <- lapply(x, function(y) y$M)
+    SYNS_W <- lapply(x, .get_W)
     SYNS_P <- lapply(x, function(y) y$P)
   }
 
   # Find maximum number of synergies, combined excluded
-  max_syns <- max(unlist(lapply(SYNS_M, function(y) {
+  max_syns <- max(unlist(lapply(SYNS_W, function(y) {
     y <- data.frame(y)
     y[, grep("combined", colnames(y))] <- NULL
     return(ncol(y))
@@ -98,7 +136,7 @@ plot_classified_syns <- function(x,
   })
 
   points <- unique(unlist(lapply(SYNS_P, function(y) nrow(y))))
-  muscles <- unique(unlist(lapply(SYNS_M, function(y) rownames(y))))
+  muscles <- unique(unlist(lapply(SYNS_W, function(y) rownames(y))))
 
   # Prepare colours
   if (dark_mode) {
@@ -122,7 +160,7 @@ plot_classified_syns <- function(x,
     }
 
     # Select relevant synergies
-    data_M <- lapply(SYNS_M, function(y) {
+    data_W <- lapply(SYNS_W, function(y) {
       muscles <- rownames(y)
       y <- y[, grep(paste0("^Syn", syn), colnames(y))]
       if (length(y) > 0) names(y) <- muscles
@@ -131,19 +169,19 @@ plot_classified_syns <- function(x,
     data_P <- lapply(SYNS_P, function(y) t(y[, grep(paste0("^Syn", syn), colnames(y))]))
 
     # Remove empty trials, if present
-    data_M <- data_M[lapply(data_M, length) > 0]
+    data_W <- data_W[lapply(data_W, length) > 0]
     data_P <- data_P[lapply(data_P, length) > 0]
 
     if (length(data_P) > 0) {
       # Put muscle weights in a single data frame
-      data_M <- plyr::ldply(data_M, data.frame, .id = "trial")
+      data_W <- plyr::ldply(data_W, data.frame, .id = "trial")
       # Put activation patterns in a single data frame
       data_P <- plyr::ldply(data_P, data.frame, .id = "trial")
 
-      data_M_av <- data.frame(value = colMeans(data_M[, -1]))
-      data_M_av <- data.frame(
-        muscle = rownames(data_M_av),
-        data_M_av
+      data_W_av <- data.frame(value = colMeans(data_W[, -1]))
+      data_W_av <- data.frame(
+        muscle = rownames(data_W_av),
+        data_W_av
       )
 
       data_P_av <- data.frame(
@@ -156,22 +194,22 @@ plot_classified_syns <- function(x,
         ymax = data_P_av$value + apply(data_P[, -1], 2, stats::sd)
       )
 
-      data_M <- reshape2::melt(data_M, id = "trial")
+      data_W <- reshape2::melt(data_W, id = "trial")
       data_P <- reshape2::melt(data_P, id = "trial")
 
-      temp_M <- ggplot2::ggplot() +
-        ggplot2::ylim(ylim_min_M, ylim_max_M) +
+      temp_W <- ggplot2::ggplot() +
+        ggplot2::ylim(ylim_min_W, ylim_max_W) +
         ggplot2::geom_bar(
-          data = data_M_av,
+          data = data_W_av,
           ggplot2::aes(x = muscle, y = value),
           fill = line_col, alpha = 0.75,
           stat = "identity"
         ) +
-        ggplot2::scale_x_discrete(limits = data_M_av$muscle) +
+        ggplot2::scale_x_discrete(limits = data_W_av$muscle) +
         {
           if (!is.na(dot_size)) {
             ggplot2::geom_jitter(
-              data = data_M,
+              data = data_W,
               colour = line_col,
               ggplot2::aes(x = variable, y = value),
               width = dot_size,
@@ -213,7 +251,7 @@ plot_classified_syns <- function(x,
         ggplot2::geom_line(
           data = data_P_av,
           ggplot2::aes(x = time, y = value),
-          colour = line_col, size = line_size
+          colour = line_col, linewidth = line_size
         ) +
         ggplot2::labs(
           title = paste0("Activation pattern ", syn),
@@ -239,20 +277,20 @@ plot_classified_syns <- function(x,
         time = 1:points,
         value = -0.2
       )
-      data_M_av <- data.frame(
+      data_W_av <- data.frame(
         muscle = muscles,
         value = 0
       )
 
-      temp_M <- ggplot2::ggplot() +
-        ggplot2::ylim(ylim_min_M, ylim_max_M) +
+      temp_W <- ggplot2::ggplot() +
+        ggplot2::ylim(ylim_min_W, ylim_max_W) +
         ggplot2::geom_bar(
-          data = data_M_av,
+          data = data_W_av,
           ggplot2::aes(x = muscle, y = value),
           fill = "transparent",
           stat = "identity"
         ) +
-        ggplot2::scale_x_discrete(limits = data_M_av$muscle) +
+        ggplot2::scale_x_discrete(limits = data_W_av$muscle) +
         ggplot2::labs(
           title = paste0("Muscle weights ", syn),
           x = "Muscle",
@@ -278,7 +316,7 @@ plot_classified_syns <- function(x,
         ggplot2::geom_line(
           data = data_P_av,
           ggplot2::aes(x = time, y = value),
-          colour = "transparent", size = line_size
+          colour = "transparent", linewidth = line_size
         ) +
         ggplot2::labs(
           title = paste0("Activation pattern ", syn),
@@ -302,9 +340,9 @@ plot_classified_syns <- function(x,
     }
 
     varname_P <- paste0("r", 2 * syn)
-    varname_M <- paste0("r", 2 * syn - 1)
+    varname_W <- paste0("r", 2 * syn - 1)
     varlist[[2 * syn]] <- assign(varname_P, temp_P)
-    varlist[[2 * syn - 1]] <- assign(varname_M, temp_M)
+    varlist[[2 * syn - 1]] <- assign(varname_W, temp_W)
   }
 
   # Arrange plots nicely and return as gtable

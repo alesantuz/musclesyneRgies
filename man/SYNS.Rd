@@ -26,7 +26,8 @@ a walking trial from a different person.
 \code{ID0014_TW_01}\cr
 \code{ID0015_TW_01}\cr}{Objects of class \code{musclesyneRgies} containing the following items:}
 \item{\code{syns}}{Factorisation rank or minimum number of synergies.}
-\item{\code{M}}{Muscle weights (time-invariant coefficients)}
+\item{\code{W}}{Muscle weights (time-invariant coefficients)}
+\item{\code{M}}{Deprecated alias for \code{W}, retained for backward compatibility}
 \item{\code{P}}{Activation patterns (time-dependent coefficients)}
 \item{\code{V}}{Original data, muscles named as:\cr\cr
 ME=gluteus medius\cr

@@ -1,3 +1,19 @@
+# musclesyneRgies 1.4.0
+### How to install
+```
+install.packages("remotes")
+remotes::install_github("alesantuz/musclesyneRgies")
+```
+### How to use
+README and vignettes are available both on [CRAN](https://CRAN.R-project.org/package=musclesyneRgies) and on [GitHub](https://github.com/alesantuz/musclesyneRgies).
+
+### What's changed
+- Introduced `W` as the canonical name for muscle weights, replacing the previous `M` notation
+- Retained `M` as a deprecated compatibility alias in muscle-synergy objects
+- Added backward compatibility for objects created with previous package versions that contain only `M`
+- Updated the bundled `SYNS` dataset and documentation
+- Replaced deprecated ggplot2 line-size aesthetics with `linewidth` and declared ggplot2 3.4.0 as the minimum supported version.
+
 # musclesyneRgies 1.3.1
 ### How to install
 ```

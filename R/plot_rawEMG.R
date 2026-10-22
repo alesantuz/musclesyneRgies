@@ -96,7 +96,7 @@ plot_rawEMG <- function(x,
       ggplot2::geom_line(
         data = muscle_data,
         ggplot2::aes(x = time, y = signal),
-        colour = line_col, size = line_size
+        colour = line_col, linewidth = line_size
       ) +
       ggplot2::labs(title = y, x = "Time", y = "Amplitude") +
       ggplot2::theme(

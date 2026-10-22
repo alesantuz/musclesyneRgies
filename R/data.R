@@ -9,19 +9,19 @@
 #'   \item{`ID0012_TW_01`}{Object of class `EMG` containing the two following data frames:}
 #'   \item{`cycles`}{Gait cycle-timings, in seconds.}
 #'   \item{`emg`}{Raw EMG, first column is time in seconds, muscles named as:\cr\cr
-#'          ME=gluteus medius\cr
-#'          MA=gluteus maximus\cr
-#'          FL=tensor fasciae latae\cr
-#'          RF=rectus femoris\cr
-#'          VM=vastus medialis\cr
-#'          VL=vastus lateralis\cr
-#'          ST=semitendinosus\cr
-#'          BF=biceps femoris\cr
-#'          TA=tibialis anterior\cr
-#'          PL=peroneus longus\cr
-#'          GM=gastrocnemius medialis\cr
-#'          GL=gastrocnemius lateralis\cr
-#'          SO=soleus}
+#'          ME = gluteus medius\cr
+#'          MA = gluteus maximus\cr
+#'          FL = tensor fasciae latae\cr
+#'          RF = rectus femoris\cr
+#'          VM = vastus medialis\cr
+#'          VL = vastus lateralis\cr
+#'          ST = semitendinosus\cr
+#'          BF = biceps femoris\cr
+#'          TA = tibialis anterior\cr
+#'          PL = peroneus longus\cr
+#'          GM = gastrocnemius medialis\cr
+#'          GL = gastrocnemius lateralis\cr
+#'          SO = soleus}
 #' }
 #' @source \doi{10.1016/j.isci.2019.100796}
 "RAW_DATA"
@@ -80,7 +80,8 @@
 #'   `ID0014_TW_01`\cr
 #'   `ID0015_TW_01`\cr}{Objects of class `musclesyneRgies` containing the following items:}
 #'   \item{`syns`}{Factorisation rank or minimum number of synergies.}
-#'   \item{`M`}{Muscle weights (time-invariant coefficients)}
+#'   \item{`W`}{Muscle weights (time-invariant coefficients)}
+#'   \item{`M`}{Deprecated alias for `W`, retained for backward compatibility}
 #'   \item{`P`}{Activation patterns (time-dependent coefficients)}
 #'   \item{`V`}{Original data, muscles named as:\cr\cr
 #'          ME=gluteus medius\cr

@@ -11,12 +11,14 @@ plot_classified_syns(
   dot_size = 0.1,
   line_col = "black",
   sd_col = "grey80",
-  ylim_min_M = 0,
-  ylim_max_M = 1,
+  ylim_min_W = 0,
+  ylim_max_W = 1,
   ylim_min_P = -0.2,
   ylim_max_P = 1.2,
   condition = NA,
-  show_plot = TRUE
+  show_plot = TRUE,
+  ylim_min_M = lifecycle::deprecated(),
+  ylim_max_M = lifecycle::deprecated()
 )
 }
 \arguments{
@@ -32,9 +34,9 @@ plot_classified_syns(
 
 \item{sd_col}{Standard deviation ribbon colour (NA to remove ribbon)}
 
-\item{ylim_min_M}{y-axis lower limit for muscle weights}
+\item{ylim_min_W}{y-axis lower limit for muscle weights}
 
-\item{ylim_max_M}{y-axis upper limit for muscle weights}
+\item{ylim_max_W}{y-axis upper limit for muscle weights}
 
 \item{ylim_min_P}{y-axis lower limit for activation patterns}
 
@@ -43,6 +45,10 @@ plot_classified_syns(
 \item{condition}{Character: the condition that is being analysed, for archiving purposes}
 
 \item{show_plot}{Logical, to decide whether plots should be plotted in the active graphic device}
+
+\item{ylim_min_M}{Deprecated since 1.4.0; use \code{ylim_min_W} instead}
+
+\item{ylim_max_M}{Deprecated since 1.4.0; use \code{ylim_max_W} instead}
 }
 \value{
 Global plot containing the average classified muscle synergies and individual trials
