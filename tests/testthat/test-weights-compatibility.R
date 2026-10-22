@@ -41,3 +41,30 @@ testthat::test_that("Weight aliases remain synchronized", {
   testthat::expect_identical(y$W, W)
   testthat::expect_identical(y$M, W)
 })
+
+testthat::test_that("Legacy objects remain usable", {
+  data("SYNS")
+
+  old <- lapply(SYNS, function(x) {
+    x$W <- NULL
+    x
+  })
+
+  set.seed(123)
+  classified <- classify_kmeans(
+    old, clusters = 4, show_plot = FALSE
+  )
+
+  testthat::expect_true(all(vapply(
+    classified,
+    function(x) identical(x$W, x$M),
+    logical(1)
+  )))
+
+  testthat::expect_s3_class(
+    plot_classified_syns(
+      classified, show_plot = FALSE
+    ),
+    "gtable"
+  )
+})

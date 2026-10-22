@@ -22,8 +22,10 @@ commands to several muscles simultaneously. This idea can be modelled
 using linear decomposition algorithms such as NMF. The output consists
 of two sets: one of time-independent coefficients (also called muscle
 weights), and one of time-dependent coefficients (also called activation
-patterns). If you use this R package, please cite [Santuz,
-2022](https://joss.theoj.org/papers/10.21105/joss.04439).
+patterns). Accordingly, muscle synergies are represented by the
+factorization $V \approx WP$, where $W$ contains muscle weights and $P$
+contains activation patterns. If you use this R package, please cite
+[Santuz, 2022](https://joss.theoj.org/papers/10.21105/joss.04439).
 
 ## Installation
 
