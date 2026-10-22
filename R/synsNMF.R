@@ -11,7 +11,8 @@
 #'
 #' @details
 #' The first column of `V` must always contain time information.
-#' The factorization is `V ≈ WP`, where W are muscle weights and P activation patterns.
+#' The factorization is \eqn{V \approx WP}, where `W` contains muscle
+#' weights and `P` contains activation patterns.
 #'
 #' @return
 #' Object of class `musclesyneRgies` with elements:\cr

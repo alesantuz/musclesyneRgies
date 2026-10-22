@@ -50,7 +50,8 @@ Non-negative matrix factorisation
 }
 \details{
 The first column of \code{V} must always contain time information.
-The factorization is \verb{V ≈ WP}, where W are muscle weights and P activation patterns.
+The factorization is \eqn{V \approx WP}, where \code{W} contains muscle
+weights and \code{P} contains activation patterns.
 }
 \examples{
 # Note that for bigger data sets one might want to run computation in parallel
